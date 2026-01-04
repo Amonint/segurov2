@@ -1,0 +1,24 @@
+# Django
+Django==5.1.7
+
+# Database
+psycopg2-binary==2.9.11
+
+# Environment variables
+python-decouple==3.8
+
+# REST API
+djangorestframework==3.16.1
+
+# Forms
+django-crispy-forms==2.5
+crispy-bootstrap5==2025.6
+
+# Images
+Pillow==11.1.0
+
+# Optional: Development dependencies
+# django-debug-toolbar==4.2.0
+# coverage==7.4.0
+# black==23.12.1
+# flake8==7.0.0

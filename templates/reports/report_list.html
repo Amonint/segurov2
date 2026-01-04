@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text text-primary" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Reportes de Pólizas</h5>
+                <p class="card-text text-muted">Estadísticas y análisis de pólizas por compañía, estado y fechas.</p>
+                <a href="{% url 'reports:policies_report' %}" class="btn btn-primary">
+                    <i class="bi bi-eye"></i> Ver Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Reportes de Siniestros</h5>
+                <p class="card-text text-muted">Análisis de siniestros por estado, tipo y montos.</p>
+                <a href="{% url 'reports:claims_report' %}" class="btn btn-warning">
+                    <i class="bi bi-eye"></i> Ver Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-receipt text-success" style="font-size: 2rem;"></i>
+                <h5 class="card-title mt-3">Reportes Financieros</h5>
+                <p class="card-text text-muted">Análisis financiero con ingresos, pagos y proyecciones.</p>
+                <a href="{% url 'reports:financial_report' %}" class="btn btn-success">
+                    <i class="bi bi-eye"></i> Ver Reporte
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Información sobre Reportes
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-lightbulb"></i> Funcionalidades de Reportes</h6>
+                    <ul class="mb-0">
+                        <li><strong>Reportes de Pólizas:</strong> Análisis por compañía aseguradora, estado de vigencia y valores asegurados</li>
+                        <li><strong>Reportes de Siniestros:</strong> Estadísticas por tipo de siniestro, montos y tiempos de resolución</li>
+                        <li><strong>Reportes Financieros:</strong> Ingresos, pagos pendientes y análisis de tendencias</li>
+                        <li><strong>Exportación:</strong> Próximamente disponible para Excel y PDF</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
