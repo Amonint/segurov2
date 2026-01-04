@@ -66,12 +66,18 @@ def asset_list(request):
         total=Sum('current_value')
     )['total'] or 0
 
+    # Calculate coverage percentage
+    coverage_percentage = 0
+    if total_assets > 0:
+        coverage_percentage = (insured_assets / total_assets) * 100
+
     context = {
         'page_obj': page_obj,
         'search_form': search_form,
         'total_assets': total_assets,
         'insured_assets': insured_assets,
         'total_value': total_value,
+        'coverage_percentage': coverage_percentage,
     }
 
     return render(request, 'assets/asset_list.html', context)

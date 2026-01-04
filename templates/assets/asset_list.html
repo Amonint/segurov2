@@ -52,7 +52,7 @@
         <div class="card bg-warning text-white">
             <div class="card-body text-center">
                 <i class="bi bi-percent fa-2x mb-2"></i>
-                <h4>{% if total_assets %}{{ insured_assets|div:total_assets|mul:100|floatformat:1 }}{% else %}0{% endif %}%</h4>
+                <h4>{{ coverage_percentage|floatformat:1 }}%</h4>
                 <p class="mb-0">Cobertura</p>
             </div>
         </div>
@@ -156,7 +156,13 @@
                                     {% endif %}
                                 </td>
                                 {% if request.user.role != 'requester' %}
-                                <td>{{ asset.custodian.get_full_name if asset.custodian else 'No asignado' }}</td>
+                                <td>
+                                    {% if asset.custodian %}
+                                        {{ asset.custodian.get_full_name }}
+                                    {% else %}
+                                        No asignado
+                                    {% endif %}
+                                </td>
                                 {% endif %}
                                 <td>
                                     <span class="badge bg-{% if asset.condition_status == 'excelente' %}success{% elif asset.condition_status == 'bueno' %}primary{% elif asset.condition_status == 'regular' %}warning{% else %}danger{% endif %}">

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}Compañías Aseguradoras - Sistema de Seguros UTPL{% endblock %}
 
@@ -52,7 +53,7 @@
         <div class="card bg-secondary text-white">
             <div class="card-body text-center">
                 <i class="bi bi-graph-up fa-2x mb-2"></i>
-                <h4>{{ total_companies|div:active_companies|mul:100|floatformat:1 }}%</h4>
+                <h4>{{ total_companies|divide:active_companies|mul:100|floatformat:1 }}%</h4>
                 <p class="mb-0">Tasa Actividad</p>
             </div>
         </div>

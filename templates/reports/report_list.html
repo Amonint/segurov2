@@ -114,7 +114,13 @@
                                 <td>
                                     <span class="badge bg-secondary">{{ report.get_report_type_display }}</span>
                                 </td>
-                                <td>{{ report.created_by.get_full_name if report.created_by else 'Sistema' }}</td>
+                                <td>
+                                    {% if report.created_by %}
+                                        {{ report.created_by.get_full_name }}
+                                    {% else %}
+                                        Sistema
+                                    {% endif %}
+                                </td>
                                 <td>
                                     {% if report.is_scheduled %}
                                     <span class="badge bg-success">{{ report.get_schedule_frequency_display }}</span>

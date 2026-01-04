@@ -78,11 +78,11 @@ def dashboard_view(request):
     if user.role == 'admin':
         context.update(get_admin_dashboard_data())
     elif user.role == 'insurance_manager':
-        context.update(get_manager_dashboard_data())
+        context.update(get_manager_dashboard_data(user))
     elif user.role == 'financial_analyst':
         context.update(get_analyst_dashboard_data())
     elif user.role == 'consultant':
-        context.update(get_consultant_dashboard_data())
+        context.update(get_consultant_dashboard_data(user))
     elif user.role == 'requester':
         context.update(get_requester_dashboard_data(user))
 
@@ -129,11 +129,10 @@ def get_admin_dashboard_data():
     }
 
 
-def get_manager_dashboard_data():
+def get_manager_dashboard_data(user):
     """
     Get dashboard data for insurance manager role
     """
-    user = request.user
     today = datetime.date.today()
 
     return {
@@ -170,13 +169,13 @@ def get_analyst_dashboard_data():
     }
 
 
-def get_consultant_dashboard_data():
+def get_consultant_dashboard_data(user):
     """
     Get dashboard data for consultant role
     """
     return {
         'total_claims': Claim.objects.count(),
-        'my_claims': Claim.objects.filter(assigned_to=request.user).count(),
+        'my_claims': Claim.objects.filter(assigned_to=user).count(),
         'pending_claims': Claim.objects.filter(status__in=['reported', 'documentation_pending']).count(),
     }
 
@@ -570,23 +569,4 @@ def profile_view(request):
 
     return render(request, 'accounts/profile.html', {
         'user': user,
-    })
-
-
-@login_required
-def profile_view(request):
-    """
-    User profile view
-    """
-    if request.method == 'POST':
-        # Handle profile update
-        user = request.user
-        user.full_name = request.POST.get('full_name', user.full_name)
-        user.phone = request.POST.get('phone', user.phone)
-        user.save()
-        messages.success(request, _('Perfil actualizado exitosamente.'))
-        return redirect('profile')
-
-    return render(request, 'accounts/profile.html', {
-        'user': request.user,
     })

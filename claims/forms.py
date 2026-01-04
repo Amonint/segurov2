@@ -1,6 +1,40 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from .models import ClaimSettlement
+from .models import Claim, ClaimSettlement
+
+
+class ClaimCreateForm(forms.ModelForm):
+    """Form for creating new claims"""
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # Filter policies based on user permissions
+        if user:
+            # If user is requester, only show policies where they are the custodian
+            if user.role == 'requester':
+                from assets.models import Asset
+                user_asset_codes = Asset.objects.filter(custodian=user).values_list('asset_code', flat=True)
+                self.fields['asset_code'].queryset = self.fields['asset_code'].queryset.filter(asset_code__in=user_asset_codes)
+
+    class Meta:
+        model = Claim
+        fields = [
+            'policy', 'asset_code', 'asset_type', 'asset_description',
+            'incident_date', 'incident_location', 'incident_description',
+            'estimated_loss', 'assigned_to'
+        ]
+        widgets = {
+            'incident_date': forms.DateInput(attrs={'type': 'date'}),
+            'incident_description': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def clean_incident_date(self):
+        incident_date = self.cleaned_data.get('incident_date')
+        if incident_date and incident_date > timezone.now().date():
+            raise forms.ValidationError(_('La fecha del incidente no puede ser futura.'))
+        return incident_date
 
 
 class ClaimSettlementForm(forms.ModelForm):
@@ -105,46 +139,67 @@ class ClaimEditForm(forms.ModelForm):
 
 
 class ClaimStatusChangeForm(forms.Form):
-    """
-    Form for changing claim status
-    """
-    new_status = forms.ChoiceField(
-        choices=Claim.STATUS_CHOICES,
-        label=_('Nuevo Estado'),
-        help_text=_('Seleccione el nuevo estado del siniestro')
-    )
-    notes = forms.CharField(
-        required=False,
-        widget=forms.Textarea(attrs={'rows': 3}),
-        label=_('Notas'),
-        help_text=_('Notas adicionales sobre el cambio de estado (opcional)')
-    )
+    """Form for changing claim status with workflow validation"""
 
     def __init__(self, *args, **kwargs):
-        from .models import Claim
-        self.claim = kwargs.pop('claim', None)
-        self.user = kwargs.pop('user', None)
+        claim = kwargs.pop('claim', None)
+        user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Filter available statuses based on current status and user permissions
-        if self.claim and self.user:
-            current_status = self.claim.status
+        if claim:
+            # Get available status transitions based on current status and user permissions
             available_statuses = []
+            current_status = claim.status
 
-            for status_choice in Claim.STATUS_CHOICES:
-                status_value = status_choice[0]
-                if status_value != current_status and self.claim.can_change_status(status_value, self.user):
-                    available_statuses.append(status_choice)
+            # Define status transitions based on workflow
+            transitions = {
+                'reported': ['documentation_pending'],
+                'documentation_pending': ['sent_to_insurer', 'under_evaluation'],
+                'sent_to_insurer': ['under_evaluation'],
+                'under_evaluation': ['liquidated', 'rejected'],
+                'liquidated': ['paid'],
+                'paid': ['closed'],
+                'rejected': ['closed'],
+            }
 
-            self.fields['new_status'].choices = available_statuses
+            if current_status in transitions:
+                available_statuses = transitions[current_status]
+
+                # Add current status as option to stay
+                available_statuses.insert(0, current_status)
+
+            # Filter by user permissions
+            if user and hasattr(user, 'get_role_permissions'):
+                user_permissions = user.get_role_permissions()
+                # Only allow certain roles to change status
+                if 'claims_write' not in user_permissions and 'claims_manage' not in user_permissions:
+                    available_statuses = [current_status]  # Can only stay in current status
+
+            self.fields['new_status'].choices = [
+                (status, dict(Claim.STATUS_CHOICES)[status]) for status in available_statuses
+            ]
+
+    new_status = forms.ChoiceField(
+        label=_('Nuevo Estado'),
+        choices=[],  # Will be populated in __init__
+        required=True
+    )
+
+    notes = forms.CharField(
+        label=_('Notas'),
+        widget=forms.Textarea(attrs={'rows': 3}),
+        required=False,
+        help_text=_('Opcional: Agregue notas sobre el cambio de estado.')
+    )
 
     def clean_new_status(self):
-        from .models import Claim
         new_status = self.cleaned_data.get('new_status')
-        if self.claim and self.user and not self.claim.can_change_status(new_status, self.user):
-            raise forms.ValidationError(_('No tienes permisos para cambiar el estado a %(status)s') % {'status': new_status})
-        return new_status
+        claim = getattr(self, 'claim', None)
 
+        if claim and new_status == claim.status:
+            raise forms.ValidationError(_('El nuevo estado debe ser diferente al estado actual.'))
+
+        return new_status
 
 class ClaimSearchForm(forms.Form):
     """
@@ -153,7 +208,7 @@ class ClaimSearchForm(forms.Form):
     search = forms.CharField(
         required=False,
         label=_('Buscar'),
-        widget=forms.TextInput(attrs={'placeholder': _('Número, descripción, póliza...'})')
+        widget=forms.TextInput(attrs={'placeholder': _('Número, descripción, póliza...')})
     )
     status = forms.ChoiceField(
         required=False,
