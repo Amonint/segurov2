@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-percent"></i>
+                {{ title }}
+            </h1>
+            <a href="{% url 'companies:retention_types_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Configuración de Tipo de Retención
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Name and Code -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id_for_label }}" class="form-label">
+                                {{ form.name.label }} *
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.code.id_for_label }}" class="form-label">
+                                {{ form.code.label }} *
+                            </label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.code.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Type and Percentage -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.retention_type.id_for_label }}" class="form-label">
+                                {{ form.retention_type.label }} *
+                            </label>
+                            {{ form.retention_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.percentage.id_for_label }}" class="form-label">
+                                {{ form.percentage.label }} *
+                            </label>
+                            <div class="input-group">
+                                {{ form.percentage }}
+                                <span class="input-group-text">%</span>
+                            </div>
+                            {% if form.percentage.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.percentage.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            {{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                    </div>
+
+                    <!-- Active Status -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                            <div class="form-text">Solo los tipos activos pueden ser asignados a pólizas</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'companies:retention_types_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Panel -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Tipos de Retención
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>Tipos Comunes</h6>
+                <ul class="small mb-3">
+                    <li><strong>IVA:</strong> Impuesto al Valor Agregado (15%)</li>
+                    <li><strong>ISLR:</strong> Impuesto sobre la Renta</li>
+                    <li><strong>FONACIDE:</strong> Fondo Nacional de Caminos</li>
+                    <li><strong>Otros:</strong> Retenciones personalizadas</li>
+                </ul>
+
+                <h6>Cómo Funciona</h6>
+                <p class="small text-muted mb-3">
+                    Las retenciones se aplican automáticamente en las facturas
+                    según la configuración de cada póliza.
+                </p>
+
+                <h6>Ejemplo</h6>
+                <div class="bg-light p-3 rounded small">
+                    <strong>Póliza con retención IVA 15%:</strong><br>
+                    Prima: $1,000<br>
+                    IVA retenido: $150<br>
+                    <strong>Total a pagar: $850</strong>
+                </div>
+
+                {% if retention_type %}
+                <div class="alert alert-warning small mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Advertencia:</strong> Modificar el porcentaje puede afectar
+                    cálculos de facturas existentes.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Derecho de Emisión{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Confirmar Eliminación
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-cash-coin text-danger fs-1"></i>
+                    <h5 class="mt-3">¿Eliminar este derecho de emisión?</h5>
+                </div>
+
+                <div class="alert alert-warning">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Información del derecho de emisión:</h6>
+                    <ul class="mb-0">
+                        <li><strong>Rango:</strong> ${{ emission_right.min_amount|floatformat:2 }} - ${{ emission_right.max_amount|floatformat:2 }}</li>
+                        <li><strong>Derecho:</strong> ${{ emission_right.emission_right|floatformat:2 }}</li>
+                        <li><strong>Vigencia:</strong> {{ emission_right.valid_from|date:"d/m/Y" }}
+                            {% if emission_right.valid_until %} - {{ emission_right.valid_until|date:"d/m/Y" }}{% endif %}</li>
+                        <li><strong>Estado:</strong> {% if emission_right.is_active %}Activo{% else %}Inactivo{% endif %}</li>
+                    </ul>
+                </div>
+
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <strong>Advertencia:</strong> Esta acción no se puede deshacer.
+                    Si eliminas este derecho de emisión, podría afectar cálculos futuros de facturas.
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'companies:emission_rights_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Eliminar Definitivamente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+</style>
+
+{% endblock %}

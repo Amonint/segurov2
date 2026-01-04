@@ -128,6 +128,25 @@ class UserProfile(AbstractUser):
         if self.role not in dict(self.ROLE_CHOICES):
             raise ValidationError(_('Rol inválido seleccionado'))
 
+    def generate_reset_token(self):
+        """
+        Generate a password reset token
+        """
+        import secrets
+        import string
+        alphabet = string.ascii_letters + string.digits
+        token = ''.join(secrets.choice(alphabet) for i in range(32))
+        # In a real implementation, you'd store this token with an expiry
+        # For now, we'll just return it
+        return token
+
+    def soft_delete(self):
+        """
+        Soft delete the user by deactivating
+        """
+        self.is_active = False
+        self.save()
+
     def save(self, *args, **kwargs):
         """
         Override save to perform additional validation

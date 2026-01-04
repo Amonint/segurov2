@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Logs de Email - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-envelope-check"></i> Logs de Email
+            </h1>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    {% for stat in stats %}
+    <div class="col-md-3 mb-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-4
+                    {% if stat.status == 'simulated' %}text-success
+                    {% elif stat.status == 'sent' %}text-primary
+                    {% elif stat.status == 'failed' %}text-danger
+                    {% else %}text-warning
+                    {% endif %}">
+                    {{ stat.count }}
+                </div>
+                <h6 class="card-title text-capitalize">{{ stat.status }}</h6>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">Estado</label>
+                        <select class="form-control" id="status" name="status">
+                            <option value="">Todos</option>
+                            <option value="simulated" {% if status_filter == 'simulated' %}selected{% endif %}>Simulados</option>
+                            <option value="sent" {% if status_filter == 'sent' %}selected{% endif %}>Enviados</option>
+                            <option value="failed" {% if status_filter == 'failed' %}selected{% endif %}>Fallidos</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pendientes</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="template_type" class="form-label">Tipo de Plantilla</label>
+                        <select class="form-control" id="template_type" name="template_type">
+                            <option value="">Todos</option>
+                            <option value="claim_reported" {% if template_type_filter == 'claim_reported' %}selected{% endif %}>Siniestro Reportado</option>
+                            <option value="policy_expiring" {% if template_type_filter == 'policy_expiring' %}selected{% endif %}>Póliza por Vencer</option>
+                            <option value="payment_due" {% if template_type_filter == 'payment_due' %}selected{% endif %}>Pago Pendiente</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="search" name="search"
+                               value="{{ search }}" placeholder="Email, asunto o destinatario...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Logs Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Historial de Emails Enviados</h5>
+            </div>
+            <div class="card-body">
+                {% if logs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Destinatario</th>
+                                <th>Asunto</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>
+                                    <small>{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                                </td>
+                                <td>
+                                    <strong>{{ log.recipient_name|default:log.recipient_email }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ log.recipient_email }}</small>
+                                </td>
+                                <td>
+                                    <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
+                                        {{ log.subject }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <small>{{ log.template.get_template_type_display }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if log.status == 'simulated' %}bg-success
+                                        {% elif log.status == 'sent' %}bg-primary
+                                        {% elif log.status == 'failed' %}bg-danger
+                                        {% else %}bg-warning
+                                        {% endif %}">
+                                        {{ log.get_status_display }}
+                                    </span>
+                                    {% if log.error_message %}
+                                    <i class="bi bi-exclamation-triangle text-danger" title="{{ log.error_message }}"></i>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'notifications:email_logs_detail' log.pk %}"
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-envelope-x fs-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay registros de email</h5>
+                    <p class="text-muted">Los emails enviados aparecerán aquí automáticamente.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

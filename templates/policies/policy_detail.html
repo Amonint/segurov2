@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ policy.policy_number }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_list' %}">Pólizas</a></li>
+                <li class="breadcrumb-item active">{{ policy.policy_number }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Policy Information -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i> Póliza {{ policy.policy_number }}
+                </h5>
+                <span class="badge bg-{% if policy.status == 'active' %}success{% elif policy.status == 'expired' %}danger{% elif policy.status == 'cancelled' %}secondary{% else %}warning{% endif %} fs-6">
+                    {{ policy.get_status_display }}
+                </span>
+            </div>
+            <div class="card-body">
+                <!-- Basic Information -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Información Básica</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted" width="40%">Número:</td>
+                                <td><strong>{{ policy.policy_number }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Compañía:</td>
+                                <td>{{ policy.insurance_company.name }}</td>
+                            </tr>
+                            {% if policy.broker %}
+                            <tr>
+                                <td class="text-muted">Corredor:</td>
+                                <td>{{ policy.broker.name }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="text-muted">Tipo de Grupo:</td>
+                                <td>{{ policy.get_group_type_display }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Subgrupo:</td>
+                                <td>{{ policy.subgroup }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Rama:</td>
+                                <td>{{ policy.branch }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">Fechas y Valores</h6>
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td class="text-muted" width="40%">Fecha de Inicio:</td>
+                                <td>{{ policy.start_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Fecha de Fin:</td>
+                                <td>
+                                    {{ policy.end_date|date:"d/m/Y" }}
+                                    {% if is_expiring_soon %}
+                                    <br><small class="text-warning"><i class="bi bi-exclamation-triangle"></i> Vence pronto</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if policy.issue_date %}
+                            <tr>
+                                <td class="text-muted">Fecha de Emisión:</td>
+                                <td>{{ policy.issue_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td class="text-muted">Valor Asegurado:</td>
+                                <td><strong>${{ policy.insured_value|floatformat:2 }}</strong></td>
+                            </tr>
+                            {% if policy.responsible_user %}
+                            <tr>
+                                <td class="text-muted">Responsable:</td>
+                                <td>{{ policy.responsible_user.get_full_name }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Coverage Description -->
+                {% if policy.coverage_description %}
+                <hr>
+                <h6 class="text-muted">Descripción de Cobertura</h6>
+                <p class="mb-0">{{ policy.coverage_description }}</p>
+                {% endif %}
+
+                <!-- Observations -->
+                {% if policy.observations %}
+                <hr>
+                <h6 class="text-muted">Observaciones</h6>
+                <p class="mb-0">{{ policy.observations }}</p>
+                {% endif %}
+
+                <!-- Timestamps -->
+                <hr>
+                <div class="row text-muted small">
+                    <div class="col-md-6">
+                        Creado: {{ policy.created_at|date:"d/m/Y H:i" }}
+                    </div>
+                    <div class="col-md-6">
+                        Actualizado: {{ policy.updated_at|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+            </div>
+            {% if perms.policies.policies_write %}
+            <div class="card-footer">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'policies:policy_edit' policy.pk %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    {% if policy.status == 'active' %}
+                    <a href="{% url 'policies:policy_renew' policy.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-arrow-repeat"></i> Renovar
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'policies:policy_documents' policy.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-paperclip"></i> Documentos ({{ documents|length }})
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Related Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Información Relacionada</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Claims -->
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h4 class="text-primary">{{ policy.claims.count }}</h4>
+                            <p class="text-muted mb-0">Siniestros</p>
+                            {% if policy.claims.exists %}
+                            <a href="#" class="btn btn-sm btn-outline-primary mt-2">Ver siniestros</a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Invoices -->
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h4 class="text-success">{{ policy.invoices.count }}</h4>
+                            <p class="text-muted mb-0">Facturas</p>
+                            {% if policy.invoices.exists %}
+                            <a href="#" class="btn btn-sm btn-outline-success mt-2">Ver facturas</a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Assets -->
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h4 class="text-info">{{ policy.insured_assets.count }}</h4>
+                            <p class="text-muted mb-0">Bienes Asegurados</p>
+                            {% if policy.insured_assets.exists %}
+                            <a href="#" class="btn btn-sm btn-outline-info mt-2">Ver bienes</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        {% if perms.policies.policies_write %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-gear"></i> Acciones Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if policy.status == 'active' %}
+                    <a href="{% url 'policies:policy_renew' policy.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-arrow-repeat"></i> Renovar Póliza
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'policies:policy_documents' policy.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-paperclip"></i> Gestionar Documentos
+                    </a>
+                    <a href="{% url 'policies:policy_edit' policy.pk %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-pencil"></i> Editar Póliza
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Policy Status -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-flag"></i> Estado de la Póliza</h6>
+            </div>
+            <div class="card-body">
+                {% if policy.status == 'active' %}
+                {% if is_expiring_soon %}
+                <div class="alert alert-warning py-2">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Atención:</strong> Esta póliza vence en menos de 30 días
+                </div>
+                {% endif %}
+                <div class="text-success">
+                    <i class="bi bi-check-circle-fill"></i> Póliza activa y vigente
+                </div>
+                {% elif policy.status == 'expired' %}
+                <div class="text-danger">
+                    <i class="bi bi-x-circle-fill"></i> Póliza vencida
+                </div>
+                {% elif policy.status == 'cancelled' %}
+                <div class="text-secondary">
+                    <i class="bi bi-dash-circle-fill"></i> Póliza cancelada
+                </div>
+                {% elif policy.status == 'renewed' %}
+                <div class="text-info">
+                    <i class="bi bi-arrow-repeat"></i> Póliza renovada
+                </div>
+                {% endif %}
+
+                <!-- Validity period -->
+                <hr class="my-2">
+                <small class="text-muted">
+                    Vigencia: {{ policy.start_date|date:"d/m/Y" }} - {{ policy.end_date|date:"d/m/Y" }}
+                </small>
+            </div>
+        </div>
+
+        <!-- Recent Documents -->
+        {% if documents %}
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-paperclip"></i> Documentos Recientes</h6>
+            </div>
+            <div class="card-body">
+                {% for document in documents|slice:":3" %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <small class="fw-bold">{{ document.document_name }}</small>
+                        <br>
+                        <small class="text-muted">{{ document.uploaded_at|date:"d/m/Y" }}</small>
+                    </div>
+                    <a href="{% url 'policies:policy_document_download' document.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+                {% endfor %}
+                {% if documents|length > 3 %}
+                <a href="{% url 'policies:policy_documents' policy.pk %}" class="btn btn-sm btn-outline-secondary w-100 mt-2">
+                    Ver todos los documentos
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

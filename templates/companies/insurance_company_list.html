@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Compañías Aseguradoras - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="bi bi-building"></i> Compañías Aseguradoras
+            </h1>
+            {% if perms.companies.insurance_companies_create %}
+            <a href="{% url 'companies:insurance_company_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Crear Compañía
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-building fa-2x mb-2"></i>
+                <h4>{{ total_companies }}</h4>
+                <p class="mb-0">Total Compañías</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fa-2x mb-2"></i>
+                <h4>{{ active_companies }}</h4>
+                <p class="mb-0">Compañías Activas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text fa-2x mb-2"></i>
+                <h4>{{ companies_with_policies }}</h4>
+                <p class="mb-0">Con Pólizas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up fa-2x mb-2"></i>
+                <h4>{{ total_companies|div:active_companies|mul:100|floatformat:1 }}%</h4>
+                <p class="mb-0">Tasa Actividad</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Buscar y Filtrar</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        {{ search_form.search }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ search_form.is_active }}
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                </form>
+                {% if request.GET %}
+                <div class="mt-2">
+                    <a href="{% url 'companies:insurance_company_list' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Limpiar filtros
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Companies Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Compañías Aseguradoras</h5>
+                <small class="text-muted">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</small>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Compañía</th>
+                                <th>RUC</th>
+                                <th>Contacto</th>
+                                <th>Pólizas</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for company in page_obj %}
+                            <tr>
+                                <td>
+                                    <strong>{{ company.name }}</strong>
+                                    {% if company.email %}
+                                    <br><small class="text-muted">{{ company.email }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ company.ruc }}</td>
+                                <td>
+                                    {% if company.contact_person %}
+                                        {{ company.contact_person }}
+                                        {% if company.phone %}
+                                        <br><small class="text-muted">{{ company.phone }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <em class="text-muted">No especificado</em>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ company.policies.count }}</span>
+                                </td>
+                                <td>
+                                    {% if company.is_active %}
+                                        <span class="badge bg-success">Activa</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactiva</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'companies:insurance_company_detail' company.pk %}" class="btn btn-sm btn-outline-info" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if perms.companies.insurance_companies_write %}
+                                        <a href="{% url 'companies:insurance_company_edit' company.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if perms.companies.insurance_companies_manage %}
+                                        {% if company.is_active %}
+                                        <a href="{% url 'companies:insurance_company_toggle_active' company.pk %}" class="btn btn-sm btn-outline-danger" title="Desactivar" onclick="return confirm('¿Estás seguro de que deseas desactivar esta compañía?')">
+                                            <i class="bi bi-toggle-off"></i>
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'companies:insurance_company_toggle_active' company.pk %}" class="btn btn-sm btn-outline-success" title="Activar">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Companies pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Anterior
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Anterior</span>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                                Siguiente
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-building display-4 text-muted"></i>
+                    <h5 class="mt-3">No se encontraron compañías</h5>
+                    <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+                    {% if perms.companies.insurance_companies_create %}
+                    <a href="{% url 'companies:insurance_company_create' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Crear Primera Compañía
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

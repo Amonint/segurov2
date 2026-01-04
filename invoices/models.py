@@ -161,13 +161,49 @@ class Invoice(models.Model):
         else:
             self.early_payment_discount = 0
 
-        # 8. Total final = base imponible + IVA - descuentos - retenciones
+        # 8. Calcular retenciones de la póliza
+        self.calculate_withholding_tax()
+
+        # 9. Total final = base imponible + IVA - descuentos - retenciones
         self.total_amount = (
             self.tax_base +
             self.iva -
             self.early_payment_discount -
             self.withholding_tax
         )
+
+    def calculate_withholding_tax(self):
+        """
+        Calculate withholding tax based on policy retentions
+        """
+        from companies.models import PolicyRetention
+
+        # Get active retentions for this policy
+        retentions = PolicyRetention.objects.filter(
+            policy=self.policy,
+            is_active=True
+        )
+
+        total_withholding = Decimal('0.00')
+
+        for retention in retentions:
+            if retention.applies_to_premium:
+                # Apply retention to premium
+                amount = self.premium * (retention.effective_percentage / 100)
+                total_withholding += amount
+
+            if retention.applies_to_total:
+                # Apply retention to total amount before tax
+                base_for_retention = (
+                    self.premium +
+                    self.superintendence_contribution +
+                    self.farm_insurance_contribution +
+                    self.emission_rights
+                )
+                amount = base_for_retention * (retention.effective_percentage / 100)
+                total_withholding += amount
+
+        self.withholding_tax = total_withholding
 
     def apply_early_payment_discount(self):
         """

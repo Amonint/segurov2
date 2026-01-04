@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Documentos - {{ policy.policy_number }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_list' %}">Pólizas</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_detail' policy.pk %}">{{ policy.policy_number }}</a></li>
+                <li class="breadcrumb-item active">Documentos</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-0">
+                    <i class="bi bi-paperclip"></i> Documentos de Póliza
+                </h1>
+                <p class="text-muted mb-0">{{ policy.policy_number }} - {{ policy.insurance_company.name }}</p>
+            </div>
+            {% if perms.policies.policies_write %}
+            <a href="{% url 'policies:policy_document_upload' policy.pk %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Subir Documento
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Document Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text fa-2x mb-2"></i>
+                <h4>{{ documents|length }}</h4>
+                <p class="mb-0">Documentos Totales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-pdf fa-2x mb-2"></i>
+                <h4>{{ documents|length }}</h4>
+                <p class="mb-0">Versiones Más Recientes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-hdd fa-2x mb-2"></i>
+                <h4>{% widthratio documents|length 1 1024 %} MB</h4>
+                <p class="mb-0">Espacio Usado</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-tags fa-2x mb-2"></i>
+                <h4>{{ documents|length }}</h4>
+                <p class="mb-0">Tipos Diferentes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Documents List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Documentos</h5>
+            </div>
+            <div class="card-body">
+                {% if documents %}
+                <div class="row">
+                    {% for document in documents %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100 border-left-primary">
+                            <div class="card-body">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-3">
+                                        <i class="bi {{ document.get_file_icon }} fa-2x text-primary"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="card-title mb-1">
+                                            {{ document.document_name }}
+                                            {% if document.version > 1 %}
+                                            <small class="text-muted">v{{ document.version }}</small>
+                                            {% endif %}
+                                        </h6>
+                                        <p class="card-text small text-muted mb-2">
+                                            {{ document.get_document_type_display }} • {{ document.formatted_file_size }}
+                                        </p>
+                                        {% if document.description %}
+                                        <p class="card-text small mb-2">{{ document.description|truncatechars:80 }}</p>
+                                        {% endif %}
+                                        {% if document.tags %}
+                                        <div class="mb-2">
+                                            {% for tag in document.tags|split:"," %}
+                                            <span class="badge bg-light text-dark me-1">{{ tag|strip }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <small class="text-muted">
+                                            Subido por {{ document.uploaded_by.get_full_name }}<br>
+                                            {{ document.uploaded_at|date:"d/m/Y H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="btn-group w-100" role="group">
+                                    {% if document.can_view_inline %}
+                                    <a href="{% url 'policies:policy_document_view' document.pk %}" class="btn btn-sm btn-outline-info" title="Ver">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    {% endif %}
+                                    <a href="{% url 'policies:policy_document_download' document.pk %}" class="btn btn-sm btn-outline-primary" title="Descargar">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Más opciones">
+                                            <i class="bi bi-three-dots"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            {% if perms.policies.policies_write %}
+                                            <li><a class="dropdown-item" href="{% url 'policies:policy_document_edit' document.pk %}">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a></li>
+                                            <li><a class="dropdown-item" href="{% url 'policies:policy_document_new_version' document.pk %}">
+                                                <i class="bi bi-arrow-repeat"></i> Nueva Versión
+                                            </a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            {% endif %}
+                                            <li><a class="dropdown-item" href="{% url 'policies:policy_document_versions' document.pk %}">
+                                                <i class="bi bi-clock-history"></i> Ver Versiones
+                                            </a></li>
+                                            {% if perms.policies.policies_write %}
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item text-danger" href="{% url 'policies:policy_document_delete' document.pk %}" onclick="return confirm('¿Estás seguro de que deseas eliminar este documento?')">
+                                                <i class="bi bi-trash"></i> Eliminar
+                                            </a></li>
+                                            {% endif %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-paperclip display-4 text-muted"></i>
+                    <h5 class="mt-3">No hay documentos</h5>
+                    <p class="text-muted">Esta póliza aún no tiene documentos asociados</p>
+                    {% if perms.policies.policies_write %}
+                    <a href="{% url 'policies:policy_document_upload' policy.pk %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Subir Primer Documento
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Upload Modal (for future enhancement) -->
+{% if perms.policies.policies_write %}
+<div class="modal fade" id="quickUploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Subida Rápida de Documento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickUploadForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Archivo</label>
+                        <input type="file" class="form-control" name="file" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Documento</label>
+                        <select class="form-select" name="document_type" required>
+                            <option value="">Seleccionar tipo...</option>
+                            {% for doc_type, display_name in available_types %}
+                            <option value="{{ doc_type }}">{{ display_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="quickUploadBtn">Subir Documento</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.border-left-primary {
+    border-left: 4px solid #007bff !important;
+}
+</style>
+{% endblock %}

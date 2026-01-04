@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Finiquitos de Siniestros - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-file-earmark-check"></i> Finiquitos de Siniestros
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Finiquitos Registrados</h5>
+            </div>
+            <div class="card-body">
+                {% if settlements %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>N° Finiquito</th>
+                                <th>Siniestro</th>
+                                <th>Póliza</th>
+                                <th>Valor Final</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for settlement in settlements %}
+                            <tr>
+                                <td>
+                                    <strong>{{ settlement.settlement_number }}</strong>
+                                </td>
+                                <td>
+                                    <a href="{% url 'claims:claim_detail' settlement.claim.pk %}">
+                                        {{ settlement.claim.claim_number }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if settlement.claim.policy %}
+                                    <a href="{% url 'policies:policy_detail' settlement.claim.policy.pk %}">
+                                        {{ settlement.claim.policy.policy_number }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">Sin póliza</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong class="text-success">${{ settlement.final_payment_amount|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge
+                                        {% if settlement.status == 'draft' %}bg-secondary
+                                        {% elif settlement.status == 'pending_approval' %}bg-warning
+                                        {% elif settlement.status == 'approved' %}bg-info
+                                        {% elif settlement.status == 'signed' %}bg-primary
+                                        {% elif settlement.status == 'paid' %}bg-success
+                                        {% elif settlement.status == 'rejected' %}bg-danger
+                                        {% endif %}">
+                                        {{ settlement.get_status_display }}
+                                    </span>
+                                    {% if settlement.is_overdue_for_payment %}
+                                    <br><small class="text-danger">Vencido para pago</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ settlement.settlement_date|date:"d/m/Y" }}</small>
+                                </td>
+                                <td>
+                                    {% if 'claims_write' in user_permissions %}
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'claims:claim_settlement_detail' settlement.pk %}"
+                                           class="btn btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'claims:claim_settlement_edit' settlement.pk %}"
+                                           class="btn btn-outline-secondary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-file-earmark-check fs-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay finiquitos registrados</h5>
+                    <p class="text-muted">Los finiquitos aparecerán aquí cuando sean creados para los siniestros.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

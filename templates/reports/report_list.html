@@ -1,75 +1,242 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Reportes - Sistema de Seguros UTPL{% endblock %}
+{% block title %}Sistema de Reportes - Sistema de Seguros UTPL{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1 class="mb-4">
-            <i class="bi bi-graph-up"></i> Reportes y Estadísticas
-        </h1>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="bi bi-graph-up"></i> Sistema de Reportes
+            </h1>
+            <div>
+                <a href="{% url 'reports:dashboard_reports' %}" class="btn btn-info me-2">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+                <a href="{% url 'reports:quick_report' %}" class="btn btn-success me-2">
+                    <i class="bi bi-lightning"></i> Reporte Rápido
+                </a>
+                {% if perms.reports.reports_create %}
+                <a href="{% url 'reports:report_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Crear Reporte
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
+<!-- Quick Access Cards -->
+<div class="row mb-4">
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 border-primary">
             <div class="card-body text-center">
                 <i class="bi bi-file-earmark-text text-primary" style="font-size: 2rem;"></i>
-                <h5 class="card-title mt-3">Reportes de Pólizas</h5>
-                <p class="card-text text-muted">Estadísticas y análisis de pólizas por compañía, estado y fechas.</p>
-                <a href="{% url 'reports:policies_report' %}" class="btn btn-primary">
-                    <i class="bi bi-eye"></i> Ver Reporte
+                <h6 class="card-title mt-2">Resumen de Pólizas</h6>
+                <a href="{% url 'reports:quick_report' %}?report_type=policies_summary" class="btn btn-outline-primary btn-sm">
+                    Generar
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 border-warning">
             <div class="card-body text-center">
                 <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
-                <h5 class="card-title mt-3">Reportes de Siniestros</h5>
-                <p class="card-text text-muted">Análisis de siniestros por estado, tipo y montos.</p>
-                <a href="{% url 'reports:claims_report' %}" class="btn btn-warning">
-                    <i class="bi bi-eye"></i> Ver Reporte
+                <h6 class="card-title mt-2">Pólizas por Vencer</h6>
+                <a href="{% url 'reports:quick_report' %}?report_type=policies_expiring" class="btn btn-outline-warning btn-sm">
+                    Generar
                 </a>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 border-info">
             <div class="card-body text-center">
-                <i class="bi bi-receipt text-success" style="font-size: 2rem;"></i>
-                <h5 class="card-title mt-3">Reportes Financieros</h5>
-                <p class="card-text text-muted">Análisis financiero con ingresos, pagos y proyecciones.</p>
-                <a href="{% url 'reports:financial_report' %}" class="btn btn-success">
-                    <i class="bi bi-eye"></i> Ver Reporte
+                <i class="bi bi-info-circle text-info" style="font-size: 2rem;"></i>
+                <h6 class="card-title mt-2">Resumen de Siniestros</h6>
+                <a href="{% url 'reports:quick_report' %}?report_type=claims_summary" class="btn btn-outline-info btn-sm">
+                    Generar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-cash text-success" style="font-size: 2rem;"></i>
+                <h6 class="card-title mt-2">Resumen Financiero</h6>
+                <a href="{% url 'reports:quick_report' %}?report_type=financial_summary" class="btn btn-outline-success btn-sm">
+                    Generar
                 </a>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Saved Reports -->
 <div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-bookmark-star"></i> Reportes Guardados
+                </h5>
+                <small class="text-muted">{{ total_reports }} reportes</small>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Creado por</th>
+                                <th>Programado</th>
+                                <th>Última ejecución</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in page_obj %}
+                            <tr>
+                                <td>
+                                    <strong>{{ report.name }}</strong>
+                                    {% if report.description %}
+                                    <br><small class="text-muted">{{ report.description|truncatechars:50 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ report.get_report_type_display }}</span>
+                                </td>
+                                <td>{{ report.created_by.get_full_name if report.created_by else 'Sistema' }}</td>
+                                <td>
+                                    {% if report.is_scheduled %}
+                                    <span class="badge bg-success">{{ report.get_schedule_frequency_display }}</span>
+                                    {% else %}
+                                    <span class="text-muted">No</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.last_run %}
+                                        {{ report.last_run|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        <em class="text-muted">Nunca</em>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'reports:report_detail' report.pk %}" class="btn btn-sm btn-outline-info" title="Ver detalles">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'reports:report_execute' report.pk %}" class="btn btn-sm btn-outline-success" title="Ejecutar">
+                                            <i class="bi bi-play"></i>
+                                        </a>
+                                        {% if perms.reports.reports_write or report.created_by == request.user %}
+                                        <a href="{% url 'reports:report_edit' report.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Reports pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Anterior</span>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-graph-up display-4 text-muted"></i>
+                    <h5 class="mt-3">No hay reportes guardados</h5>
+                    <p class="text-muted">Crea tu primer reporte personalizado</p>
+                    {% if perms.reports.reports_create %}
+                    <a href="{% url 'reports:report_create' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-plus-circle"></i> Crear Primer Reporte
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Legacy Reports Section -->
+<div class="row mt-4">
     <div class="col-12">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-info-circle"></i> Información sobre Reportes
+                    <i class="bi bi-clock-history"></i> Reportes Rápidos (Legacy)
                 </h5>
             </div>
             <div class="card-body">
-                <div class="alert alert-info">
-                    <h6><i class="bi bi-lightbulb"></i> Funcionalidades de Reportes</h6>
-                    <ul class="mb-0">
-                        <li><strong>Reportes de Pólizas:</strong> Análisis por compañía aseguradora, estado de vigencia y valores asegurados</li>
-                        <li><strong>Reportes de Siniestros:</strong> Estadísticas por tipo de siniestro, montos y tiempos de resolución</li>
-                        <li><strong>Reportes Financieros:</strong> Ingresos, pagos pendientes y análisis de tendencias</li>
-                        <li><strong>Exportación:</strong> Próximamente disponible para Excel y PDF</li>
-                    </ul>
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 mb-3">
+                        <a href="{% url 'reports:policies_report' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-file-earmark-text"></i><br>Reportes de Pólizas
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-3">
+                        <a href="{% url 'reports:claims_report' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-exclamation-triangle"></i><br>Reportes de Siniestros
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-3">
+                        <a href="{% url 'reports:invoices_report' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-receipt"></i><br>Reportes de Facturas
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3 mb-3">
+                        <a href="{% url 'reports:financial_report' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-cash"></i><br>Reportes Financieros
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Detalle de Finiquito" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-contract"></i>
+                        {% trans "Finiquito" %} {{ settlement.settlement_number }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'claims:claim_detail' settlement.claim.pk %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> {% trans "Volver al Siniestro" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <!-- Settlement Details -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Número de Reclamo:" %}</strong><br>
+                                    {{ settlement.claim_reference_number }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Estado:" %}</strong><br>
+                                    <span class="badge
+                                        {% if settlement.status == 'draft' %}badge-secondary
+                                        {% elif settlement.status == 'approved' %}badge-warning
+                                        {% elif settlement.status == 'signed' %}badge-info
+                                        {% elif settlement.status == 'paid' %}badge-success
+                                        {% else %}badge-light{% endif %}">
+                                        {{ settlement.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                            <hr>
+
+                            <!-- Financial Details -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Valor Total del Siniestro:" %}</strong><br>
+                                    ${{ settlement.total_claim_amount|floatformat:2 }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Deducible:" %}</strong><br>
+                                    ${{ settlement.deductible_amount|floatformat:2 }}
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Depreciación:" %}</strong><br>
+                                    ${{ settlement.depreciation_amount|floatformat:2 }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Valor Final a Pagar:" %}</strong><br>
+                                    <strong class="text-success">${{ settlement.final_payment_amount|floatformat:2 }}</strong>
+                                </div>
+                            </div>
+                            <hr>
+
+                            <!-- Dates and Actions -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Fecha de Creación:" %}</strong><br>
+                                    {{ settlement.created_at|date:"d/m/Y H:i" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Creado por:" %}</strong><br>
+                                    {{ settlement.created_by.get_full_name }}
+                                </div>
+                            </div>
+
+                            {% if settlement.approved_by %}
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Fecha de Aprobación:" %}</strong><br>
+                                    {{ settlement.approved_at|date:"d/m/Y H:i" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>{% trans "Aprobado por:" %}</strong><br>
+                                    {{ settlement.approved_by.get_full_name }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if settlement.signed_date %}
+                            <div class="row mt-2">
+                                <div class="col-md-6">
+                                    <strong>{% trans "Fecha de Firma:" %}</strong><br>
+                                    {{ settlement.signed_date|date:"d/m/Y" }}
+                                </div>
+                                {% if settlement.payment_date %}
+                                <div class="col-md-6">
+                                    <strong>{% trans "Fecha de Pago:" %}</strong><br>
+                                    {{ settlement.payment_date|date:"d/m/Y" }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% if settlement.payment_reference %}
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <strong>{% trans "Referencia de Pago:" %}</strong><br>
+                                    {{ settlement.payment_reference }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <!-- Document and Actions -->
+                            {% if settlement.settlement_document %}
+                            <div class="card border-info">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-file-pdf"></i> {% trans "Documento de Finiquito" %}
+                                    </h5>
+                                </div>
+                                <div class="card-body text-center">
+                                    <a href="{{ settlement.settlement_document.url }}" target="_blank" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> {% trans "Ver Documento" %}
+                                    </a>
+                                    <a href="{{ settlement.settlement_document.url }}" download class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-download"></i> {% trans "Descargar" %}
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Action Buttons -->
+                            {% if user.get_role_permissions|length > 0 %}
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">{% trans "Acciones" %}</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if settlement.status == 'draft' and 'claims_write' in user.get_role_permissions %}
+                                        <form method="post" action="{% url 'claims:claim_settlement_approve' settlement.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-warning btn-sm btn-block mb-2">
+                                                <i class="fas fa-check"></i> {% trans "Aprobar Finiquito" %}
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'claims:claim_settlement_edit' settlement.pk %}" class="btn btn-primary btn-sm btn-block mb-2">
+                                            <i class="fas fa-edit"></i> {% trans "Editar" %}
+                                        </a>
+                                    {% endif %}
+
+                                    {% if settlement.status == 'approved' and 'claims_write' in user.get_role_permissions %}
+                                        <form method="post" action="{% url 'claims:claim_settlement_sign' settlement.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-info btn-sm btn-block mb-2">
+                                                <i class="fas fa-signature"></i> {% trans "Marcar como Firmado" %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if settlement.status == 'signed' and 'claims_write' in user.get_role_permissions %}
+                                        <form method="post" action="{% url 'claims:claim_settlement_pay' settlement.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="payment_reference" id="payment_reference" required>
+                                            <button type="submit" class="btn btn-success btn-sm btn-block">
+                                                <i class="fas fa-money-bill-wave"></i> {% trans "Marcar como Pagado" %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Payment Reference -->
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Referencia de Pago" %}</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="paymentForm">
+                    <div class="form-group">
+                        <label for="paymentRef">{% trans "Ingrese la referencia de pago:" %}</label>
+                        <input type="text" class="form-control" id="paymentRef" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancelar" %}</button>
+                <button type="button" class="btn btn-success" onclick="submitPayment()">{% trans "Confirmar Pago" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitPayment() {
+    const paymentRef = document.getElementById('paymentRef').value;
+    if (paymentRef.trim()) {
+        document.getElementById('payment_reference').value = paymentRef;
+        document.querySelector('form[action*="claim_settlement_pay"]').submit();
+    }
+}
+</script>
+{% endblock %}

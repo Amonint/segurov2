@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-cash-coin"></i>
+                {{ title }}
+            </h1>
+            <a href="{% url 'companies:emission_rights_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a la lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Configuración de Derecho de Emisión
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <!-- Monto Range -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.min_amount.id_for_label }}" class="form-label">
+                                {{ form.min_amount.label }} *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.min_amount }}
+                            </div>
+                            {% if form.min_amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.min_amount.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.max_amount.id_for_label }}" class="form-label">
+                                {{ form.max_amount.label }} *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.max_amount }}
+                            </div>
+                            {% if form.max_amount.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.max_amount.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Emission Right Amount -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.emission_right.id_for_label }}" class="form-label">
+                                {{ form.emission_right.label }} *
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.emission_right }}
+                            </div>
+                            {% if form.emission_right.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.emission_right.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Validity Period -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.valid_from.id_for_label }}" class="form-label">
+                                {{ form.valid_from.label }} *
+                            </label>
+                            {{ form.valid_from }}
+                            {% if form.valid_from.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.valid_from.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.valid_until.id_for_label }}" class="form-label">
+                                {{ form.valid_until.label }}
+                            </label>
+                            {{ form.valid_until }}
+                            <div class="form-text">Opcional - dejar vacío para vigencia indefinida</div>
+                            {% if form.valid_until.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.valid_until.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Active Status -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                {{ form.is_active.label }}
+                            </label>
+                            <div class="form-text">Solo las configuraciones activas se usan en cálculos</div>
+                        </div>
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Buttons -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'companies:emission_rights_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Panel -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Información Importante
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>¿Qué son los Derechos de Emisión?</h6>
+                <p class="small text-muted mb-3">
+                    Los derechos de emisión son valores adicionales que se cobran según el rango
+                    de la prima del seguro, y se incluyen en el cálculo total de las facturas.
+                </p>
+
+                <h6>Reglas Importantes</h6>
+                <ul class="small mb-3">
+                    <li>Los rangos no pueden solaparse</li>
+                    <li>Solo puede haber una configuración activa por rango en una fecha</li>
+                    <li>Las configuraciones futuras se activan automáticamente en su fecha de inicio</li>
+                </ul>
+
+                <h6>Ejemplo de Cálculo</h6>
+                <div class="bg-light p-3 rounded small">
+                    <strong>Prima: $5,000</strong><br>
+                    Rango: $1,000 - $10,000<br>
+                    Derecho: $15<br>
+                    <strong>Total: $5,015</strong>
+                </div>
+
+                {% if emission_right %}
+                <div class="alert alert-warning small mt-3">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Advertencia:</strong> Modificar esta configuración puede afectar
+                    cálculos de facturas existentes.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.input-group-text {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+</style>
+
+{% endblock %}

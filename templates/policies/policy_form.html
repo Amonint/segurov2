@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_list' %}">Pólizas</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-file-earmark-text"></i> {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Información Básica</h5>
+                            {{ form.policy_number|as_crispy_field }}
+                            {{ form.insurance_company|as_crispy_field }}
+                            {{ form.broker|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Clasificación</h5>
+                            {{ form.group_type|as_crispy_field }}
+                            {{ form.subgroup|as_crispy_field }}
+                            {{ form.branch|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Dates and Values -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Fechas</h5>
+                            {{ form.start_date|as_crispy_field }}
+                            {{ form.end_date|as_crispy_field }}
+                            {{ form.issue_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Valores</h5>
+                            {{ form.insured_value|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Asignación</h5>
+                            {{ form.responsible_user|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Additional Information -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mb-3">Información Adicional</h5>
+                            {{ form.coverage_description|as_crispy_field }}
+                            {{ form.observations|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'policies:policy_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-generate policy number if empty
+    const policyNumberField = document.getElementById('id_policy_number');
+    const startDateField = document.getElementById('id_start_date');
+
+    function generatePolicyNumber() {
+        if (startDateField.value && (!policyNumberField.value || policyNumberField.value.startsWith('POL-'))) {
+            // This would be handled by the backend, but we can show a preview
+            const date = new Date(startDateField.value);
+            const year = date.getFullYear();
+            policyNumberField.placeholder = `POL-${year}-XXXXXX`;
+        }
+    }
+
+    if (startDateField) {
+        startDateField.addEventListener('change', generatePolicyNumber);
+    }
+
+    // Date validation
+    const startDate = document.getElementById('id_start_date');
+    const endDate = document.getElementById('id_end_date');
+    const issueDate = document.getElementById('id_issue_date');
+
+    function validateDates() {
+        if (startDate.value && endDate.value) {
+            if (new Date(startDate.value) >= new Date(endDate.value)) {
+                endDate.setCustomValidity('La fecha de fin debe ser posterior a la fecha de inicio');
+            } else {
+                endDate.setCustomValidity('');
+            }
+        }
+
+        if (issueDate.value && startDate.value) {
+            if (new Date(issueDate.value) > new Date(startDate.value)) {
+                issueDate.setCustomValidity('La fecha de emisión no puede ser posterior a la fecha de inicio');
+            } else {
+                issueDate.setCustomValidity('');
+            }
+        }
+    }
+
+    if (startDate && endDate && issueDate) {
+        [startDate, endDate, issueDate].forEach(field => {
+            field.addEventListener('change', validateDates);
+        });
+    }
+
+    // Format insured value
+    const insuredValueField = document.getElementById('id_insured_value');
+    if (insuredValueField) {
+        insuredValueField.addEventListener('blur', function() {
+            if (this.value && !isNaN(this.value)) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

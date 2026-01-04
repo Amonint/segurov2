@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Derechos de Emisión - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-cash-coin"></i> Derechos de Emisión
+            </h1>
+            {% if 'insurance_companies_write' in user_permissions %}
+            <a href="{% url 'companies:emission_rights_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Derecho de Emisión
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">Buscar</label>
+                        <input type="text" class="form-control" id="search" name="search"
+                               value="{{ search }}" placeholder="Buscar por montos...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="is_active" class="form-label">Estado</label>
+                        <select class="form-control" id="is_active" name="is_active">
+                            <option value="true" {% if is_active_filter == 'true' %}selected{% endif %}>Activos</option>
+                            <option value="false" {% if is_active_filter == 'false' %}selected{% endif %}>Inactivos</option>
+                            <option value="all" {% if is_active_filter == 'all' %}selected{% endif %}>Todos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-search"></i> Filtrar
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <a href="{% url 'companies:emission_rights_list' %}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-x-circle"></i> Limpiar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emission Rights Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Configuración de Derechos de Emisión</h5>
+            </div>
+            <div class="card-body">
+                {% if emission_rights %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Rango de Montos</th>
+                                <th>Derecho de Emisión</th>
+                                <th>Vigencia</th>
+                                <th>Estado</th>
+                                <th>Creado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emission_right in emission_rights %}
+                            <tr>
+                                <td>
+                                    <strong>${{ emission_right.min_amount|floatformat:2 }} - ${{ emission_right.max_amount|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">${{ emission_right.emission_right|floatformat:2 }}</span>
+                                </td>
+                                <td>
+                                    <small>
+                                        Desde: {{ emission_right.valid_from|date:"d/m/Y" }}<br>
+                                        {% if emission_right.valid_until %}
+                                        Hasta: {{ emission_right.valid_until|date:"d/m/Y" }}
+                                        {% else %}
+                                        <span class="text-muted">Sin límite</span>
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    {% if emission_right.is_currently_valid %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <small>{{ emission_right.created_at|date:"d/m/Y H:i" }}</small>
+                                    {% if emission_right.created_by %}
+                                    <br><small class="text-muted">por {{ emission_right.created_by.get_full_name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if 'insurance_companies_write' in user_permissions %}
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'companies:emission_rights_edit' emission_right.pk %}"
+                                           class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-outline-danger"
+                                                onclick="confirmDelete('{% url 'companies:emission_rights_delete' emission_right.pk %}')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-cash-coin fs-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay derechos de emisión configurados</h5>
+                    <p class="text-muted">Crea la primera configuración para comenzar.</p>
+                    {% if 'insurance_companies_write' in user_permissions %}
+                    <a href="{% url 'companies:emission_rights_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Crear Primera Configuración
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar este derecho de emisión?
+                Esta acción no se puede deshacer.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <a id="deleteLink" href="#" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(url) {
+    document.getElementById('deleteLink').href = url;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-plus"></i> {{ title }}
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Información de Cuenta</h5>
+                            {{ form.username|as_crispy_field }}
+                            {{ form.email|as_crispy_field }}
+                            {% if form.password1 %}
+                            {{ form.password1|as_crispy_field }}
+                            {% endif %}
+                            {% if form.password2 %}
+                            {{ form.password2|as_crispy_field }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Información Personal</h5>
+                            {{ form.first_name|as_crispy_field }}
+                            {{ form.last_name|as_crispy_field }}
+                            {{ form.full_name|as_crispy_field }}
+                            {{ form.phone|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Rol y Departamento</h5>
+                            {{ form.role|as_crispy_field }}
+                            {{ form.department|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Estado</h5>
+                            {% if form.is_active %}
+                            {{ form.is_active|as_crispy_field }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Password strength indicator (if needed)
+document.addEventListener('DOMContentLoaded', function() {
+    const password1 = document.getElementById('id_password1');
+    const password2 = document.getElementById('id_password2');
+
+    if (password1 && password2) {
+        password2.addEventListener('input', function() {
+            if (this.value !== password1.value) {
+                this.setCustomValidity('Las contraseñas no coinciden');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

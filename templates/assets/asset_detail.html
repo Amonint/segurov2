@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Activo {{ asset.asset_code }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-box"></i>
+                Activo {{ asset.asset_code }}
+            </h1>
+            <div>
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a la lista
+                </a>
+                {% if 'assets_write' in user_permissions %}
+                <button class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Información Principal del Activo -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i>
+                    Información del Activo
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Información General</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Código:</strong></td>
+                                <td>{{ asset.asset_code }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Nombre:</strong></td>
+                                <td>{{ asset.name }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo:</strong></td>
+                                <td>
+                                    <span class="badge
+                                        {% if asset.asset_type == 'vehiculo' %}bg-primary
+                                        {% elif asset.asset_type == 'equipo_electronico' %}bg-info
+                                        {% elif asset.asset_type == 'maquinaria' %}bg-warning
+                                        {% elif asset.asset_type == 'mobiliario' %}bg-success
+                                        {% elif asset.asset_type == 'herramientas' %}bg-secondary
+                                        {% elif asset.asset_type == 'inventario' %}bg-dark
+                                        {% else %}bg-light text-dark
+                                        {% endif %}">
+                                        {{ asset.get_asset_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Estado:</strong></td>
+                                <td>
+                                    <span class="badge
+                                        {% if asset.condition_status == 'excelente' %}bg-success
+                                        {% elif asset.condition_status == 'bueno' %}bg-primary
+                                        {% elif asset.condition_status == 'regular' %}bg-warning
+                                        {% elif asset.condition_status == 'malo' %}bg-danger
+                                        {% else %}bg-dark
+                                        {% endif %}">
+                                        {{ asset.get_condition_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Especificaciones</h6>
+                        <table class="table table-sm">
+                            {% if asset.brand %}
+                            <tr>
+                                <td><strong>Marca:</strong></td>
+                                <td>{{ asset.brand }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if asset.model %}
+                            <tr>
+                                <td><strong>Modelo:</strong></td>
+                                <td>{{ asset.model }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if asset.serial_number %}
+                            <tr>
+                                <td><strong>Número de serie:</strong></td>
+                                <td>{{ asset.serial_number }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if asset.location %}
+                            <tr>
+                                <td><strong>Ubicación:</strong></td>
+                                <td>{{ asset.location }}</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+
+                {% if asset.description %}
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h6>Descripción</h6>
+                        <div class="border rounded p-3 bg-light">
+                            <p class="mb-0">{{ asset.description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información Financiera -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-cash"></i>
+                    Información Financiera
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Valor de adquisición:</strong></td>
+                                <td class="text-success"><strong>${{ asset.acquisition_cost|floatformat:2 }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Valor actual:</strong></td>
+                                <td class="text-primary"><strong>${{ asset.current_value|floatformat:2 }}</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Fecha de adquisición:</strong></td>
+                                <td>{{ asset.acquisition_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% if asset.depreciation_rate %}
+                            <tr>
+                                <td><strong>Tasa de depreciación:</strong></td>
+                                <td>{{ asset.depreciation_rate }}%</td>
+                            </tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Custodia -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-badge"></i>
+                    Custodia y Responsabilidades
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Custodio Actual</h6>
+                        {% if asset.custodian %}
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="bi bi-person-circle fs-2 text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ asset.custodian.get_full_name }}</h6>
+                                <p class="mb-1 text-muted">{{ asset.custodian.get_role_display }}</p>
+                                <small class="text-muted">{{ asset.custodian.department }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Sin custodio asignado</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Responsable</h6>
+                        {% if asset.responsible_user %}
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="bi bi-person-check fs-2 text-success"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ asset.responsible_user.get_full_name }}</h6>
+                                <p class="mb-1 text-muted">{{ asset.responsible_user.get_role_display }}</p>
+                                <small class="text-muted">{{ asset.responsible_user.department }}</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">Sin responsable asignado</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel Lateral -->
+    <div class="col-lg-4">
+        <!-- Estado de Seguro -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-shield-check"></i>
+                    Estado del Seguro
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                {% if asset.is_insured %}
+                <div class="mb-3">
+                    <i class="bi bi-shield-check-fill text-success fs-1"></i>
+                    <h5 class="text-success mt-2">Asegurado</h5>
+                </div>
+                {% if asset.insurance_policy %}
+                <div class="alert alert-success small">
+                    <strong>Póliza:</strong>
+                    <a href="{% url 'policies:policy_detail' asset.insurance_policy.pk %}" class="text-decoration-none">
+                        {{ asset.insurance_policy.policy_number }}
+                    </a>
+                    <br>
+                    <small class="text-muted">
+                        Vigente hasta: {{ asset.insurance_policy.end_date|date:"d/m/Y" }}
+                    </small>
+                </div>
+                {% else %}
+                <div class="alert alert-warning small">
+                    <strong>Atención:</strong> El activo está marcado como asegurado pero no tiene póliza asociada.
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="mb-3">
+                    <i class="bi bi-shield-x text-danger fs-1"></i>
+                    <h5 class="text-danger mt-2">Sin Seguro</h5>
+                </div>
+                <div class="alert alert-danger small">
+                    Este activo no tiene cobertura de seguro. Considere asegurarlo para proteger la inversión.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Información Adicional -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock"></i>
+                    Información del Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Creado:</strong></td>
+                        <td>{{ asset.created_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Actualizado:</strong></td>
+                        <td>{{ asset.updated_at|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Acciones Rápidas -->
+        {% if 'assets_write' in user_permissions %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-tools"></i>
+                    Acciones
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="changeCustodian()">
+                        Cambiar Custodio
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="updateInsurance()">
+                        Actualizar Seguro
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="updateCondition()">
+                        Actualizar Estado
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="reportIncident()">
+                        Reportar Incidente
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Siniestros Relacionados -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Siniestros Relacionados
+                </h5>
+                {% if 'claims_create' in user_permissions %}
+                <button class="btn btn-sm btn-outline-danger" onclick="reportNewClaim()">
+                    <i class="bi bi-plus"></i> Reportar Siniestro
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if False %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Fecha Incidente</th>
+                                <th>Estado</th>
+                                <th>Pérdida Estimada</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in related_claims %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'claims:claim_detail' claim.pk %}">
+                                        {{ claim.claim_number }}
+                                    </a>
+                                </td>
+                                <td>{{ claim.incident_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if claim.status == 'reported' %}bg-secondary
+                                        {% elif claim.status == 'documentation_pending' %}bg-warning
+                                        {% elif claim.status == 'sent_to_insurer' %}bg-info
+                                        {% elif claim.status == 'under_evaluation' %}bg-primary
+                                        {% elif claim.status == 'liquidated' %}bg-success
+                                        {% elif claim.status == 'paid' %}bg-success
+                                        {% elif claim.status == 'closed' %}bg-dark
+                                        {% elif claim.status == 'rejected' %}bg-danger
+                                        {% endif %}">
+                                        {{ claim.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>${{ claim.estimated_loss|floatformat:2 }}</td>
+                                <td>
+                                    <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn btn-sm btn-outline-primary">
+                                        Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-check-circle text-success fs-1"></i>
+                    <p class="text-muted mt-2">No hay siniestros relacionados con este activo</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table th {
+    font-weight: 600;
+    color: #495057;
+}
+</style>
+
+<script>
+function changeCustodian() {
+    alert('Funcionalidad en desarrollo: Cambiar custodio del activo');
+}
+
+function updateInsurance() {
+    alert('Funcionalidad en desarrollo: Actualizar información de seguro');
+}
+
+function updateCondition() {
+    alert('Funcionalidad en desarrollo: Actualizar estado del activo');
+}
+
+function reportIncident() {
+    window.location.href = '{% url "claims:claim_create" %}';
+}
+
+function reportNewClaim() {
+    // Pre-llenar formulario de siniestro con información del activo
+    const assetCode = '{{ asset.asset_code }}';
+    const assetDescription = '{{ asset.name }} - {{ asset.description|truncatechars:50 }}';
+
+    // Guardar información en sessionStorage para el formulario de siniestro
+    sessionStorage.setItem('preselected_asset_code', assetCode);
+    sessionStorage.setItem('preselected_asset_description', assetDescription);
+
+    window.location.href = '{% url "claims:claim_create" %}';
+}
+</script>
+
+{% endblock %}

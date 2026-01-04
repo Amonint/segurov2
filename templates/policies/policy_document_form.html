@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - {{ policy.policy_number }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_list' %}">Pólizas</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_detail' policy.pk %}">{{ policy.policy_number }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_documents' policy.pk %}">Documentos</a></li>
+                <li class="breadcrumb-item active">{{ title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="bi bi-file-earmark-plus"></i> {{ title }}
+                </h4>
+                <p class="text-muted mb-0 mt-1">{{ policy.policy_number }} - {{ policy.insurance_company.name }}</p>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Information -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="mb-3">Información del Documento</h5>
+                            {{ form.document_name|as_crispy_field }}
+                            {% if available_types %}
+                            <div class="mb-3">
+                                <label class="form-label">Tipo de Documento</label>
+                                <select name="document_type" class="form-select" required>
+                                    {% for doc_type, display_name in available_types %}
+                                    <option value="{{ doc_type }}" {% if form.instance.document_type == doc_type %}selected{% endif %}>
+                                        {{ display_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% else %}
+                            {{ form.document_type|as_crispy_field }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <h5 class="mb-3">Archivo</h5>
+                            {% if is_new_version %}
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                Subiendo nueva versión del documento existente
+                            </div>
+                            {% endif %}
+                            {{ form.file|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- Additional Information -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Descripción y Etiquetas</h5>
+                            {{ form.description|as_crispy_field }}
+                            {{ form.tags|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Vista Previa</h5>
+                            {% if document %}
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi {{ document.get_file_icon }} fa-2x text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-1">{{ document.document_name }}</h6>
+                                            <small class="text-muted">
+                                                {{ document.get_document_type_display }} •
+                                                {{ document.formatted_file_size }} •
+                                                v{{ document.version }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-file-earmark-plus display-4"></i>
+                                <p class="mt-2">La vista previa aparecerá después de subir el archivo</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- File Requirements -->
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="bi bi-info-circle"></i> Requisitos del Archivo</h6>
+                        <ul class="mb-0 small">
+                            <li>Tamaño máximo: 10 MB</li>
+                            <li>Formatos permitidos: PDF, Word, Excel, imágenes (JPG, PNG, GIF), archivos de texto</li>
+                            <li>Los nombres descriptivos ayudan en la búsqueda posterior</li>
+                            <li>Las etiquetas facilitan la clasificación (separadas por comas)</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'policies:policy_documents' policy.pk %}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[name="file"]');
+    const documentNameInput = document.querySelector('input[name="document_name"]');
+
+    // Auto-fill document name from file name
+    if (fileInput && documentNameInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0] && !documentNameInput.value) {
+                const fileName = this.files[0].name;
+                // Remove extension and clean up the name
+                const nameWithoutExt = fileName.replace(/\.[^/.]+$/, "");
+                documentNameInput.value = nameWithoutExt.replace(/[_-]/g, " ");
+            }
+        });
+    }
+
+    // File validation
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Check file size (10MB)
+                const maxSize = 10 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert('El archivo es demasiado grande. El tamaño máximo es 10MB.');
+                    this.value = '';
+                    return;
+                }
+
+                // Check file type
+                const allowedTypes = [
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'text/plain'
+                ];
+
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Tipo de archivo no permitido. Solo se permiten PDFs, documentos Word, Excel, imágenes y archivos de texto.');
+                    this.value = '';
+                    return;
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

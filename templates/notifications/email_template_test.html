@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Probar Plantilla de Email{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-envelope-paper"></i> Probar Plantilla: {{ template.name }}
+            </h1>
+            <a href="{% url 'notifications:email_templates_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a plantillas
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Información de la Plantilla</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Nombre:</strong> {{ template.name }}</p>
+                        <p><strong>Tipo:</strong> {{ template.get_template_type_display }}</p>
+                        <p><strong>Destinatario:</strong> {{ template.get_recipient_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Estado:</strong>
+                            {% if template.is_active %}Activa{% else %}Inactiva{% endif %}</p>
+                        <p><strong>Creado:</strong> {{ template.created_at|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Datos de Prueba Utilizados</h6>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code>{% for key, value in context.items %}{{ key }}: {{ value }}
+{% endfor %}</code></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Resultado Renderizado</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Asunto:</strong>
+                    <div class="alert alert-info">{{ rendered_subject }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Contenido HTML:</strong>
+                    <div class="border p-3 bg-light rounded" style="max-height: 300px; overflow-y: auto;">
+                        {{ rendered_html|safe }}
+                    </div>
+                </div>
+
+                {% if rendered_text %}
+                <div class="mb-3">
+                    <strong>Versión Texto:</strong>
+                    <div class="border p-3 bg-light rounded" style="font-family: monospace; white-space: pre-wrap;">
+                        {{ rendered_text }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Variables Disponibles</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Variables Comunes</h6>
+                        <ul>
+                            <li><code>{{ user_name }}</code> - Nombre del usuario</li>
+                            <li><code>{{ user_email }}</code> - Email del usuario</li>
+                            <li><code>{{ current_date }}</code> - Fecha actual</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Variables por Tipo</h6>
+                        {% if template.template_type == 'claim_reported' %}
+                        <ul>
+                            <li><code>{{ claim_number }}</code> - Número del siniestro</li>
+                            <li><code>{{ policy_number }}</code> - Número de póliza</li>
+                            <li><code>{{ incident_date }}</code> - Fecha del incidente</li>
+                            <li><code>{{ estimated_loss }}</code> - Pérdida estimada</li>
+                        </ul>
+                        {% elif template.template_type == 'policy_expiring' %}
+                        <ul>
+                            <li><code>{{ policy_number }}</code> - Número de póliza</li>
+                            <li><code>{{ end_date }}</code> - Fecha de vencimiento</li>
+                            <li><code>{{ days_remaining }}</code> - Días restantes</li>
+                        </ul>
+                        {% elif template.template_type == 'payment_due' %}
+                        <ul>
+                            <li><code>{{ invoice_number }}</code> - Número de factura</li>
+                            <li><code>{{ due_date }}</code> - Fecha de vencimiento</li>
+                            <li><code>{{ total_amount }}</code> - Monto total</li>
+                        </ul>
+                        {% else %}
+                        <p>Variables específicas del tipo de plantilla seleccionado.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

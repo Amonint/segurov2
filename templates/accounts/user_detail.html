@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ user_obj.get_full_name }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'accounts:user_list' %}">Usuarios</a></li>
+                <li class="breadcrumb-item active">{{ user_obj.get_full_name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Info -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-person-circle"></i> Información del Usuario
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="avatar-circle bg-primary text-white mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold;">
+                    {{ user_obj.first_name|first|default:user_obj.username|first }}
+                </div>
+                <h4>{{ user_obj.get_full_name }}</h4>
+                <p class="text-muted">@{{ user_obj.username }}</p>
+                <span class="badge bg-secondary fs-6">{{ user_obj.get_role_display }}</span>
+
+                <hr>
+
+                <div class="row text-start">
+                    <div class="col-12 mb-2">
+                        <strong>Email:</strong><br>
+                        <a href="mailto:{{ user_obj.email }}">{{ user_obj.email }}</a>
+                    </div>
+                    {% if user_obj.phone %}
+                    <div class="col-12 mb-2">
+                        <strong>Teléfono:</strong><br>
+                        {{ user_obj.phone }}
+                    </div>
+                    {% endif %}
+                    {% if user_obj.department %}
+                    <div class="col-12 mb-2">
+                        <strong>Departamento:</strong><br>
+                        {{ user_obj.department }}
+                    </div>
+                    {% endif %}
+                    <div class="col-12 mb-2">
+                        <strong>Estado:</strong><br>
+                        {% if user_obj.is_active %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactivo</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-12 mb-2">
+                        <strong>Fecha de registro:</strong><br>
+                        {{ user_obj.date_joined|date:"d/m/Y H:i" }}
+                    </div>
+                    {% if user_obj.last_login %}
+                    <div class="col-12 mb-2">
+                        <strong>Último acceso:</strong><br>
+                        {{ user_obj.last_login|date:"d/m/Y H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% if perms.accounts.users_write or perms.accounts.users_manage %}
+            <div class="card-footer">
+                <div class="btn-group w-100" role="group">
+                    {% if perms.accounts.users_write %}
+                    <a href="{% url 'accounts:user_edit' user_obj.pk %}" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'accounts:user_change_password' user_obj.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-key"></i> Cambiar Contraseña
+                    </a>
+                    {% if perms.accounts.users_manage %}
+                    {% if user_obj.is_active %}
+                    <a href="{% url 'accounts:user_toggle_active' user_obj.pk %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas desactivar este usuario?')">
+                        <i class="bi bi-person-dash"></i> Desactivar
+                    </a>
+                    {% else %}
+                    <a href="{% url 'accounts:user_toggle_active' user_obj.pk %}" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-person-check"></i> Activar
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Activity -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="userTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="policies-tab" data-bs-toggle="tab" data-bs-target="#policies" type="button" role="tab">
+                            <i class="bi bi-file-earmark-text"></i> Pólizas ({{ recent_policies|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="claims-tab" data-bs-toggle="tab" data-bs-target="#claims" type="button" role="tab">
+                            <i class="bi bi-exclamation-triangle"></i> Siniestros ({{ recent_claims|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">
+                            <i class="bi bi-receipt"></i> Facturas ({{ recent_invoices|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
+                            <i class="bi bi-activity"></i> Actividad
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="userTabsContent">
+                    <!-- Policies Tab -->
+                    <div class="tab-pane fade show active" id="policies" role="tabpanel">
+                        {% if recent_policies %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Compañía</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for policy in recent_policies %}
+                                    <tr>
+                                        <td>{{ policy.policy_number }}</td>
+                                        <td>{{ policy.insurance_company.name }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ policy.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'policies:policy_detail' policy.pk %}" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-file-earmark-text display-4 text-muted"></i>
+                            <p class="mt-2 text-muted">No hay pólizas asignadas</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Claims Tab -->
+                    <div class="tab-pane fade" id="claims" role="tabpanel">
+                        {% if recent_claims %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Estado</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for claim in recent_claims %}
+                                    <tr>
+                                        <td>{{ claim.claim_number }}</td>
+                                        <td>
+                                            <span class="badge bg-warning">{{ claim.get_status_display }}</span>
+                                        </td>
+                                        <td>{{ claim.incident_date|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-exclamation-triangle display-4 text-muted"></i>
+                            <p class="mt-2 text-muted">No hay siniestros asociados</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Invoices Tab -->
+                    <div class="tab-pane fade" id="invoices" role="tabpanel">
+                        {% if recent_invoices %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Póliza</th>
+                                        <th>Estado</th>
+                                        <th>Total</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for invoice in recent_invoices %}
+                                    <tr>
+                                        <td>{{ invoice.invoice_number }}</td>
+                                        <td>{{ invoice.policy.policy_number }}</td>
+                                        <td>
+                                            {% if invoice.payment_status == 'paid' %}
+                                                <span class="badge bg-success">Pagada</span>
+                                            {% elif invoice.payment_status == 'pending' %}
+                                                <span class="badge bg-warning">Pendiente</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Vencida</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>${{ invoice.total_amount|floatformat:2 }}</td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-outline-info">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-receipt display-4 text-muted"></i>
+                            <p class="mt-2 text-muted">No hay facturas creadas</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Activity Tab -->
+                    <div class="tab-pane fade" id="activity" role="tabpanel">
+                        {% if recent_audit_logs %}
+                        <div class="timeline">
+                            {% for log in recent_audit_logs %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">
+                                        {{ log.get_action_type_display }}
+                                        <small class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                                    </h6>
+                                    <p class="mb-0">{{ log.description }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-activity display-4 text-muted"></i>
+                            <p class="mt-2 text-muted">No hay actividad registrada</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: -17px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #dee2e6;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.timeline-content {
+    padding-left: 15px;
+}
+</style>
+{% endblock %}

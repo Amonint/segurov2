@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-contract"></i> {{ title }}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> {% trans "Volver al Siniestro" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Claim Information -->
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> {% trans "Información del Siniestro" %}</h5>
+                        <p class="mb-1"><strong>{% trans "Número:" %}</strong> {{ claim.claim_number }}</p>
+                        <p class="mb-1"><strong>{% trans "Bien Afectado:" %}</strong> {{ claim.asset.description|default:"N/A" }}</p>
+                        <p class="mb-1"><strong>{% trans "Fecha del Siniestro:" %}</strong> {{ claim.incident_date|date:"d/m/Y" }}</p>
+                        <p class="mb-1"><strong>{% trans "Pérdida Estimada:" %}</strong> ${{ claim.estimated_loss|floatformat:2 }}</p>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.claim_reference_number|as_crispy_field }}
+                                {{ form.total_claim_amount|as_crispy_field }}
+                                {{ form.deductible_amount|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.depreciation_amount|as_crispy_field }}
+                                {{ form.final_payment_amount|as_crispy_field }}
+                                {{ form.settlement_document|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label>{% trans "Cálculo Automático" %}</label>
+                                    <div class="alert alert-light">
+                                        <small>
+                                            {% trans "Valor Final = Valor Total - Deducible - Depreciación" %}<br>
+                                            {% trans "Si deja campos en blanco, se calcularán automáticamente." %}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> {{ submit_text }}
+                                </button>
+                                <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> {% trans "Cancelar" %}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-calculate final payment amount
+    function calculateFinalAmount() {
+        const total = parseFloat(document.getElementById('id_total_claim_amount').value) || 0;
+        const deductible = parseFloat(document.getElementById('id_deductible_amount').value) || 0;
+        const depreciation = parseFloat(document.getElementById('id_depreciation_amount').value) || 0;
+
+        const final = total - deductible - depreciation;
+        document.getElementById('id_final_payment_amount').value = final.toFixed(2);
+    }
+
+    // Add event listeners to input fields
+    ['id_total_claim_amount', 'id_deductible_amount', 'id_depreciation_amount'].forEach(id => {
+        document.getElementById(id).addEventListener('input', calculateFinalAmount);
+    });
+
+    // Initial calculation
+    calculateFinalAmount();
+});
+</script>
+{% endblock %}

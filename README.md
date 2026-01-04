@@ -36,6 +36,117 @@ django_seguros/
 └── manage.py                  # Comando Django
 ```
 
+### 🎯 **¿Por qué este sistema es MVC?**
+
+Este proyecto implementa el patrón de arquitectura **Modelo-Vista-Controlador (MVC)** a través del framework Django, que sigue esta arquitectura de manera nativa:
+
+#### **🏛️ Modelo (Model) - Capa de Datos**
+Los **Modelos** representan la estructura de datos y la lógica de negocio:
+
+```python
+# accounts/models.py - Modelo de Usuario
+class UserProfile(models.Model):
+    username = models.CharField(max_length=150, unique=True)
+    role = models.CharField(max_length=20, choices=ROLES)
+    # ... campos y métodos de negocio
+
+    def get_role_permissions(self):
+        """Lógica de negocio: permisos por rol"""
+        return permissions_map.get(self.role, [])
+```
+
+```python
+# claims/models.py - Modelo de Siniestro
+class Claim(models.Model):
+    claim_number = models.CharField(max_length=50, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    # ... validaciones y métodos de negocio
+
+    def save(self, *args, **kwargs):
+        """Lógica de negocio: generación automática de números"""
+        if not self.claim_number:
+            self.claim_number = self.generate_claim_number()
+        super().save(*args, **kwargs)
+```
+
+#### **👁️ Vista (View) - Capa de Presentación**
+Las **Vistas** manejan la lógica de presentación y controlan el flujo de la aplicación:
+
+```python
+# claims/views.py - Vista de Controlador
+@login_required
+def claim_detail(request, pk):
+    """Controlador: obtiene datos del modelo y pasa a template"""
+    claim = get_object_or_404(Claim, pk=pk)
+    timeline = claim.timeline.all().order_by('-created_at')
+
+    return render(request, 'claims/claim_detail.html', {
+        'claim': claim,
+        'timeline': timeline,
+    })
+```
+
+#### **🎮 Controlador (Controller) - Capa de Control**
+En Django, las **URLs y Vistas** actúan como el controlador, manejando las peticiones HTTP:
+
+```python
+# claims/urls.py - Enrutamiento (Controlador de URLs)
+urlpatterns = [
+    path('', views.claim_list, name='claim_list'),           # GET /claims/
+    path('<int:pk>/', views.claim_detail, name='claim_detail'), # GET /claims/123/
+    path('create/', views.claim_create, name='claim_create'),   # POST /claims/create/
+]
+```
+
+```html
+<!-- templates/claims/claim_detail.html - Vista de Presentación -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1>{{ claim.claim_number }}</h1>
+        <p>Estado: <span class="badge">{{ claim.get_status_display }}</span></p>
+        <!-- Más contenido de presentación -->
+    </div>
+</div>
+{% endblock %}
+```
+
+#### **🔄 Flujo MVC en este Sistema**
+
+```
+Usuario → URL → Vista (Controller) → Modelo → Base de Datos
+                  ↓
+               Template (View) ← Datos procesados
+                  ↓
+              Respuesta HTML ← Usuario
+```
+
+#### **📦 Separación de Responsabilidades**
+
+- **Modelos** (`models.py`): Contienen la lógica de negocio y acceso a datos
+- **Vistas** (`views.py`): Manejan la lógica de aplicación y coordinan modelos con templates
+- **Templates** (`templates/`): Presentan los datos al usuario (HTML + lógica de presentación)
+- **URLs** (`urls.py`): Definen las rutas y conectan URLs con vistas
+
+#### **🎯 Beneficios de MVC en este Proyecto**
+
+1. **Separación clara**: Cada componente tiene responsabilidades bien definidas
+2. **Mantenibilidad**: Cambios en la UI no afectan la lógica de negocio
+3. **Reutilización**: Los modelos pueden ser usados por múltiples vistas
+4. **Testabilidad**: Cada capa puede ser probada independientemente
+5. **Escalabilidad**: Fácil agregar nuevas funcionalidades siguiendo el patrón
+
+#### **🔧 Implementación Django MVC**
+
+Django implementa MVC con algunas variaciones:
+- **Modelo** = `models.py` (datos + lógica de negocio)
+- **Vista** = `views.py` (controlador) + `templates/` (vista de presentación)
+- **Controlador** = Framework Django (URLs, middleware, etc.)
+
+Este sistema sigue estrictamente el patrón MVC, asegurando un código organizado, mantenible y escalable.
+
 ## 🚀 Inicio Rápido
 
 ### Prerrequisitos
@@ -384,7 +495,7 @@ El sistema ha sido poblado con datos ficticios para facilitar las pruebas. Los d
 ### Usuarios de Prueba
 | Usuario | Contraseña | Rol | Descripción |
 |---------|------------|-----|-------------|
-| `admin` | `password123` | Administrador | Acceso completo al sistema |
+| `admin` | `admin123` | Administrador | Acceso completo al sistema + Panel Django Admin |
 | `gerente_seguros` | `password123` | Gerente de Seguros | Gestión de pólizas y siniestros |
 | `analista_financiero` | `password123` | Analista Financiero | Gestión financiera y facturación |
 | `consultor` | `password123` | Consultor | Acceso de solo lectura |
@@ -397,9 +508,24 @@ El sistema ha sido poblado con datos ficticios para facilitar las pruebas. Los d
 - **3 Corredores**: Corredores Unidos, Asesores Financieros, Consultores de Riesgo
 - **5 Pólizas**: Diferentes tipos (patrimoniales, personas) con diversos valores
 - **5 Bienes/Activos**: Equipos electrónicos, vehículos, biblioteca digital
-- **3 Siniestros**: En diferentes estados (evaluación, liquidado, pagado)
+- **4+ Siniestros**: En diferentes estados (reportado, evaluación, liquidado, pagado)
 - **5 Facturas**: Con cálculos automáticos de primas, IVA y descuentos
 - **5 Notificaciones**: Alertas de sistema, vencimientos y actualizaciones
+
+### Funcionalidades Implementadas
+- ✅ **Autenticación y Autorización**: Sistema completo con roles y permisos
+- ✅ **Gestión de Pólizas**: CRUD completo con documentos adjuntos
+- ✅ **Gestión de Siniestros**: Workflow completo, timeline y documentos + Creación de nuevos siniestros
+- ✅ **Facturación Automática**: Cálculos de primas, IVA y descuentos
+- ✅ **Gestión de Bienes**: Inventario con custodios y seguros + Detalle completo de activos
+- ✅ **Sistema de Notificaciones**: Alertas automáticas
+- ✅ **Auditoría Completa**: Registro de todas las acciones
+- ✅ **Reportes**: Sistema básico de reportes
+- ✅ **API REST**: Endpoints para integración
+- ✅ **Interface Moderna**: Bootstrap 5 responsive
+- ✅ **Configuración Financiera Avanzada**: Derechos de emisión y retenciones editables
+- ✅ **Comunicación Automática Externa**: Sistema de emails simulado con plantillas
+- ✅ **Gestión Formal de Finiquitos**: Control completo del proceso de pago de siniestros
 
 ### Acceso al Sistema
 1. Iniciar el servidor: `python manage.py runserver`
