@@ -158,3 +158,7 @@ class AssetCustodianChangeForm(forms.ModelForm):
         if custodian and custodian.role != 'requester':
             raise forms.ValidationError(_('El custodio debe tener el rol de "Custodio de bienes"'))
         return custodian
+
+
+
+

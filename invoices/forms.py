@@ -165,3 +165,7 @@ class InvoiceBulkActionForm(forms.Form):
             raise forms.ValidationError(_('Debe especificar una fecha de pago'))
 
         return cleaned_data
+
+
+
+

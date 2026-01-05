@@ -9,3 +9,7 @@ def asset_related_claims(asset_pk):
     return Claim.objects.filter(
         asset_code__iexact=f"ACT-{asset_pk:04d}"
     ).order_by('-incident_date')[:10]
+
+
+
+

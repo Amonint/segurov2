@@ -170,3 +170,7 @@ class EmailService:
         return EmailLog.objects.values('status').annotate(
             count=Count('id')
         ).order_by('status')
+
+
+
+

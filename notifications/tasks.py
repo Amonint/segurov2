@@ -469,3 +469,7 @@ def run_scheduled_alerts():
             total_results['errors'].extend(results.get('errors', []))
 
     return total_results
+
+
+
+
