@@ -183,3 +183,7 @@ class UserProfileSetPasswordForm(forms.Form):
             raise forms.ValidationError(_('Las contraseñas no coinciden'))
 
         return cleaned_data
+
+
+
+

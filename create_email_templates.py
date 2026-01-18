@@ -121,3 +121,7 @@ for template_data in templates:
         print(f'ℹ️  Ya existe: {template.name}')
 
 print("\n✅ Plantillas de email creadas exitosamente!")
+
+
+
+

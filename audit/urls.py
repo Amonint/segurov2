@@ -9,3 +9,7 @@ urlpatterns = [
     path('<int:pk>/', views.audit_log_detail, name='audit_log_detail'),
     path('export/', views.export_audit_logs, name='export_audit_logs'),
 ]
+
+
+
+

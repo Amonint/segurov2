@@ -401,6 +401,12 @@ function submitFormAjax(form, successCallback) {
     });
 }
 
+<<<<<<< HEAD
 window.submitFormAjax = submitFormAjax;
 
 console.log('✓ Sistema de Seguros UTPL - JavaScript cargado correctamente');
+=======
+
+
+
+>>>>>>> upstream/main

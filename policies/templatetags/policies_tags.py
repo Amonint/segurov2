@@ -7,3 +7,7 @@ register = template.Library()
 def active_policies_count():
     """Return the count of active policies"""
     return Policy.objects.filter(status='active').count()
+
+
+
+

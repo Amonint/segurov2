@@ -232,3 +232,7 @@ class ReportExecutionForm(forms.Form):
         label=_('Fecha hasta'),
         widget=forms.DateInput(attrs={'type': 'date'})
     )
+
+
+
+
