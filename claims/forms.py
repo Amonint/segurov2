@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from .models import Claim, ClaimSettlement
 
 
@@ -10,13 +11,29 @@ class ClaimCreateForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
+        # Add modern CSS classes to all fields
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({
+                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none'
+            })
+        
+        # Special handling for textarea
+        if 'incident_description' in self.fields:
+            self.fields['incident_description'].widget.attrs.update({
+                'rows': 4,
+                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none'
+            })
+
         # Filter policies based on user permissions
         if user:
-            # If user is requester, only show policies where they are the custodian
+            # If user is requester, only show policies related to their assets
             if user.role == 'requester':
                 from assets.models import Asset
-                user_asset_codes = Asset.objects.filter(custodian=user).values_list('asset_code', flat=True)
-                self.fields['asset_code'].queryset = self.fields['asset_code'].queryset.filter(asset_code__in=user_asset_codes)
+                # Get policies related to user's assets
+                user_assets = Asset.objects.filter(custodian=user)
+                if user_assets.exists():
+                    policy_ids = user_assets.values_list('policy_id', flat=True).distinct()
+                    self.fields['policy'].queryset = self.fields['policy'].queryset.filter(id__in=policy_ids)
 
     class Meta:
         model = Claim
@@ -27,7 +44,18 @@ class ClaimCreateForm(forms.ModelForm):
         ]
         widgets = {
             'incident_date': forms.DateInput(attrs={'type': 'date'}),
-            'incident_description': forms.Textarea(attrs={'rows': 3}),
+            'incident_description': forms.Textarea(attrs={'rows': 4}),
+        }
+        labels = {
+            'policy': 'Póliza',
+            'asset_code': 'Código del Bien',
+            'asset_type': 'Tipo de Bien',
+            'asset_description': 'Descripción del Bien',
+            'incident_date': 'Fecha del Incidente',
+            'incident_location': 'Ubicación del Incidente',
+            'incident_description': 'Descripción del Incidente',
+            'estimated_loss': 'Pérdida Estimada (USD)',
+            'assigned_to': 'Asignado a',
         }
 
     def clean_incident_date(self):

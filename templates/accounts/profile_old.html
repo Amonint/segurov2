@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Mi Perfil" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i> {% trans "Mi Perfil" %}
+                    </h3>
+                    <div class="card-tools">
+                        <a href="{% url 'accounts:user_change_password' user.pk %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-key"></i> {% trans "Cambiar Contraseña" %}
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form method="post">
+                                {% csrf_token %}
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="username">{% trans "Usuario" %}</label>
+                                            <input type="text" class="form-control" id="username" value="{{ user.username }}" readonly>
+                                            <small class="form-text text-muted">{% trans "El nombre de usuario no se puede cambiar" %}</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="email">{% trans "Email" %}</label>
+                                            <input type="email" class="form-control" id="email" value="{{ user.email }}" readonly>
+                                            <small class="form-text text-muted">{% trans "El email no se puede cambiar desde aquí" %}</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="first_name">{% trans "Nombre" %}</label>
+                                            <input type="text" class="form-control" id="first_name" value="{{ user.first_name }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="last_name">{% trans "Apellido" %}</label>
+                                            <input type="text" class="form-control" id="last_name" value="{{ user.last_name }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="full_name">{% trans "Nombre Completo" %}</label>
+                                            <input type="text" class="form-control" name="full_name" id="full_name" value="{{ user.full_name }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="phone">{% trans "Teléfono" %}</label>
+                                            <input type="tel" class="form-control" name="phone" id="phone" value="{{ user.phone }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>{% trans "Rol" %}</label>
+                                            <input type="text" class="form-control" value="{{ user.get_role_display }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>{% trans "Departamento" %}</label>
+                                            <input type="text" class="form-control" value="{{ user.department|default:'No especificado' }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>{% trans "Fecha de Registro" %}</label>
+                                            <input type="text" class="form-control" value="{{ user.date_joined|date:'d/m/Y H:i' }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>{% trans "Último Acceso" %}</label>
+                                            <input type="text" class="form-control" value="{{ user.last_login|date:'d/m/Y H:i'|default:'Nunca' }}" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> {% trans "Actualizar Perfil" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="col-md-4">
+                            <!-- Profile Summary -->
+                            <div class="card border-info">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-info-circle"></i> {% trans "Estado de la Cuenta" %}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2">
+                                        <strong>{% trans "Estado:" %}</strong>
+                                        {% if user.is_active %}
+                                            <span class="badge badge-success">{% trans "Activa" %}</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">{% trans "Inactiva" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>{% trans "Staff:" %}</strong>
+                                        {% if user.is_staff %}
+                                            <span class="badge badge-info">{% trans "Sí" %}</span>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>{% trans "Superusuario:" %}</strong>
+                                        {% if user.is_superuser %}
+                                            <span class="badge badge-warning">{% trans "Sí" %}</span>
+                                        {% else %}
+                                            <span class="text-muted">{% trans "No" %}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Actions -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-bolt"></i> {% trans "Acciones Rápidas" %}
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <a href="{% url 'accounts:user_change_password' user.pk %}" class="btn btn-outline-primary btn-block mb-2">
+                                        <i class="fas fa-key"></i> {% trans "Cambiar Contraseña" %}
+                                    </a>
+                                    <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary btn-block">
+                                        <i class="fas fa-tachometer-alt"></i> {% trans "Ir al Dashboard" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

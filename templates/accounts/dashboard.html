@@ -5,120 +5,161 @@
 {% block title %}Dashboard - Sistema de Seguros UTPL{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="bi bi-speedometer2"></i> Dashboard
-            <small class="text-muted">Bienvenido, {{ user_full_name }}</small>
-        </h1>
-    </div>
+<!-- Header Section -->
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+        <i class="bi bi-speedometer2 mr-3" style="color: #4a7dbb;"></i>
+        Dashboard
+    </h1>
+    <p class="text-gray-600 text-lg">Bienvenido, <span class="font-semibold text-gray-900">{{ user_full_name }}</span></p>
 </div>
 
 <!-- Admin Dashboard -->
 {% if user.role == 'admin' %}
-<div class="row">
-    <!-- Key Metrics -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Pólizas Activas</h5>
-                        <h3>{{ active_policies }}</h3>
-                    </div>
-                    <i class="bi bi-file-earmark-text fa-2x"></i>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Active Policies Card -->
+    <div class="bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white overflow-hidden" style="background: linear-gradient(to bottom right, #4a7dbb 0%, #2e5a8f 100%);">
+        <div class="p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-blue-100 text-sm font-semibold uppercase tracking-wide mb-2">Pólizas Activas</p>
+                    <h3 class="text-4xl font-bold">{{ active_policies }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <i class="bi bi-file-earmark-text text-3xl"></i>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Por Vencer (30 días)</h5>
-                        <h3>{{ expiring_policies_30 }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-triangle fa-2x"></i>
-                </div>
-            </div>
+        <div class="bg-white/10 px-6 py-3">
+            <a href="{% url 'policies:policy_list' %}" class="text-sm font-medium hover:text-blue-100 transition-colors flex items-center">
+                Ver detalles <i class="bi bi-arrow-right ml-2"></i>
+            </a>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Por Vencer (7 días)</h5>
-                        <h3>{{ expiring_policies_7 }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-triangle-fill fa-2x"></i>
+    <!-- Expiring Soon (30 days) Card -->
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-amber-100 text-sm font-semibold uppercase tracking-wide mb-2">Por Vencer (30 días)</p>
+                    <h3 class="text-4xl font-bold">{{ expiring_policies_30 }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <i class="bi bi-exclamation-triangle text-3xl"></i>
                 </div>
             </div>
         </div>
+        <div class="bg-white/10 px-6 py-3">
+            <span class="text-sm font-medium">Requiere atención</span>
+        </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Total Pólizas</h5>
-                        <h3>{{ total_policies }}</h3>
-                    </div>
-                    <i class="bi bi-check-circle fa-2x"></i>
+    <!-- Expiring Soon (7 days) Card -->
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-red-100 text-sm font-semibold uppercase tracking-wide mb-2">Por Vencer (7 días)</p>
+                    <h3 class="text-4xl font-bold">{{ expiring_policies_7 }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <i class="bi bi-exclamation-triangle-fill text-3xl"></i>
                 </div>
             </div>
+        </div>
+        <div class="bg-white/10 px-6 py-3">
+            <span class="text-sm font-medium">Urgente</span>
+        </div>
+    </div>
+
+    <!-- Total Policies Card -->
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-green-100 text-sm font-semibold uppercase tracking-wide mb-2">Total Pólizas</p>
+                    <h3 class="text-4xl font-bold">{{ total_policies }}</h3>
+                </div>
+                <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                    <i class="bi bi-check-circle text-3xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white/10 px-6 py-3">
+            <span class="text-sm font-medium">En el sistema</span>
         </div>
     </div>
 </div>
 
-<div class="row">
+<!-- Detailed Information Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
     <!-- Financial Metrics -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-cash"></i> Facturación</h5>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-cash mr-2"></i> Facturación
+            </h5>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600">Pendientes:</span>
+                <span class="font-bold text-gray-900 text-lg">{{ pending_invoices }}</span>
             </div>
-            <div class="card-body">
-                <p class="mb-1">Pendientes: <strong>{{ pending_invoices }}</strong></p>
-                <p class="mb-1">Vencidas: <strong class="text-danger">{{ overdue_invoices }}</strong></p>
-                <p class="mb-1">Pronto Pago: <strong class="text-success">{{ early_payment_invoices }}</strong></p>
-                <hr>
-                <p class="mb-0">Total Pendiente: <strong>${{ total_pending_amount|floatformat:2 }}</strong></p>
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600">Vencidas:</span>
+                <span class="font-bold text-red-600 text-lg">{{ overdue_invoices }}</span>
+            </div>
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600">Pronto Pago:</span>
+                <span class="font-bold text-green-600 text-lg">{{ early_payment_invoices }}</span>
+            </div>
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl mt-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-semibold">Total Pendiente:</span>
+                    <span class="font-bold text-blue-700 text-xl">${{ total_pending_amount|floatformat:2 }}</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Claims Status -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-exclamation-circle"></i> Siniestros</h5>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-exclamation-circle mr-2"></i> Siniestros
+            </h5>
+        </div>
+        <div class="p-6 space-y-4">
+            {% for status_data in claims_by_status %}
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600 capitalize">{{ status_data.status|title }}:</span>
+                <span class="font-bold text-gray-900 text-lg">{{ status_data.count }}</span>
             </div>
-            <div class="card-body">
-                {% for status_data in claims_by_status %}
-                <p class="mb-1">
-                    {{ status_data.status|title }}: <strong>{{ status_data.count }}</strong>
-                </p>
-                {% endfor %}
-                <hr>
-                <p class="mb-0 text-warning">Atrasados: <strong>{{ overdue_claims }}</strong></p>
+            {% endfor %}
+            <div class="bg-gradient-to-r from-amber-50 to-amber-100 p-4 rounded-xl mt-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-semibold">Atrasados:</span>
+                    <span class="font-bold text-amber-700 text-xl">{{ overdue_claims }}</span>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Activity -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-activity"></i> Actividad Reciente</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Actividad reciente del sistema aparecerá aquí.</p>
-                <!-- This would be populated with recent system activity -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-cyan-600 to-cyan-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-activity mr-2"></i> Actividad Reciente
+            </h5>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-center h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                <p class="text-gray-500 text-center">
+                    <i class="bi bi-clock-history text-4xl mb-3 block"></i>
+                    Actividad reciente del sistema aparecerá aquí
+                </p>
             </div>
         </div>
     </div>
@@ -127,50 +168,56 @@
 
 <!-- Requester Dashboard -->
 {% if user.role == 'requester' %}
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-box-seam"></i> Mis Bienes</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6">
-                        <h4 class="text-primary">{{ my_assets }}</h4>
-                        <p class="mb-0">Total de bienes</p>
-                    </div>
-                    <div class="col-6">
-                        <h4 class="text-success">{{ insured_assets }}</h4>
-                        <p class="mb-0">Asegurados</p>
-                    </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- My Assets Card -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-box-seam mr-2"></i> Mis Bienes
+            </h5>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="text-center p-4 bg-blue-50 rounded-xl" style="background-color: #f0f4f9;">
+                    <h4 class="text-4xl font-bold mb-2" style="color: #4a7dbb;">{{ my_assets }}</h4>
+                    <p class="text-gray-600 font-medium">Total de bienes</p>
+                </div>
+                <div class="text-center p-4 bg-green-50 rounded-xl">
+                    <h4 class="text-4xl font-bold text-green-600 mb-2">{{ insured_assets }}</h4>
+                    <p class="text-gray-600 font-medium">Asegurados</p>
                 </div>
             </div>
-            <div class="card-footer">
-                <a href="{% url 'assets:asset_list' %}" class="btn btn-primary btn-sm">Ver Bienes</a>
-            </div>
+            <a href="{% url 'assets:asset_list' %}" class="block w-full text-center text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+                Ver Bienes
+            </a>
         </div>
     </div>
 
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-exclamation-triangle"></i> Mis Siniestros</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6">
-                        <h4 class="text-primary">{{ my_claims }}</h4>
-                        <p class="mb-0">Total de siniestros</p>
-                    </div>
-                    <div class="col-6">
-                        <h4 class="text-warning">{{ pending_claims }}</h4>
-                        <p class="mb-0">En proceso</p>
-                    </div>
+    <!-- My Claims Card -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+        <div class="bg-gradient-to-r from-amber-600 to-amber-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-exclamation-triangle mr-2"></i> Mis Siniestros
+            </h5>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="text-center p-4 bg-amber-50 rounded-xl">
+                    <h4 class="text-4xl font-bold text-amber-600 mb-2">{{ my_claims }}</h4>
+                    <p class="text-gray-600 font-medium">Total siniestros</p>
+                </div>
+                <div class="text-center p-4 bg-red-50 rounded-xl">
+                    <h4 class="text-4xl font-bold text-red-600 mb-2">{{ pending_claims }}</h4>
+                    <p class="text-gray-600 font-medium">En proceso</p>
                 </div>
             </div>
-            <div class="card-footer">
-                <a href="{% url 'claims:claim_list' %}" class="btn btn-primary btn-sm">Ver Siniestros</a>
-                <a href="{% url 'claims:claim_create' %}" class="btn btn-success btn-sm ms-2">Reportar Siniestro</a>
+            <div class="flex gap-3">
+                <a href="{% url 'claims:claim_list' %}" class="flex-1 text-center bg-gradient-to-r from-amber-600 to-amber-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-amber-700 hover:to-amber-800 transition-all duration-300">
+                    Ver Siniestros
+                </a>
+                <a href="{% url 'claims:claim_create' %}" class="flex-1 text-center bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300">
+                    Reportar
+                </a>
             </div>
         </div>
     </div>
@@ -179,92 +226,98 @@
 
 <!-- Insurance Manager Dashboard -->
 {% if user.role == 'insurance_manager' %}
-<div class="row">
-    <!-- Key Metrics for Manager -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Mis Pólizas</h5>
-                        <h3>{{ my_policies }}</h3>
-                    </div>
-                    <i class="bi bi-file-earmark-text fa-2x"></i>
-                </div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-br rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6" style="background: linear-gradient(to bottom right, #4a7dbb 0%, #2e5a8f 100%);">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-blue-100 text-sm font-semibold uppercase tracking-wide mb-2">Mis Pólizas</p>
+                <h3 class="text-4xl font-bold">{{ my_policies }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-file-earmark-text text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Pólizas Activas</h5>
-                        <h3>{{ active_policies }}</h3>
-                    </div>
-                    <i class="bi bi-check-circle fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-green-100 text-sm font-semibold uppercase tracking-wide mb-2">Pólizas Activas</p>
+                <h3 class="text-4xl font-bold">{{ active_policies }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-check-circle text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Por Vencer (30d)</h5>
-                        <h3>{{ expiring_policies_30 }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-triangle fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-amber-100 text-sm font-semibold uppercase tracking-wide mb-2">Por Vencer (30d)</p>
+                <h3 class="text-4xl font-bold">{{ expiring_policies_30 }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-exclamation-triangle text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Siniestros Totales</h5>
-                        <h3>{{ total_claims }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-circle fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-cyan-100 text-sm font-semibold uppercase tracking-wide mb-2">Siniestros Totales</p>
+                <h3 class="text-4xl font-bold">{{ total_claims }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-exclamation-circle text-3xl"></i>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Claims Management -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-exclamation-triangle"></i> Gestión de Siniestros</h5>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-exclamation-triangle mr-2"></i> Gestión de Siniestros
+            </h5>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600">Pendientes:</span>
+                <span class="font-bold text-gray-900 text-lg">{{ pending_claims }}</span>
             </div>
-            <div class="card-body">
-                <p class="mb-1">Pendientes: <strong>{{ pending_claims }}</strong></p>
-                <p class="mb-1">En Evaluación: <strong>{{ claims_under_evaluation }}</strong></p>
-                <hr>
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'claims:claim_list' %}" class="btn btn-primary">Ver Siniestros</a>
-                    <a href="{% url 'policies:policy_list' %}" class="btn btn-success">Ver Pólizas</a>
-                </div>
+            <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+                <span class="text-gray-600">En Evaluación:</span>
+                <span class="font-bold text-gray-900 text-lg">{{ claims_under_evaluation }}</span>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <a href="{% url 'claims:claim_list' %}" class="flex-1 text-center bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300">
+                    Ver Siniestros
+                </a>
+                <a href="{% url 'policies:policy_list' %}" class="flex-1 text-center bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300">
+                    Ver Pólizas
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Recent Activity -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-activity"></i> Actividad Reciente</h5>
-            </div>
-            <div class="card-body">
-                <p class="text-muted">Actividad reciente del sistema aparecerá aquí.</p>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-cyan-600 to-cyan-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-activity mr-2"></i> Actividad Reciente
+            </h5>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-center h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                <p class="text-gray-500 text-center">
+                    <i class="bi bi-clock-history text-4xl mb-3 block"></i>
+                    Actividad reciente del sistema
+                </p>
             </div>
         </div>
     </div>
@@ -273,99 +326,115 @@
 
 <!-- Financial Analyst Dashboard -->
 {% if user.role == 'financial_analyst' %}
-<div class="row">
-    <!-- Financial Metrics -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-success text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Facturas Pagadas</h5>
-                        <h3>{{ paid_invoices }}</h3>
-                    </div>
-                    <i class="bi bi-check-circle fa-2x"></i>
-                </div>
+<!-- Financial Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-green-100 text-sm font-semibold uppercase tracking-wide mb-2">Facturas Pagadas</p>
+                <h3 class="text-4xl font-bold">{{ paid_invoices }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-check-circle text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Facturas Pendientes</h5>
-                        <h3>{{ pending_invoices }}</h3>
-                    </div>
-                    <i class="bi bi-clock fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-amber-100 text-sm font-semibold uppercase tracking-wide mb-2">Facturas Pendientes</p>
+                <h3 class="text-4xl font-bold">{{ pending_invoices }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-clock text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-danger text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Facturas Vencidas</h5>
-                        <h3>{{ overdue_invoices }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-triangle fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-red-100 text-sm font-semibold uppercase tracking-wide mb-2">Facturas Vencidas</p>
+                <h3 class="text-4xl font-bold">{{ overdue_invoices }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-exclamation-triangle text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Total Facturas</h5>
-                        <h3>{{ total_invoices }}</h3>
-                    </div>
-                    <i class="bi bi-receipt fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-blue-100 text-sm font-semibold uppercase tracking-wide mb-2">Total Facturas</p>
+                <h3 class="text-4xl font-bold">{{ total_invoices }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-receipt text-3xl"></i>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Revenue Summary -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-cash"></i> Resumen de Ingresos</h5>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-cash mr-2"></i> Resumen de Ingresos
+            </h5>
+        </div>
+        <div class="p-6">
+            <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl mb-6">
+                <h4 class="text-5xl font-bold text-green-700 mb-2">${{ total_revenue|floatformat:2 }}</h4>
+                <p class="text-gray-600 font-medium">Ingresos totales de facturas pagadas</p>
             </div>
-            <div class="card-body">
-                <h4 class="text-success">${{ total_revenue|floatformat:2 }}</h4>
-                <p class="text-muted">Ingresos totales de facturas pagadas</p>
-                <hr>
-                <a href="{% url 'invoices:invoice_list' %}" class="btn btn-primary">Ver Facturas</a>
-                <a href="{% url 'reports:financial_report' %}" class="btn btn-info ms-2">Reportes Financieros</a>
+            <div class="flex gap-3">
+                <a href="{% url 'invoices:invoice_list' %}" class="flex-1 text-center bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300">
+                    Ver Facturas
+                </a>
+                <a href="{% url 'reports:financial_report' %}" class="flex-1 text-center bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-cyan-700 hover:to-cyan-800 transition-all duration-300">
+                    Reportes
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Overdue Analysis -->
-    <div class="col-md-6 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-graph-up"></i> Análisis de Cobranza</h5>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-graph-up mr-2"></i> Análisis de Cobranza
+            </h5>
+        </div>
+        <div class="p-6">
+            {% if overdue_invoices > 0 %}
+            <div class="bg-gradient-to-r from-amber-50 to-amber-100 border-l-4 border-amber-500 p-4 rounded-xl mb-4">
+                <div class="flex items-center">
+                    <i class="bi bi-exclamation-triangle text-amber-600 text-2xl mr-3"></i>
+                    <div>
+                        <strong class="text-amber-800">Atención:</strong>
+                        <p class="text-amber-700">{{ overdue_invoices }} facturas requieren atención inmediata</p>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                {% if overdue_invoices > 0 %}
-                <div class="alert alert-warning">
-                    <strong>Atención:</strong> {{ overdue_invoices }} facturas requieren atención inmediata.
+            {% else %}
+            <div class="bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 rounded-xl mb-4">
+                <div class="flex items-center">
+                    <i class="bi bi-check-circle text-green-600 text-2xl mr-3"></i>
+                    <div>
+                        <strong class="text-green-800">Excelente:</strong>
+                        <p class="text-green-700">No hay facturas vencidas</p>
+                    </div>
                 </div>
-                {% else %}
-                <div class="alert alert-success">
-                    <strong>Excelente:</strong> No hay facturas vencidas.
+            </div>
+            {% endif %}
+            <div class="bg-gray-50 p-4 rounded-xl">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-700 font-semibold">Tasa de cobranza:</span>
+                    <span class="font-bold text-purple-700 text-2xl">{% if total_invoices %}{{ paid_invoices|divide:total_invoices|mul:100|floatformat:1 }}{% else %}0{% endif %}%</span>
                 </div>
-                {% endif %}
-                <p class="mb-0">Tasa de cobranza: <strong>{% if total_invoices %}{{ paid_invoices|divide:total_invoices|mul:100|floatformat:1 }}{% else %}0{% endif %}%</strong></p>
             </div>
         </div>
     </div>
@@ -374,95 +443,102 @@
 
 <!-- Consultant Dashboard -->
 {% if user.role == 'consultant' %}
-<div class="row">
-    <!-- Claims Overview -->
-    <div class="col-md-4 mb-4">
-        <div class="card bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Siniestros Totales</h5>
-                        <h3>{{ total_claims }}</h3>
-                    </div>
-                    <i class="bi bi-exclamation-circle fa-2x"></i>
-                </div>
+<!-- Claims Overview Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-cyan-100 text-sm font-semibold uppercase tracking-wide mb-2">Siniestros Totales</p>
+                <h3 class="text-4xl font-bold">{{ total_claims }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-exclamation-circle text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Mis Siniestros</h5>
-                        <h3>{{ my_claims }}</h3>
-                    </div>
-                    <i class="bi bi-person fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-amber-100 text-sm font-semibold uppercase tracking-wide mb-2">Mis Siniestros</p>
+                <h3 class="text-4xl font-bold">{{ my_claims }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-person text-3xl"></i>
             </div>
         </div>
     </div>
 
-    <div class="col-md-4 mb-4">
-        <div class="card bg-secondary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h5 class="card-title">Pendientes</h5>
-                        <h3>{{ pending_claims }}</h3>
-                    </div>
-                    <i class="bi bi-clock fa-2x"></i>
-                </div>
+    <div class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 text-white p-6">
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <p class="text-gray-100 text-sm font-semibold uppercase tracking-wide mb-2">Pendientes</p>
+                <h3 class="text-4xl font-bold">{{ pending_claims }}</h3>
+            </div>
+            <div class="bg-white/20 p-3 rounded-xl backdrop-blur-sm">
+                <i class="bi bi-clock text-3xl"></i>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Claims Management -->
-    <div class="col-md-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-list-check"></i> Gestión de Siniestros</h5>
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-list-check mr-2"></i> Gestión de Siniestros
+            </h5>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-600 mb-6">Como consultor, tienes acceso de solo lectura para revisar y consultar siniestros.</p>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl">
+                    <h6 class="text-gray-600 font-medium mb-2">Siniestros Asignados:</h6>
+                    <p class="text-3xl font-bold text-purple-700">{{ my_claims }}</p>
+                </div>
+                <div class="bg-gradient-to-br from-amber-50 to-amber-100 p-4 rounded-xl">
+                    <h6 class="text-gray-600 font-medium mb-2">Siniestros Pendientes:</h6>
+                    <p class="text-3xl font-bold text-amber-700">{{ pending_claims }}</p>
+                </div>
             </div>
-            <div class="card-body">
-                <p>Como consultor, tienes acceso de solo lectura para revisar y consultar siniestros.</p>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Siniestros Asignados: <strong>{{ my_claims }}</strong></h6>
-                        <h6>Siniestros Pendientes: <strong>{{ pending_claims }}</strong></h6>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Total del Sistema: <strong>{{ total_claims }}</strong></h6>
-                    </div>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'claims:claim_list' %}" class="btn btn-primary">Ver Siniestros</a>
-                    <a href="{% url 'reports:claims_report' %}" class="btn btn-info">Reportes de Siniestros</a>
-                </div>
+            <div class="flex gap-3">
+                <a href="{% url 'claims:claim_list' %}" class="flex-1 text-center bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300">
+                    Ver Siniestros
+                </a>
+                <a href="{% url 'reports:claims_report' %}" class="flex-1 text-center bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-cyan-700 hover:to-cyan-800 transition-all duration-300">
+                    Reportes
+                </a>
             </div>
         </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
-            </div>
-            <div class="card-body">
-                <a href="{% url 'claims:claim_list' %}" class="btn btn-outline-primary btn-block mb-2">
-                    <i class="bi bi-exclamation-circle"></i> Revisar Siniestros
-                </a>
-                <a href="{% url 'policies:policy_list' %}" class="btn btn-outline-success btn-block mb-2">
-                    <i class="bi bi-file-earmark-text"></i> Consultar Pólizas
-                </a>
-                <a href="{% url 'assets:asset_list' %}" class="btn btn-outline-info btn-block">
-                    <i class="bi bi-box-seam"></i> Ver Bienes
-                </a>
-            </div>
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6">
+            <h5 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-lightning mr-2"></i> Acciones Rápidas
+            </h5>
+        </div>
+        <div class="p-6 space-y-3">
+            <a href="{% url 'claims:claim_list' %}" class="flex items-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl hover:from-purple-100 hover:to-purple-200 transition-all duration-300 group">
+                <div class="bg-purple-600 p-2 rounded-lg mr-3 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-exclamation-circle text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-700">Revisar Siniestros</span>
+            </a>
+            <a href="{% url 'policies:policy_list' %}" class="flex items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl hover:from-green-100 hover:to-green-200 transition-all duration-300 group">
+                <div class="bg-green-600 p-2 rounded-lg mr-3 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-file-earmark-text text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-700">Consultar Pólizas</span>
+            </a>
+            <a href="{% url 'assets:asset_list' %}" class="flex items-center p-4 bg-gradient-to-r from-cyan-50 to-cyan-100 rounded-xl hover:from-cyan-100 hover:to-cyan-200 transition-all duration-300 group">
+                <div class="bg-cyan-600 p-2 rounded-lg mr-3 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-box-seam text-white text-xl"></i>
+                </div>
+                <span class="font-semibold text-gray-700">Ver Bienes</span>
+            </a>
         </div>
     </div>
 </div>

@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Dashboard - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-speedometer2"></i> Dashboard
+            <small class="text-muted">Bienvenido, {{ user_full_name }}</small>
+        </h1>
+    </div>
+</div>
+
+<!-- Admin Dashboard -->
+{% if user.role == 'admin' %}
+<div class="row">
+    <!-- Key Metrics -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Pólizas Activas</h5>
+                        <h3>{{ active_policies }}</h3>
+                    </div>
+                    <i class="bi bi-file-earmark-text fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Por Vencer (30 días)</h5>
+                        <h3>{{ expiring_policies_30 }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Por Vencer (7 días)</h5>
+                        <h3>{{ expiring_policies_7 }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle-fill fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Pólizas</h5>
+                        <h3>{{ total_policies }}</h3>
+                    </div>
+                    <i class="bi bi-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Financial Metrics -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-cash"></i> Facturación</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-1">Pendientes: <strong>{{ pending_invoices }}</strong></p>
+                <p class="mb-1">Vencidas: <strong class="text-danger">{{ overdue_invoices }}</strong></p>
+                <p class="mb-1">Pronto Pago: <strong class="text-success">{{ early_payment_invoices }}</strong></p>
+                <hr>
+                <p class="mb-0">Total Pendiente: <strong>${{ total_pending_amount|floatformat:2 }}</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Claims Status -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-circle"></i> Siniestros</h5>
+            </div>
+            <div class="card-body">
+                {% for status_data in claims_by_status %}
+                <p class="mb-1">
+                    {{ status_data.status|title }}: <strong>{{ status_data.count }}</strong>
+                </p>
+                {% endfor %}
+                <hr>
+                <p class="mb-0 text-warning">Atrasados: <strong>{{ overdue_claims }}</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-activity"></i> Actividad Reciente</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Actividad reciente del sistema aparecerá aquí.</p>
+                <!-- This would be populated with recent system activity -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Requester Dashboard -->
+{% if user.role == 'requester' %}
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-box-seam"></i> Mis Bienes</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ my_assets }}</h4>
+                        <p class="mb-0">Total de bienes</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">{{ insured_assets }}</h4>
+                        <p class="mb-0">Asegurados</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-primary btn-sm">Ver Bienes</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-triangle"></i> Mis Siniestros</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h4 class="text-primary">{{ my_claims }}</h4>
+                        <p class="mb-0">Total de siniestros</p>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-warning">{{ pending_claims }}</h4>
+                        <p class="mb-0">En proceso</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'claims:claim_list' %}" class="btn btn-primary btn-sm">Ver Siniestros</a>
+                <a href="{% url 'claims:claim_create' %}" class="btn btn-success btn-sm ms-2">Reportar Siniestro</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Insurance Manager Dashboard -->
+{% if user.role == 'insurance_manager' %}
+<div class="row">
+    <!-- Key Metrics for Manager -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Mis Pólizas</h5>
+                        <h3>{{ my_policies }}</h3>
+                    </div>
+                    <i class="bi bi-file-earmark-text fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Pólizas Activas</h5>
+                        <h3>{{ active_policies }}</h3>
+                    </div>
+                    <i class="bi bi-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Por Vencer (30d)</h5>
+                        <h3>{{ expiring_policies_30 }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Siniestros Totales</h5>
+                        <h3>{{ total_claims }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Claims Management -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-exclamation-triangle"></i> Gestión de Siniestros</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-1">Pendientes: <strong>{{ pending_claims }}</strong></p>
+                <p class="mb-1">En Evaluación: <strong>{{ claims_under_evaluation }}</strong></p>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'claims:claim_list' %}" class="btn btn-primary">Ver Siniestros</a>
+                    <a href="{% url 'policies:policy_list' %}" class="btn btn-success">Ver Pólizas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-activity"></i> Actividad Reciente</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Actividad reciente del sistema aparecerá aquí.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Financial Analyst Dashboard -->
+{% if user.role == 'financial_analyst' %}
+<div class="row">
+    <!-- Financial Metrics -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Facturas Pagadas</h5>
+                        <h3>{{ paid_invoices }}</h3>
+                    </div>
+                    <i class="bi bi-check-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Facturas Pendientes</h5>
+                        <h3>{{ pending_invoices }}</h3>
+                    </div>
+                    <i class="bi bi-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Facturas Vencidas</h5>
+                        <h3>{{ overdue_invoices }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-triangle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Total Facturas</h5>
+                        <h3>{{ total_invoices }}</h3>
+                    </div>
+                    <i class="bi bi-receipt fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Revenue Summary -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-cash"></i> Resumen de Ingresos</h5>
+            </div>
+            <div class="card-body">
+                <h4 class="text-success">${{ total_revenue|floatformat:2 }}</h4>
+                <p class="text-muted">Ingresos totales de facturas pagadas</p>
+                <hr>
+                <a href="{% url 'invoices:invoice_list' %}" class="btn btn-primary">Ver Facturas</a>
+                <a href="{% url 'reports:financial_report' %}" class="btn btn-info ms-2">Reportes Financieros</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overdue Analysis -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-graph-up"></i> Análisis de Cobranza</h5>
+            </div>
+            <div class="card-body">
+                {% if overdue_invoices > 0 %}
+                <div class="alert alert-warning">
+                    <strong>Atención:</strong> {{ overdue_invoices }} facturas requieren atención inmediata.
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <strong>Excelente:</strong> No hay facturas vencidas.
+                </div>
+                {% endif %}
+                <p class="mb-0">Tasa de cobranza: <strong>{% if total_invoices %}{{ paid_invoices|divide:total_invoices|mul:100|floatformat:1 }}{% else %}0{% endif %}%</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Consultant Dashboard -->
+{% if user.role == 'consultant' %}
+<div class="row">
+    <!-- Claims Overview -->
+    <div class="col-md-4 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Siniestros Totales</h5>
+                        <h3>{{ total_claims }}</h3>
+                    </div>
+                    <i class="bi bi-exclamation-circle fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Mis Siniestros</h5>
+                        <h3>{{ my_claims }}</h3>
+                    </div>
+                    <i class="bi bi-person fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card bg-secondary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">Pendientes</h5>
+                        <h3>{{ pending_claims }}</h3>
+                    </div>
+                    <i class="bi bi-clock fa-2x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Claims Management -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-list-check"></i> Gestión de Siniestros</h5>
+            </div>
+            <div class="card-body">
+                <p>Como consultor, tienes acceso de solo lectura para revisar y consultar siniestros.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Siniestros Asignados: <strong>{{ my_claims }}</strong></h6>
+                        <h6>Siniestros Pendientes: <strong>{{ pending_claims }}</strong></h6>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Total del Sistema: <strong>{{ total_claims }}</strong></h6>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'claims:claim_list' %}" class="btn btn-primary">Ver Siniestros</a>
+                    <a href="{% url 'reports:claims_report' %}" class="btn btn-info">Reportes de Siniestros</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Acciones Rápidas</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'claims:claim_list' %}" class="btn btn-outline-primary btn-block mb-2">
+                    <i class="bi bi-exclamation-circle"></i> Revisar Siniestros
+                </a>
+                <a href="{% url 'policies:policy_list' %}" class="btn btn-outline-success btn-block mb-2">
+                    <i class="bi bi-file-earmark-text"></i> Consultar Pólizas
+                </a>
+                <a href="{% url 'assets:asset_list' %}" class="btn btn-outline-info btn-block">
+                    <i class="bi bi-box-seam"></i> Ver Bienes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

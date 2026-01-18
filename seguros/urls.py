@@ -20,10 +20,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", lambda request: redirect('accounts:dashboard') if request.user.is_authenticated else redirect('accounts:login'), name='home'),
+    path("color-palette/", TemplateView.as_view(template_name='color_palette.html'), name='color_palette'),
 
     # App URLs
     path("accounts/", include('accounts.urls')),

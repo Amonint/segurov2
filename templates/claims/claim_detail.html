@@ -4,366 +4,235 @@
 {% block title %}Detalle del Siniestro {{ claim.claim_number }}{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>
-                <i class="bi bi-exclamation-triangle text-warning"></i>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-exclamation-triangle mr-3 text-red-600"></i>
                 Siniestro {{ claim.claim_number }}
             </h1>
-            <div>
-                <a href="{% url 'claims:claim_list' %}" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver a la lista
-                </a>
-                {% if 'claims_change' in user_permissions %}
-                <button class="btn btn-primary">
-                    <i class="bi bi-pencil"></i> Editar
-                </button>
-                {% endif %}
-            </div>
+            <p class="text-gray-600">Detalles y seguimiento del incidente</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'claims:claim_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+                <i class="bi bi-arrow-left mr-2"></i> Volver
+            </a>
+            {% if 'claims_change' in user_permissions %}
+            <button class="text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg flex items-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+                <i class="bi bi-pencil mr-2"></i> Editar
+            </button>
+            {% endif %}
         </div>
     </div>
 </div>
 
-<div class="row">
-    <!-- Información Principal del Siniestro -->
-    <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-info-circle"></i>
-                    Información del Siniestro
-                    <span class="badge
-                        {% if claim.status == 'reported' %}bg-secondary
-                        {% elif claim.status == 'documentation_pending' %}bg-warning
-                        {% elif claim.status == 'sent_to_insurer' %}bg-info
-                        {% elif claim.status == 'under_evaluation' %}bg-primary
-                        {% elif claim.status == 'liquidated' %}bg-success
-                        {% elif claim.status == 'paid' %}bg-success
-                        {% elif claim.status == 'closed' %}bg-dark
-                        {% elif claim.status == 'rejected' %}bg-danger
-                        {% endif %} float-end">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Content -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Claim Information Card -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-white font-bold text-xl flex items-center">
+                        <i class="bi bi-info-circle mr-2"></i>
+                        Información del Siniestro
+                    </h2>
+                    <span class="px-4 py-2 rounded-full text-sm font-bold text-white
+                        {% if claim.status == 'reported' %}bg-gray-500
+                        {% elif claim.status == 'documentation_pending' %}bg-amber-500
+                        {% elif claim.status == 'sent_to_insurer' %}bg-blue-500
+                        {% elif claim.status == 'under_evaluation' %}bg-purple-500
+                        {% elif claim.status == 'liquidated' %}bg-green-500
+                        {% elif claim.status == 'paid' %}bg-green-600
+                        {% elif claim.status == 'closed' %}bg-gray-700
+                        {% else %}bg-red-700{% endif %}">
                         {{ claim.get_status_display }}
                     </span>
-                    {% if 'claims_write' in user_permissions and claim.status == 'liquidated' %}
-                    <div class="ms-2">
-                        {% if not claim.settlement %}
-                        <a href="{% url 'claims:claim_settlement_create' claim.pk %}"
-                           class="btn btn-sm btn-outline-success">
-                            <i class="bi bi-file-earmark-check"></i> Crear Finiquito
-                        </a>
-                        {% else %}
-                        <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-file-earmark-check"></i> Ver Finiquito
-                        </a>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- General Info -->
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-red-200">Información General</h3>
+                        
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold">Número de Siniestro</label>
+                            <p class="text-gray-900 font-bold text-lg mt-1">{{ claim.claim_number }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold">Póliza Asociada</label>
+                            {% if claim.policy %}
+                            <a href="{% url 'policies:policy_detail' claim.policy.pk %}" class="font-bold text-lg mt-1 block hover:opacity-80 transition-opacity" style="color: #4a7dbb;">
+                                {{ claim.policy.policy_number }}
+                            </a>
+                            {% else %}
+                            <p class="text-gray-400 italic mt-1">No asignada</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold flex items-center">
+                                <i class="bi bi-person mr-1"></i> Reportado por
+                            </label>
+                            <p class="text-gray-900 font-medium mt-1">{{ claim.reported_by.get_full_name }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold flex items-center">
+                                <i class="bi bi-person-check mr-1"></i> Asignado a
+                            </label>
+                            {% if claim.assigned_to %}
+                            <p class="text-gray-900 font-medium mt-1">{{ claim.assigned_to.get_full_name }}</p>
+                            {% else %}
+                            <p class="text-gray-400 italic mt-1">No asignado</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Dates -->
+                    <div class="space-y-4">
+                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-blue-200">Cronología</h3>
+                        
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold flex items-center">
+                                <i class="bi bi-calendar-event mr-1"></i> Fecha del Incidente
+                            </label>
+                            <p class="text-gray-900 font-bold text-lg mt-1">{{ claim.incident_date|date:"d/m/Y" }}</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-xl">
+                            <label class="text-gray-600 text-sm font-semibold flex items-center">
+                                <i class="bi bi-calendar-check mr-1"></i> Fecha de Reporte
+                            </label>
+                            <p class="text-gray-900 font-bold text-lg mt-1">{{ claim.report_date|date:"d/m/Y" }}</p>
+                        </div>
+
+                        {% if claim.payment_date %}
+                        <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                            <label class="text-green-700 text-sm font-semibold flex items-center">
+                                <i class="bi bi-cash-coin mr-1"></i> Fecha de Pago
+                            </label>
+                            <p class="text-green-900 font-bold text-lg mt-1">{{ claim.payment_date|date:"d/m/Y" }}</p>
+                        </div>
+                        {% endif %}
+
+                        {% if claim.approved_amount %}
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                            <label class="text-blue-700 text-sm font-semibold flex items-center">
+                                <i class="bi bi-cash-stack mr-1"></i> Monto Aprobado
+                            </label>
+                            <p class="text-blue-900 font-bold text-lg mt-1">${{ claim.approved_amount|floatformat:2 }}</p>
+                        </div>
                         {% endif %}
                     </div>
-                    {% endif %}
-                </h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Información General</h6>
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>Número:</strong></td>
-                                <td>{{ claim.claim_number }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Póliza:</strong></td>
-                                <td>
-                                    {% if claim.policy %}
-                                    <a href="{% url 'policies:policy_detail' claim.policy.pk %}">
-                                        {{ claim.policy.policy_number }}
-                                    </a>
-                                    {% else %}
-                                    <span class="text-muted">No asignada</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><strong>Reportado por:</strong></td>
-                                <td>{{ claim.reported_by.get_full_name }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Asignado a:</strong></td>
-                                <td>
-                                    {% if claim.assigned_to %}
-                                    {{ claim.assigned_to.get_full_name }}
-                                    {% else %}
-                                    <span class="text-muted">No asignado</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Fechas</h6>
-                        <table class="table table-sm">
-                            <tr>
-                                <td><strong>Fecha incidente:</strong></td>
-                                <td>{{ claim.incident_date|date:"d/m/Y" }}</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Fecha reporte:</strong></td>
-                                <td>{{ claim.report_date|date:"d/m/Y" }}</td>
-                            </tr>
-                            {% if claim.approved_amount %}
-                            <tr>
-                                <td><strong>Monto aprobado:</strong></td>
-                                <td class="text-success"><strong>${{ claim.approved_amount|floatformat:2 }}</strong></td>
-                            </tr>
-                            {% endif %}
-                            {% if claim.payment_date %}
-                            <tr>
-                                <td><strong>Fecha de pago:</strong></td>
-                                <td>{{ claim.payment_date|date:"d/m/Y" }}</td>
-                            </tr>
-                            {% endif %}
-                        </table>
-                    </div>
                 </div>
 
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6>Descripción del Incidente</h6>
-                        <div class="border rounded p-3 bg-light">
-                            <p class="mb-2"><strong>Ubicación:</strong> {{ claim.incident_location }}</p>
-                            <p class="mb-0"><strong>Descripción:</strong></p>
-                            <p>{{ claim.incident_description }}</p>
+                <!-- Incident Details -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">Descripción del Incidente</h3>
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 border border-red-200 rounded-xl p-6">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-red-700 font-semibold text-sm">Ubicación del Incidente</label>
+                                <p class="text-gray-900 mt-1">{{ claim.incident_location }}</p>
+                            </div>
+                            <div class="border-t border-red-200 pt-3">
+                                <label class="text-red-700 font-semibold text-sm">Descripción Detallada</label>
+                                <p class="text-gray-900 mt-1 leading-relaxed">{{ claim.incident_description }}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Asset Information -->
                 {% if claim.asset_type or claim.asset_description %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6>Información del Bien Afectado</h6>
-                        <div class="border rounded p-3 bg-light">
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">Bien Afectado</h3>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-xl p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {% if claim.asset_type %}
-                            <p class="mb-2"><strong>Tipo de bien:</strong> {{ claim.asset_type }}</p>
-                            {% endif %}
-                            {% if claim.asset_description %}
-                            <p class="mb-2"><strong>Descripción:</strong> {{ claim.asset_description }}</p>
+                            <div>
+                                <label class="text-purple-700 font-semibold text-sm">Tipo de Bien</label>
+                                <p class="text-gray-900 font-medium mt-1">{{ claim.asset_type }}</p>
+                            </div>
                             {% endif %}
                             {% if claim.asset_code %}
-                            <p class="mb-0"><strong>Código del bien:</strong> {{ claim.asset_code }}</p>
+                            <div>
+                                <label class="text-purple-700 font-semibold text-sm">Código del Bien</label>
+                                <p class="text-gray-900 font-mono mt-1">{{ claim.asset_code }}</p>
+                            </div>
                             {% endif %}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if claim.rejection_reason %}
-                <div class="row mt-3">
-                    <div class="col-12">
-                        <h6 class="text-danger">Motivo de Rechazo</h6>
-                        <div class="border rounded p-3 bg-danger bg-opacity-10 border-danger">
-                            <p class="mb-0 text-danger">{{ claim.rejection_reason }}</p>
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Información Adicional -->
-    <div class="col-lg-4">
-        <!-- Monto Estimado -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-cash"></i>
-                    Monto Estimado
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="text-center">
-                    <h3 class="text-primary mb-0">${{ claim.estimated_loss|floatformat:2 }}</h3>
-                    <small class="text-muted">Pérdida estimada</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Estado del Proceso -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-gear"></i>
-                    Estado del Proceso
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="progress mb-2">
-                    {% if claim.status == 'reported' %}
-                        <div class="progress-bar bg-secondary" style="width: 10%"></div>
-                    {% elif claim.status == 'documentation_pending' %}
-                        <div class="progress-bar bg-warning" style="width: 25%"></div>
-                    {% elif claim.status == 'sent_to_insurer' %}
-                        <div class="progress-bar bg-info" style="width: 40%"></div>
-                    {% elif claim.status == 'under_evaluation' %}
-                        <div class="progress-bar bg-primary" style="width: 60%"></div>
-                    {% elif claim.status == 'liquidated' %}
-                        <div class="progress-bar bg-success" style="width: 80%"></div>
-                    {% elif claim.status == 'paid' %}
-                        <div class="progress-bar bg-success" style="width: 100%"></div>
-                    {% elif claim.status == 'closed' %}
-                        <div class="progress-bar bg-dark" style="width: 100%"></div>
-                    {% elif claim.status == 'rejected' %}
-                        <div class="progress-bar bg-danger" style="width: 100%"></div>
-                    {% endif %}
-                </div>
-                <small class="text-muted">{{ claim.get_status_display }}</small>
-            </div>
-        </div>
-
-        <!-- Acciones Rápidas -->
-        {% if 'claims_change' in user_permissions %}
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-tools"></i>
-                    Acciones
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary btn-sm" onclick="changeStatus('documentation_pending')">
-                        Solicitar Documentación
-                    </button>
-                    <button class="btn btn-outline-info btn-sm" onclick="changeStatus('sent_to_insurer')">
-                        Enviar a Aseguradora
-                    </button>
-                    <button class="btn btn-outline-success btn-sm" onclick="changeStatus('liquidated')">
-                        Liquidar
-                    </button>
-                    <button class="btn btn-outline-danger btn-sm" onclick="changeStatus('rejected')">
-                        Rechazar
-                    </button>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Línea de Tiempo -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-clock-history"></i>
-                    Línea de Tiempo
-                </h5>
-            </div>
-            <div class="card-body">
-                {% if timeline %}
-                <div class="timeline">
-                    {% for event in timeline %}
-                    <div class="timeline-item">
-                        <div class="timeline-marker
-                            {% if event.event_type == 'created' %}bg-primary
-                            {% elif event.event_type == 'status_changed' %}bg-info
-                            {% elif event.event_type == 'assigned' %}bg-warning
-                            {% elif event.event_type == 'document_added' %}bg-success
-                            {% elif event.event_type == 'liquidated' %}bg-success
-                            {% elif event.event_type == 'paid' %}bg-success
-                            {% elif event.event_type == 'rejected' %}bg-danger
-                            {% else %}bg-secondary
-                            {% endif %}">
-                            <i class="bi
-                                {% if event.event_type == 'created' %}bi-plus-circle
-                                {% elif event.event_type == 'status_changed' %}bi-arrow-repeat
-                                {% elif event.event_type == 'assigned' %}bi-person-check
-                                {% elif event.event_type == 'document_added' %}bi-file-earmark-plus
-                                {% elif event.event_type == 'liquidated' %}bi-check-circle
-                                {% elif event.event_type == 'paid' %}bi-cash
-                                {% elif event.event_type == 'rejected' %}bi-x-circle
-                                {% else %}bi-info-circle
-                                {% endif %}"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h6 class="timeline-title">{{ event.get_event_type_display }}</h6>
-                            <p class="timeline-text">{{ event.event_description }}</p>
-                            <small class="text-muted">
-                                {{ event.created_at|date:"d/m/Y H:i" }} por {{ event.created_by.get_full_name }}
-                            </small>
-                            {% if event.old_status and event.new_status %}
-                            <div class="mt-1">
-                                <small class="text-muted">
-                                    Estado: {{ event.get_old_status_display }} → {{ event.get_new_status_display }}
-                                </small>
+                            {% if claim.asset_description %}
+                            <div class="md:col-span-2">
+                                <label class="text-purple-700 font-semibold text-sm">Descripción</label>
+                                <p class="text-gray-900 mt-1">{{ claim.asset_description }}</p>
                             </div>
                             {% endif %}
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-4">
-                    <i class="bi bi-info-circle"></i>
-                    No hay eventos en la línea de tiempo
-                </p>
+                {% endif %}
+
+                <!-- Rejection Reason -->
+                {% if claim.rejection_reason %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">Motivo de Rechazo</h3>
+                    <div class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-400 rounded-xl p-6">
+                        <div class="flex items-start">
+                            <i class="bi bi-exclamation-circle text-red-600 text-3xl mr-4 mt-1"></i>
+                            <p class="text-red-800 font-semibold leading-relaxed">{{ claim.rejection_reason }}</p>
+                        </div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Documentos -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Documentos
-                </h5>
-                {% if 'claims_change' in user_permissions %}
-                <button class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-plus"></i> Agregar Documento
-                </button>
-                {% endif %}
+        <!-- Timeline -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+                <h2 class="text-white font-bold text-xl flex items-center">
+                    <i class="bi bi-clock-history mr-2"></i>
+                    Línea de Tiempo
+                </h2>
             </div>
-            <div class="card-body">
-                {% if documents %}
-                <div class="row">
-                    {% for document in documents %}
-                    <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-start">
-                                    <div class="flex-shrink-0 me-3">
-                                        <i class="bi bi-file-earmark-text fs-2 text-primary"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="card-title mb-1">{{ document.document_name }}</h6>
-                                        <p class="card-text small text-muted mb-2">
-                                            {{ document.get_document_type_display }}
-                                        </p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">
-                                                {{ document.uploaded_by.get_full_name }} • {{ document.uploaded_at|date:"d/m/Y" }}
-                                            </small>
-                                            {% if document.is_required %}
-                                            <span class="badge bg-warning">Requerido</span>
-                                            {% endif %}
-                                        </div>
-                                        <div class="mt-2">
-                                            <a href="#" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-download"></i> Descargar
-                                            </a>
-                                            {% if 'claims_change' in user_permissions %}
-                                            <button class="btn btn-sm btn-outline-danger ms-1">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+            <div class="p-6">
+                {% if timeline %}
+                <div class="space-y-6">
+                    {% for event in timeline %}
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 mr-4">
+                            <div class="flex items-center justify-center h-12 w-12 rounded-full text-white
+                                {% if event.event_type == 'created' %}{% elif event.event_type == 'status_changed' %}bg-purple-500{% elif event.event_type == 'assigned' %}bg-amber-500{% elif event.event_type == 'document_added' %}bg-green-500{% elif event.event_type == 'liquidated' %}bg-green-600{% elif event.event_type == 'paid' %}" style="{% if event.event_type == 'created' %}background-color: #4a7dbb;{% elif event.event_type == 'paid' %}background-color: #4a7dbb;{% else %}{% endif %}
+                                {% elif event.event_type == 'rejected' %}bg-red-500
+                                {% else %}bg-gray-500{% endif %}"
+                                style="{% if event.event_type == 'created' or event.event_type == 'paid' %}background-color: #4a7dbb;{% endif %}">
+                                <i class="bi
+                                    {% if event.event_type == 'created' %}bi-plus-circle
+                                    {% elif event.event_type == 'status_changed' %}bi-arrow-repeat
+                                    {% elif event.event_type == 'assigned' %}bi-person-check
+                                    {% elif event.event_type == 'document_added' %}bi-file-earmark-plus
+                                    {% elif event.event_type == 'liquidated' %}bi-check-circle
+                                    {% elif event.event_type == 'paid' %}bi-cash-coin
+                                    {% elif event.event_type == 'rejected' %}bi-x-circle
+                                    {% else %}bi-info-circle
+                                    {% endif %} text-white text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="bg-gray-50 p-4 rounded-xl">
+                                <h4 class="font-bold text-gray-900">{{ event.get_event_type_display }}</h4>
+                                <p class="text-gray-700 mt-2">{{ event.event_description }}</p>
+                                <div class="flex justify-between items-center mt-3 text-sm">
+                                    <span class="text-gray-500">{{ event.created_at|date:"d/m/Y H:i" }} • {{ event.created_by.get_full_name }}</span>
+                                    {% if event.old_status and event.new_status %}
+                                    <span class="bg-white px-3 py-1 rounded-full text-xs font-semibold">
+                                        {{ event.get_old_status_display }} → {{ event.get_new_status_display }}
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -371,84 +240,201 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-file-earmark-x fs-1 text-muted"></i>
-                    <p class="text-muted mt-2">No hay documentos adjuntos</p>
+                <div class="text-center py-12">
+                    <i class="bi bi-info-circle text-gray-300 text-6xl mb-3"></i>
+                    <p class="text-gray-500">No hay eventos en la línea de tiempo</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 flex justify-between items-center">
+                <h2 class="text-white font-bold text-xl flex items-center">
+                    <i class="bi bi-file-earmark-text mr-2"></i>
+                    Documentos
+                </h2>
+                {% if 'claims_change' in user_permissions %}
+                <button class="bg-white text-green-600 font-semibold py-2 px-4 rounded-lg hover:bg-green-50 transition-all duration-300 flex items-center">
+                    <i class="bi bi-plus mr-2"></i> Agregar Documento
+                </button>
+                {% endif %}
+            </div>
+            <div class="p-6">
+                {% if documents %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for document in documents %}
+                    <div class="border border-gray-200 rounded-xl p-5 hover:shadow-lg transition-all duration-300">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center">
+                                <div class="p-3 rounded-lg mr-3" style="background-color: #f0f4f9;">
+                                    <i class="bi bi-file-earmark-text text-xl" style="color: #4a7dbb;"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-900">{{ document.document_name }}</h4>
+                                    <p class="text-gray-500 text-xs mt-1">{{ document.get_document_type_display }}</p>
+                                </div>
+                            </div>
+                            {% if document.is_required %}
+                            <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-semibold">Requerido</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3">{{ document.uploaded_by.get_full_name }} • {{ document.uploaded_at|date:"d/m/Y" }}</p>
+                        <div class="flex gap-2">
+                            <a href="#" class="flex-1 py-2 px-3 rounded-lg hover:opacity-80 transition-all duration-300 flex items-center justify-center text-sm font-semibold text-white" style="background-color: #4a7dbb;">
+                                <i class="bi bi-download mr-1"></i> Descargar
+                            </a>
+                            {% if 'claims_change' in user_permissions %}
+                            <button class="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-all duration-300">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <i class="bi bi-file-earmark-x text-gray-300 text-6xl mb-3"></i>
+                    <p class="text-gray-500 text-lg">No hay documentos adjuntos</p>
                 </div>
                 {% endif %}
             </div>
         </div>
     </div>
+
+    <!-- Sidebar -->
+    <div class="space-y-6">
+        <!-- Estimated Loss -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+                <h3 class="text-white font-bold text-lg flex items-center">
+                    <i class="bi bi-cash-stack mr-2"></i>
+                    Monto Estimado
+                </h3>
+            </div>
+            <div class="p-6 text-center">
+                <p class="text-gray-600 text-sm mb-2">Pérdida Estimada</p>
+                <h2 class="text-5xl font-bold text-red-600 mb-4">${{ claim.estimated_loss|floatformat:2 }}</h2>
+                {% if claim.approved_amount %}
+                <div class="border-t pt-4">
+                    <p class="text-gray-600 text-sm mb-2">Monto Aprobado</p>
+                    <h3 class="text-3xl font-bold text-green-600">${{ claim.approved_amount|floatformat:2 }}</h3>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+                <h3 class="text-white font-bold text-lg flex items-center">
+                    <i class="bi bi-speedometer2 mr-2"></i>
+                    Progreso del Proceso
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="relative">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-700 font-semibold text-sm">Estado Actual</span>
+                            <span class="text-purple-600 font-bold text-sm">
+                                {% if claim.status == 'reported' %}10%
+                                {% elif claim.status == 'documentation_pending' %}25%
+                                {% elif claim.status == 'sent_to_insurer' %}40%
+                                {% elif claim.status == 'under_evaluation' %}60%
+                                {% elif claim.status == 'liquidated' %}80%
+                                {% elif claim.status == 'paid' %}100%
+                                {% elif claim.status == 'closed' %}100%
+                                {% else %}50%{% endif %}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-1000" 
+                                 style="width: {% if claim.status == 'reported' %}10%
+                                    {% elif claim.status == 'documentation_pending' %}25%
+                                    {% elif claim.status == 'sent_to_insurer' %}40%
+                                    {% elif claim.status == 'under_evaluation' %}60%
+                                    {% elif claim.status == 'liquidated' %}80%
+                                    {% elif claim.status == 'paid' %}100%
+                                    {% elif claim.status == 'closed' %}100%
+                                    {% else %}50%{% endif %}"></div>
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                        <p class="text-purple-900 font-semibold text-sm">{{ claim.get_status_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        {% if 'claims_change' in user_permissions %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+                <h3 class="text-white font-bold text-lg flex items-center">
+                    <i class="bi bi-tools mr-2"></i>
+                    Acciones Rápidas
+                </h3>
+            </div>
+            <div class="p-6 space-y-3">
+                <button onclick="changeStatus('documentation_pending')" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-amber-200 hover:border-amber-400">
+                    <i class="bi bi-file-earmark mr-2"></i> Solicitar Documentación
+                </button>
+                <button onclick="changeStatus('sent_to_insurer')" class="w-full font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 text-white" style="background-color: #f0f4f9; color: #4a7dbb; border-color: #b8cae3;" onmouseover="this.style.backgroundColor='#dce5f0';" onmouseout="this.style.backgroundColor='#f0f4f9';">
+                    <i class="bi bi-send mr-2"></i> Enviar a Aseguradora
+                </button>
+                <button onclick="changeStatus('liquidated')" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-green-200 hover:border-green-400">
+                    <i class="bi bi-check-circle mr-2"></i> Liquidar
+                </button>
+                <button onclick="changeStatus('rejected')" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-red-200 hover:border-red-400">
+                    <i class="bi bi-x-circle mr-2"></i> Rechazar
+                </button>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Settlement -->
+        {% if 'claims_write' in user_permissions and claim.status == 'liquidated' %}
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg p-6 border border-green-200">
+            <div class="flex items-center mb-4">
+                <div class="bg-green-600 p-3 rounded-xl mr-3">
+                    <i class="bi bi-file-check text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Finiquito</h3>
+            </div>
+            {% if not claim.settlement %}
+            <a href="{% url 'claims:claim_settlement_create' claim.pk %}" class="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-center">
+                <i class="bi bi-file-earmark-check mr-2"></i> Crear Finiquito
+            </a>
+            {% else %}
+            <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}" class="block w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+                <i class="bi bi-eye mr-2"></i> Ver Finiquito
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 
-<style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
+{% endblock %}
 
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #e9ecef;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 30px;
-}
-
-.timeline-item:last-child {
-    margin-bottom: 0;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -22px;
-    top: 0;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    border: 3px solid white;
-    box-shadow: 0 0 0 1px #dee2e6;
-}
-
-.timeline-content {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #dee2e6;
-}
-
-.timeline-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #495057;
-}
-
-.timeline-text {
-    margin-bottom: 5px;
-    color: #6c757d;
-    font-size: 0.85rem;
-}
-</style>
-
+{% block extra_js %}
 <script>
 function changeStatus(newStatus) {
     if (confirm('¿Está seguro de cambiar el estado del siniestro?')) {
-        // Aquí iría la lógica para cambiar el estado
-        alert('Funcionalidad en desarrollo');
+        showNotification('Funcionalidad en desarrollo: Cambiar estado del siniestro', 'info');
     }
 }
-</script>
 
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.space-y-6 > div');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.classList.add('fade-in');
+        }, index * 100);
+    });
+});
+</script>
 {% endblock %}
