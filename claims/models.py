@@ -194,7 +194,7 @@ class Claim(models.Model):
         ClaimTimeline.objects.create(
             claim=self,
             event_type='status_change',
-            event_description=f'Cambio de estado: {old_status} → {new_status}',
+            event_description=f'Cambio de estado: {old_status} -> {new_status}',
             old_status=old_status,
             new_status=new_status,
             created_by=user

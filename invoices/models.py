@@ -154,7 +154,7 @@ class Invoice(models.Model):
         # 6. IVA (15% sobre base imponible)
         self.iva = self.tax_base * Decimal('0.15')
 
-        # 7. Descuento pronto pago (5% automático si pago ≤20 días)
+        # 7. Descuento pronto pago (5% automático si pago <= 20 días)
         days_to_due = (self.due_date - self.invoice_date).days
         if days_to_due <= 20:
             self.early_payment_discount = self.tax_base * Decimal('0.05')

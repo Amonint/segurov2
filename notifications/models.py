@@ -10,9 +10,15 @@ class Notification(models.Model):
     # Notification type choices
     NOTIFICATION_TYPE_CHOICES = [
         ('policy_expiring', _('Póliza por vencer')),
+        ('policy_expired', _('Póliza vencida')),
         ('payment_due', _('Pago pendiente')),
+        ('invoice_overdue', _('Factura vencida')),
         ('claim_update', _('Actualización de siniestro')),
+        ('claim_overdue', _('Siniestro atrasado')),
         ('document_required', _('Documento requerido')),
+        ('document_overdue', _('Documento vencido')),
+        ('maintenance_required', _('Mantenimiento requerido')),
+        ('system_alert', _('Alerta del sistema')),
         ('alert', _('Alerta general')),
     ]
 
@@ -123,10 +129,17 @@ class EmailTemplate(models.Model):
         ('claim_paid', _('Siniestro Pagado')),
         ('claim_rejected', _('Siniestro Rechazado')),
         ('policy_expiring', _('Póliza por Vencer')),
+        ('policy_expired', _('Póliza Vencida')),
         ('payment_due', _('Pago Pendiente')),
         ('payment_overdue', _('Pago Vencido')),
+        ('payment_completed', _('Pago Completado')),
         ('invoice_generated', _('Factura Generada')),
+        ('invoice_overdue', _('Factura Vencida')),
+        ('claim_overdue', _('Siniestro Atrasado')),
+        ('document_overdue', _('Documento Vencido')),
+        ('maintenance_required', _('Mantenimiento Requerido')),
         ('settlement_signed', _('Finiquito Firmado')),
+        ('system_alert', _('Alerta del Sistema')),
         ('broker_notification', _('Notificación a Broker')),
         ('insurer_notification', _('Notificación a Aseguradora')),
     ]

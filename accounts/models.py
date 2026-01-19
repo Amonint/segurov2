@@ -80,7 +80,8 @@ class UserProfile(AbstractUser):
                 'reports_read', 'reports_write', 'reports_create', 'reports_update', 'reports_delete', 'reports_manage',
                 'insurance_companies_read', 'insurance_companies_write', 'insurance_companies_create', 'insurance_companies_update', 'insurance_companies_delete', 'insurance_companies_manage',
                 'brokers_read', 'brokers_write', 'brokers_create', 'brokers_update', 'brokers_delete', 'brokers_manage',
-                'settings_read', 'settings_write', 'settings_create', 'settings_update', 'settings_delete', 'settings_manage'
+                'settings_read', 'settings_write', 'settings_create', 'settings_update', 'settings_delete', 'settings_manage',
+                'alerts_read', 'alerts_create', 'alerts_write', 'alerts_execute', 'alerts_delete'
             ],
             'insurance_manager': [
                 'users_read',
@@ -119,6 +120,23 @@ class UserProfile(AbstractUser):
         }
 
         return permissions_map.get(self.role, [])
+
+    def has_perm(self, perm, obj=None):
+        """
+        Check permissions using Django's backend, then fall back to role mapping.
+        """
+        if super().has_perm(perm, obj):
+            return True
+        if not self.is_active or not perm:
+            return False
+        codename = perm.split('.')[-1]
+        return codename in self.get_role_permissions()
+
+    def has_perms(self, perm_list, obj=None):
+        """
+        Check multiple permissions for role-based access.
+        """
+        return all(self.has_perm(perm, obj) for perm in perm_list)
 
     def clean(self):
         """

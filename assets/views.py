@@ -236,7 +236,7 @@ def asset_change_custodian(request, pk):
                 action_type='update',
                 entity_type='asset',
                 entity_id=str(updated_asset.id),
-                description=f'Custodio cambiado: {updated_asset.asset_code} - {old_custodian} → {new_custodian}',
+                description=f'Custodio cambiado: {updated_asset.asset_code} - {old_custodian} -> {new_custodian}',
                 old_values={'custodian': old_custodian},
                 new_values={'custodian': new_custodian}
             )
