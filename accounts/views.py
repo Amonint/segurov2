@@ -74,16 +74,15 @@ def dashboard_view(request):
         'user_permissions': user.get_role_permissions(),
     }
 
-    # Role-based dashboard data
+    # Role-based dashboard data (SIMPLIFIED TO 3 ROLES)
     if user.role == 'admin':
         context.update(get_admin_dashboard_data())
     elif user.role == 'insurance_manager':
         context.update(get_manager_dashboard_data(user))
-    elif user.role == 'financial_analyst':
-        context.update(get_analyst_dashboard_data())
-    elif user.role == 'consultant':
-        context.update(get_consultant_dashboard_data(user))
     elif user.role == 'requester':
+        context.update(get_requester_dashboard_data(user))
+    else:
+        # Fallback for any unexpected role
         context.update(get_requester_dashboard_data(user))
 
     return render(request, 'accounts/dashboard.html', context)
@@ -149,35 +148,8 @@ def get_manager_dashboard_data(user):
     }
 
 
-def get_analyst_dashboard_data():
-    """
-    Get dashboard data for financial analyst role
-    """
-    today = datetime.date.today()
-
-    return {
-        'total_invoices': Invoice.objects.count(),
-        'paid_invoices': Invoice.objects.filter(payment_status='paid').count(),
-        'pending_invoices': Invoice.objects.filter(payment_status='pending').count(),
-        'overdue_invoices': Invoice.objects.filter(
-            payment_status='pending',
-            due_date__lt=today
-        ).count(),
-        'total_revenue': Invoice.objects.filter(
-            payment_status='paid'
-        ).aggregate(total=models.Sum('total_amount'))['total'] or 0,
-    }
-
-
-def get_consultant_dashboard_data(user):
-    """
-    Get dashboard data for consultant role
-    """
-    return {
-        'total_claims': Claim.objects.count(),
-        'my_claims': Claim.objects.filter(assigned_to=user).count(),
-        'pending_claims': Claim.objects.filter(status__in=['reported', 'documentation_pending']).count(),
-    }
+# REMOVED: get_analyst_dashboard_data() - financial_analyst role eliminated
+# REMOVED: get_consultant_dashboard_data() - consultant role eliminated
 
 
 def get_requester_dashboard_data(user):

@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Paleta de Colores UTPL - Sistema de Seguros{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+        <i class="bi bi-palette mr-3" style="color: #4a7dbb;"></i>
+        Paleta de Colores UTPL
+    </h1>
+    <p class="text-gray-600">Guía visual de la paleta de colores corporativa integrada</p>
+</div>
+
+<!-- Primary Colors Section -->
+<div class="mb-8">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h2 class="text-white font-bold text-2xl flex items-center">
+                <i class="bi bi-circle-fill mr-2"></i>
+                Color Primario - Azul UTPL
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <!-- Primary-50 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 border-2 border-gray-200" style="background-color: #f0f4f9;"></div>
+                    <p class="font-bold text-gray-900">Primary-50</p>
+                    <code class="text-xs text-gray-600">#f0f4f9</code>
+                </div>
+
+                <!-- Primary-100 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 border-2 border-gray-200" style="background-color: #dce5f0;"></div>
+                    <p class="font-bold text-gray-900">Primary-100</p>
+                    <code class="text-xs text-gray-600">#dce5f0</code>
+                </div>
+
+                <!-- Primary-200 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 border-2 border-gray-200" style="background-color: #b8cae3;"></div>
+                    <p class="font-bold text-gray-900">Primary-200</p>
+                    <code class="text-xs text-gray-600">#b8cae3</code>
+                </div>
+
+                <!-- Primary-500 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 shadow-lg" style="background-color: #4a7dbb;"></div>
+                    <p class="font-bold text-gray-900">Primary-500</p>
+                    <code class="text-xs text-gray-600">#4a7dbb</code>
+                    <p class="text-xs text-blue-600 font-semibold mt-1">PRINCIPAL</p>
+                </div>
+
+                <!-- Primary-600 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 shadow-lg" style="background-color: #2e5a8f;"></div>
+                    <p class="font-bold text-gray-900">Primary-600</p>
+                    <code class="text-xs text-gray-600">#2e5a8f</code>
+                </div>
+
+                <!-- Primary-700 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 shadow-lg" style="background-color: #1f3d5f;"></div>
+                    <p class="font-bold text-white">Primary-700</p>
+                    <code class="text-xs text-gray-300">#1f3d5f</code>
+                </div>
+
+                <!-- Primary-800 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 shadow-lg" style="background-color: #143147;"></div>
+                    <p class="font-bold text-white">Primary-800</p>
+                    <code class="text-xs text-gray-300">#143147</code>
+                </div>
+
+                <!-- Primary-900 -->
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2 shadow-lg" style="background-color: #0d1f2d;"></div>
+                    <p class="font-bold text-white">Primary-900</p>
+                    <code class="text-xs text-gray-300">#0d1f2d</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary Colors Section -->
+<div class="mb-8">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-gray-600 to-gray-700 p-6">
+            <h2 class="text-white font-bold text-2xl flex items-center">
+                <i class="bi bi-circle-fill mr-2"></i>
+                Colores Secundarios - Neutrales
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-3 md:grid-cols-5 gap-4">
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2" style="background-color: #f9fafb;"></div>
+                    <p class="font-bold text-gray-900 text-sm">Secondary-50</p>
+                    <code class="text-xs text-gray-600">#f9fafb</code>
+                </div>
+
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2" style="background-color: #e5e7eb;"></div>
+                    <p class="font-bold text-gray-900 text-sm">Secondary-200</p>
+                    <code class="text-xs text-gray-600">#e5e7eb</code>
+                </div>
+
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2" style="background-color: #9ca3af;"></div>
+                    <p class="font-bold text-gray-900 text-sm">Secondary-400</p>
+                    <code class="text-xs text-gray-600">#9ca3af</code>
+                </div>
+
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2" style="background-color: #4b5563;"></div>
+                    <p class="font-bold text-white text-sm">Secondary-600</p>
+                    <code class="text-xs text-gray-300">#4b5563</code>
+                </div>
+
+                <div class="text-center">
+                    <div class="h-24 rounded-xl mb-2" style="background-color: #111827;"></div>
+                    <p class="font-bold text-white text-sm">Secondary-900</p>
+                    <code class="text-xs text-gray-300">#111827</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accent Colors Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+    <!-- Success Green -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-check-circle mr-2"></i>
+                Éxito - Verde Empresarial
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-xl" style="background-color: #f0fdf4; border-left: 4px solid #1fa876;">
+                <span class="font-semibold text-gray-900">Success-500</span>
+                <code class="text-gray-600">#1fa876</code>
+            </div>
+            <div class="flex items-center justify-between p-4 rounded-xl text-white" style="background-color: #1fa876; border-left: 4px solid #0f4a38;">
+                <span class="font-semibold">Success-600</span>
+                <code>#157456</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                <strong>Uso:</strong> Pólizas vigentes, pagos completados, validaciones exitosas
+            </p>
+        </div>
+    </div>
+
+    <!-- Warning Amber -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-600 to-amber-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-exclamation-triangle mr-2"></i>
+                Advertencia - Ámbar
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-xl" style="background-color: #fffbeb; border-left: 4px solid #d97706;">
+                <span class="font-semibold text-gray-900">Warning-500</span>
+                <code class="text-gray-600">#d97706</code>
+            </div>
+            <div class="flex items-center justify-between p-4 rounded-xl text-white" style="background-color: #d97706; border-left: 4px solid #b45309;">
+                <span class="font-semibold">Warning-600</span>
+                <code>#b45309</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                <strong>Uso:</strong> Documentación pendiente, pólizas por vencer, alertas importantes
+            </p>
+        </div>
+    </div>
+
+    <!-- Danger Red -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-x-circle mr-2"></i>
+                Peligro - Rojo
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-xl" style="background-color: #fef2f2; border-left: 4px solid #c5192d;">
+                <span class="font-semibold text-gray-900">Danger-500</span>
+                <code class="text-gray-600">#c5192d</code>
+            </div>
+            <div class="flex items-center justify-between p-4 rounded-xl text-white" style="background-color: #c5192d; border-left: 4px solid #991b1b;">
+                <span class="font-semibold">Danger-600</span>
+                <code>#991b1b</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                <strong>Uso:</strong> Siniestros rechazados, pólizas expiradas, errores críticos
+            </p>
+        </div>
+    </div>
+
+    <!-- Accent Gold -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-yellow-600 to-yellow-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-star-fill mr-2"></i>
+                Acentos - Dorado
+            </h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-4 rounded-xl" style="background-color: #fef9f0; border-left: 4px solid #d4a574;">
+                <span class="font-semibold text-gray-900">Accent-500</span>
+                <code class="text-gray-600">#d4a574</code>
+            </div>
+            <div class="flex items-center justify-between p-4 rounded-xl text-white" style="background-color: #d4a574; border-left: 4px solid #b8904f;">
+                <span class="font-semibold">Accent-600</span>
+                <code>#b8904f</code>
+            </div>
+            <p class="text-sm text-gray-600 mt-4">
+                <strong>Uso:</strong> Destacados especiales, pólizas premium, reconocimientos
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Gradients Examples Section -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+    <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+        <h2 class="text-white font-bold text-2xl flex items-center">
+            <i class="bi bi-rainbow mr-2"></i>
+            Ejemplos de Gradientes
+        </h2>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Primary Gradient -->
+            <div class="rounded-2xl p-8 shadow-lg" style="background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%);">
+                <p class="text-white font-bold text-lg">Gradiente UTPL Blue</p>
+                <code class="text-white text-sm opacity-90">linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%)</code>
+            </div>
+
+            <!-- Success Gradient -->
+            <div class="rounded-2xl p-8 shadow-lg" style="background: linear-gradient(135deg, #1fa876 0%, #157456 100%);">
+                <p class="text-white font-bold text-lg">Gradiente Éxito</p>
+                <code class="text-white text-sm opacity-90">linear-gradient(135deg, #1fa876 0%, #157456 100%)</code>
+            </div>
+
+            <!-- Warning Gradient -->
+            <div class="rounded-2xl p-8 shadow-lg" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%);">
+                <p class="text-white font-bold text-lg">Gradiente Advertencia</p>
+                <code class="text-white text-sm opacity-90">linear-gradient(135deg, #d97706 0%, #b45309 100%)</code>
+            </div>
+
+            <!-- Danger Gradient -->
+            <div class="rounded-2xl p-8 shadow-lg" style="background: linear-gradient(135deg, #c5192d 0%, #991b1b 100%);">
+                <p class="text-white font-bold text-lg">Gradiente Peligro</p>
+                <code class="text-white text-sm opacity-90">linear-gradient(135deg, #c5192d 0%, #991b1b 100%)</code>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Guide -->
+<div class="bg-gradient-to-br p-8 border rounded-2xl shadow-lg border-blue-200" style="background: linear-gradient(to bottom right, #f0f4f9 0%, #dce5f0 100%); border-color: #b8cae3;">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+        <i class="bi bi-info-circle mr-2" style="color: #4a7dbb;"></i>
+        Guía de Uso de Colores
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl p-4">
+            <h3 class="font-bold mb-3 flex items-center" style="color: #4a7dbb;">
+                <i class="bi bi-file-text mr-2"></i> Pólizas
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><strong style="color: #1fa876;">Verde:</strong> Pólizas vigentes y activas</li>
+                <li><strong style="color: #d97706;">Ámbar:</strong> Pólizas por vencer (30-60 días)</li>
+                <li><strong style="color: #c5192d;">Rojo:</strong> Pólizas expiradas</li>
+            </ul>
+        </div>
+
+        <div class="bg-white rounded-xl p-4">
+            <h3 class="font-bold mb-3 flex items-center" style="color: #4a7dbb;">
+                <i class="bi bi-exclamation-triangle mr-2"></i> Siniestros
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><strong style="color: #4a7dbb;">Azul:</strong> En evaluación o proceso</li>
+                <li><strong style="color: #1fa876;">Verde:</strong> Liquidado o pagado</li>
+                <li><strong style="color: #c5192d;">Rojo:</strong> Rechazado</li>
+            </ul>
+        </div>
+
+        <div class="bg-white rounded-xl p-4">
+            <h3 class="font-bold mb-3 flex items-center" style="color: #4a7dbb;">
+                <i class="bi bi-box mr-2"></i> Bienes/Activos
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><strong style="color: #1fa876;">Verde:</strong> Excelente condición</li>
+                <li><strong style="color: #4a7dbb;">Azul:</strong> Buena condición</li>
+                <li><strong style="color: #d97706;">Ámbar:</strong> Condición regular</li>
+                <li><strong style="color: #c5192d;">Rojo:</strong> Mala condición</li>
+            </ul>
+        </div>
+
+        <div class="bg-white rounded-xl p-4">
+            <h3 class="font-bold mb-3 flex items-center" style="color: #4a7dbb;">
+                <i class="bi bi-check-circle mr-2"></i> Estados Generales
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-700">
+                <li><strong style="color: #1fa876;">Verde:</strong> Confirmado/Completado</li>
+                <li><strong style="color: #d97706;">Ámbar:</strong> Pendiente/Atención</li>
+                <li><strong style="color: #c5192d;">Rojo:</strong> Error/Crítico</li>
+                <li><strong style="color: #4a7dbb;">Azul:</strong> Información</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

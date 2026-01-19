@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar Activo{% else %}Registrar Nuevo Activo{% endif %} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-{% if form.instance.pk %}pencil-square{% else %}plus-circle{% endif %} mr-3" style="color: #4a7dbb;"></i>
+                {% if form.instance.pk %}Editar Activo: {{ form.instance.name }}{% else %}Registrar Nuevo Activo{% endif %}
+            </h1>
+            <p class="text-gray-600">{% if form.instance.pk %}Actualiza la información del bien{% else %}Completa el formulario para registrar un nuevo activo{% endif %}</p>
+        </div>
+        <a href="{% url 'assets:asset_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+            <i class="bi bi-arrow-left mr-2"></i> Cancelar
+        </a>
+    </div>
+</div>
+
+<form method="post" class="space-y-8">
+    {% csrf_token %}
+
+    <!-- Basic Information Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-info-circle mr-2"></i>
+                Información Básica
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Asset Code -->
+                <div class="md:col-span-1">
+                    <label for="{{ form.asset_code.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-hashtag mr-2" style="color: #4a7dbb;"></i>
+                        {{ form.asset_code.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="text" 
+                           name="asset_code" 
+                           id="{{ form.asset_code.id_for_label }}"
+                           value="{{ form.asset_code.value|default:'' }}"
+                           placeholder="Ej: ACT-001"
+                           {% if form.instance.pk %}readonly{% endif %}
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring focus:ring-opacity-50 transition-all outline-none {% if form.instance.pk %}bg-gray-50 cursor-not-allowed{% endif %}" style="border-color: #dce5f0;" onfocus="this.style.borderColor='#4a7dbb'; this.style.boxShadow='0 0 0 3px rgba(74, 125, 187, 0.1)';" onblur="this.style.borderColor='#dce5f0'; this.style.boxShadow='none';">
+                    {% if form.asset_code.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.asset_code.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Name -->
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-pencil-square mr-2" style="color: #4a7dbb;"></i>
+                        {{ form.name.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="text" 
+                           name="name" 
+                           id="{{ form.name.id_for_label }}"
+                           value="{{ form.name.value|default:'' }}"
+                           placeholder="Nombre del bien"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all outline-none" style="border-color: #dce5f0;" onfocus="this.style.borderColor='#4a7dbb'; this.style.boxShadow='0 0 0 3px rgba(74, 125, 187, 0.1)';" onblur="this.style.borderColor='#dce5f0'; this.style.boxShadow='none';">
+                    {% if form.name.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Asset Type -->
+                <div>
+                    <label for="{{ form.asset_type.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-boxes mr-2 text-blue-600"></i>
+                        {{ form.asset_type.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <select name="asset_type" id="{{ form.asset_type.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer">
+                        <option value="">Selecciona un tipo...</option>
+                        <option value="vehiculo" {% if form.asset_type.value == 'vehiculo' %}selected{% endif %}>Vehículo</option>
+                        <option value="equipo_electronico" {% if form.asset_type.value == 'equipo_electronico' %}selected{% endif %}>Equipo Electrónico</option>
+                        <option value="maquinaria" {% if form.asset_type.value == 'maquinaria' %}selected{% endif %}>Maquinaria</option>
+                        <option value="mobiliario" {% if form.asset_type.value == 'mobiliario' %}selected{% endif %}>Mobiliario</option>
+                        <option value="herramientas" {% if form.asset_type.value == 'herramientas' %}selected{% endif %}>Herramientas</option>
+                        <option value="inventario" {% if form.asset_type.value == 'inventario' %}selected{% endif %}>Inventario</option>
+                    </select>
+                    {% if form.asset_type.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.asset_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Condition Status -->
+                <div>
+                    <label for="{{ form.condition_status.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-check-circle mr-2 text-blue-600"></i>
+                        {{ form.condition_status.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <select name="condition_status" id="{{ form.condition_status.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer">
+                        <option value="">Selecciona un estado...</option>
+                        <option value="excelente" {% if form.condition_status.value == 'excelente' %}selected{% endif %}>Excelente</option>
+                        <option value="bueno" {% if form.condition_status.value == 'bueno' %}selected{% endif %}>Bueno</option>
+                        <option value="regular" {% if form.condition_status.value == 'regular' %}selected{% endif %}>Regular</option>
+                        <option value="malo" {% if form.condition_status.value == 'malo' %}selected{% endif %}>Malo</option>
+                    </select>
+                    {% if form.condition_status.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.condition_status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-6">
+                <label for="{{ form.description.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                    <i class="bi bi-file-text mr-2 text-blue-600"></i>
+                    {{ form.description.label }}
+                </label>
+                <textarea name="description" 
+                          id="{{ form.description.id_for_label }}"
+                          rows="3"
+                          placeholder="Describe el bien en detalle..."
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                <p class="text-red-600 text-sm mt-2">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Specifications Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-gear mr-2"></i>
+                Especificaciones Técnicas
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Brand -->
+                <div>
+                    <label for="{{ form.brand.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-tag mr-2 text-purple-600"></i>
+                        {{ form.brand.label }}
+                    </label>
+                    <input type="text" 
+                           name="brand" 
+                           id="{{ form.brand.id_for_label }}"
+                           value="{{ form.brand.value|default:'' }}"
+                           placeholder="Marca del bien"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none">
+                </div>
+
+                <!-- Model -->
+                <div>
+                    <label for="{{ form.model.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-diagram-3 mr-2 text-purple-600"></i>
+                        {{ form.model.label }}
+                    </label>
+                    <input type="text" 
+                           name="model" 
+                           id="{{ form.model.id_for_label }}"
+                           value="{{ form.model.value|default:'' }}"
+                           placeholder="Modelo"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none">
+                </div>
+
+                <!-- Serial Number -->
+                <div>
+                    <label for="{{ form.serial_number.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-barcode mr-2 text-purple-600"></i>
+                        {{ form.serial_number.label }}
+                    </label>
+                    <input type="text" 
+                           name="serial_number" 
+                           id="{{ form.serial_number.id_for_label }}"
+                           value="{{ form.serial_number.value|default:'' }}"
+                           placeholder="Número de serie"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none">
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="mt-6">
+                <label for="{{ form.location.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                    <i class="bi bi-geo-alt mr-2 text-purple-600"></i>
+                    {{ form.location.label }}
+                </label>
+                <input type="text" 
+                       name="location" 
+                       id="{{ form.location.id_for_label }}"
+                       value="{{ form.location.value|default:'' }}"
+                       placeholder="Ubicación física del bien"
+                       class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none">
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Information Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-cash-stack mr-2"></i>
+                Información Financiera
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Acquisition Date -->
+                <div>
+                    <label for="{{ form.acquisition_date.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-calendar-event mr-2 text-green-600"></i>
+                        {{ form.acquisition_date.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="date" 
+                           name="acquisition_date" 
+                           id="{{ form.acquisition_date.id_for_label }}"
+                           value="{{ form.acquisition_date.value|default:'' }}"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none">
+                    {% if form.acquisition_date.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.acquisition_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Acquisition Cost -->
+                <div>
+                    <label for="{{ form.acquisition_cost.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-cash-coin mr-2 text-green-600"></i>
+                        {{ form.acquisition_cost.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-gray-500 font-bold">$</span>
+                        <input type="number" 
+                               name="acquisition_cost" 
+                               id="{{ form.acquisition_cost.id_for_label }}"
+                               value="{{ form.acquisition_cost.value|default:'' }}"
+                               placeholder="0.00"
+                               step="0.01"
+                               class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none">
+                    </div>
+                    {% if form.acquisition_cost.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.acquisition_cost.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Current Value -->
+                <div>
+                    <label for="{{ form.current_value.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-graph-up mr-2 text-green-600"></i>
+                        {{ form.current_value.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-gray-500 font-bold">$</span>
+                        <input type="number" 
+                               name="current_value" 
+                               id="{{ form.current_value.id_for_label }}"
+                               value="{{ form.current_value.value|default:'' }}"
+                               placeholder="0.00"
+                               step="0.01"
+                               class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none">
+                    </div>
+                    {% if form.current_value.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.current_value.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custody and Insurance Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-shield-check mr-2"></i>
+                Custodia y Seguro
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Custodian -->
+                <div>
+                    <label for="{{ form.custodian.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-person-badge mr-2" style="color: #4a7dbb;"></i>
+                        {{ form.custodian.label }}
+                    </label>
+                    <select name="custodian" id="{{ form.custodian.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer">
+                        <option value="">Sin custodio asignado</option>
+                        {% for custodian in form.custodian.field.queryset %}
+                        <option value="{{ custodian.id }}" {% if form.custodian.value == custodian.id|stringformat:'s' %}selected{% endif %}>{{ custodian.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Responsible User -->
+                <div>
+                    <label for="{{ form.responsible_user.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-person-check mr-2 text-blue-600"></i>
+                        {{ form.responsible_user.label }}
+                    </label>
+                    <select name="responsible_user" id="{{ form.responsible_user.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer">
+                        <option value="">Sin responsable asignado</option>
+                        {% for user in form.responsible_user.field.queryset %}
+                        <option value="{{ user.id }}" {% if form.responsible_user.value == user.id|stringformat:'s' %}selected{% endif %}>{{ user.get_full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Is Insured -->
+                <div class="flex items-center pt-8">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" 
+                               name="is_insured" 
+                               id="{{ form.is_insured.id_for_label }}"
+                               {% if form.is_insured.value %}checked{% endif %}
+                               class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-200 cursor-pointer">
+                        <span class="ml-3 text-gray-700 font-semibold flex items-center">
+                            <i class="bi bi-shield-check mr-2 text-blue-600"></i>
+                            {{ form.is_insured.label }}
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Insurance Policy -->
+                <div>
+                    <label for="{{ form.insurance_policy.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-file-earmark-check mr-2 text-blue-600"></i>
+                        {{ form.insurance_policy.label }}
+                    </label>
+                    <select name="insurance_policy" id="{{ form.insurance_policy.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer">
+                        <option value="">Selecciona una póliza...</option>
+                        {% for policy in form.insurance_policy.field.queryset %}
+                        <option value="{{ policy.id }}" {% if form.insurance_policy.value == policy.id|stringformat:'s' %}selected{% endif %}>{{ policy.policy_number }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+    <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+        <h3 class="text-red-700 font-bold mb-2 flex items-center">
+            <i class="bi bi-exclamation-triangle mr-2"></i>
+            Errores en el Formulario
+        </h3>
+        <ul class="space-y-1">
+            {% for error in form.non_field_errors %}
+            <li class="text-red-600">{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Submit Buttons -->
+    <div class="flex gap-4 pb-8">
+        <button type="submit" class="flex-1 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)'; this.style.transform='translateY(0)';">
+            <i class="bi bi-{% if form.instance.pk %}check-circle{% else %}plus-circle{% endif %} mr-2"></i>
+            {% if form.instance.pk %}Actualizar Activo{% else %}Registrar Activo{% endif %}
+        </button>
+        <a href="{% url 'assets:asset_list' %}" class="flex-1 bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center justify-center">
+            <i class="bi bi-x-circle mr-2"></i>
+            Cancelar
+        </a>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission with loading
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            showLoading();
+        });
+    }
+
+    // Show success notification if asset was saved
+    {% if messages %}
+    {% for message in messages %}
+    showNotification('{{ message }}', '{{ message.tags }}');
+    {% endfor %}
+    {% endif %}
+});
+</script>
+{% endblock %}

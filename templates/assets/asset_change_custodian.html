@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cambiar Custodio - {{ asset.asset_code }}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-person-check mr-3 text-blue-600"></i>
+                Cambiar Custodio
+            </h1>
+            <p class="text-gray-600">Activo: {{ asset.asset_code }} - {{ asset.name }}</p>
+        </div>
+        <a href="{% url 'assets:asset_detail' asset.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-2xl mx-auto">
+    <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-person-badge mr-2"></i>
+            Seleccion del custodio
+        </h2>
+    </div>
+    <div class="p-6">
+        <form method="post" class="space-y-6" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <ul class="list-disc list-inside text-red-700 ml-4">
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="{{ form.custodian.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
+                    {{ form.custodian.label }}
+                </label>
+                {{ form.custodian }}
+                {% if form.custodian.help_text %}
+                <p class="text-sm text-gray-500 mt-1">{{ form.custodian.help_text }}</p>
+                {% endif %}
+                {% if form.custodian.errors %}
+                <p class="text-red-600 text-sm mt-2">{{ form.custodian.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                <a href="{% url 'assets:asset_detail' asset.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all duration-300">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-2 px-4 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg">
+                    Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

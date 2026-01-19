@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Marcar Factura como Pagada - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-check-circle mr-3 text-green-600"></i>
+                Marcar como Pagada
+            </h1>
+            <p class="text-gray-600">Factura {{ invoice.invoice_number }}</p>
+        </div>
+        <a href="{% url 'invoices:invoice_detail' invoice.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Cancelar
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-2xl mx-auto">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-calendar-check mr-2"></i>
+            Confirmar Pago de Factura
+        </h2>
+    </div>
+    <div class="p-8">
+        <!-- Invoice Summary -->
+        <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 mb-6">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Número de Factura</label>
+                    <p class="text-gray-900 font-bold">{{ invoice.invoice_number }}</p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Monto Total</label>
+                    <p class="text-green-600 font-bold text-2xl">${{ invoice.total_amount|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Fecha de Vencimiento</label>
+                    <p class="text-gray-900">{{ invoice.due_date|date:"d/m/Y" }}</p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Póliza</label>
+                    <p class="text-gray-900">{{ invoice.policy.policy_number }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <h3 class="text-red-800 font-bold">Por favor corrija los siguientes errores:</h3>
+                </div>
+                <ul class="list-disc list-inside text-red-700 ml-6">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Payment Date -->
+            <div>
+                <label for="{{ form.payment_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.payment_date.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.payment_date }}
+                <p class="text-gray-500 text-sm mt-1">Fecha en la que se realizó el pago</p>
+            </div>
+
+            <!-- Payment Reference -->
+            {% if form.payment_reference %}
+            <div>
+                <label for="{{ form.payment_reference.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.payment_reference.label }}
+                </label>
+                {{ form.payment_reference }}
+                <p class="text-gray-500 text-sm mt-1">Número de referencia o comprobante de pago</p>
+            </div>
+            {% endif %}
+
+            <!-- Payment Notes -->
+            {% if form.payment_notes %}
+            <div>
+                <label for="{{ form.payment_notes.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.payment_notes.label }}
+                </label>
+                {{ form.payment_notes }}
+                <p class="text-gray-500 text-sm mt-1">Observaciones adicionales sobre el pago</p>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'invoices:invoice_detail' invoice.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                    <i class="bi bi-x-circle mr-2"></i> Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="bi bi-check-circle mr-2"></i> Confirmar Pago
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

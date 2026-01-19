@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Renovar Póliza - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-arrow-repeat mr-3 text-blue-600"></i>
+                Renovar Póliza
+            </h1>
+            <p class="text-gray-600">Póliza {{ policy.policy_number }}</p>
+        </div>
+        <a href="{% url 'policies:policy_detail' policy.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Cancelar
+        </a>
+    </div>
+</div>
+
+<!-- Renewal Form -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-file-earmark-plus mr-2"></i>
+            Renovación de Póliza
+        </h2>
+    </div>
+    <div class="p-8">
+        <!-- Current Policy Info -->
+        <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200 mb-6">
+            <h3 class="text-lg font-bold text-gray-900 mb-4">Póliza Actual</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Número</label>
+                    <p class="text-gray-900 font-bold">{{ policy.policy_number }}</p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Vigencia Actual</label>
+                    <p class="text-gray-900">{{ policy.start_date|date:"d/m/Y" }} - {{ policy.end_date|date:"d/m/Y" }}
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Valor Asegurado</label>
+                    <p class="text-gray-900">${{ policy.insured_value|floatformat:2 }}</p>
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-sm font-semibold mb-1">Prima</label>
+                    <p class="text-gray-900">${{ policy.premium|floatformat:2 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <h3 class="text-red-800 font-bold">Por favor corrija los siguientes errores:</h3>
+                </div>
+                <ul class="list-disc list-inside text-red-700 ml-6">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg">
+                <p class="text-blue-800">
+                    <i class="bi bi-info-circle mr-2"></i>
+                    Se creará una nueva póliza con los datos actualizados. La póliza actual se marcará como renovada.
+                </p>
+            </div>
+
+            <!-- New Dates -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.new_start_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Nueva Fecha de Inicio <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.new_start_date }}
+                </div>
+                <div>
+                    <label for="{{ form.new_end_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Nueva Fecha de Fin <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.new_end_date }}
+                </div>
+            </div>
+
+            <!-- New Values -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.new_insured_value.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Nuevo Valor Asegurado <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.new_insured_value }}
+                </div>
+                <div>
+                    <label for="{{ form.new_premium.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        Nueva Prima <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.new_premium }}
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label for="{{ form.renewal_notes.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    Notas de Renovación
+                </label>
+                {{ form.renewal_notes }}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'policies:policy_detail' policy.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                    <i class="bi bi-x-circle mr-2"></i> Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="bi bi-arrow-repeat mr-2"></i> Renovar Póliza
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

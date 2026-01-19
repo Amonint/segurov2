@@ -1,244 +1,144 @@
 {% extends 'base.html' %}
-{% load static crispy_forms_tags %}
+{% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}{{ title }} - Sistema de Seguros UTPL{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1>
-                <i class="bi bi-plus-circle text-primary"></i>
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-file-earmark-text mr-3 text-red-600"></i>
                 {{ title }}
             </h1>
-            <a href="{% url 'claims:claim_list' %}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Volver a la lista
-            </a>
+            <p class="text-gray-600">Siniestro {{ claim.claim_number }}</p>
         </div>
+        <a href="{% url 'claims:claim_detail' claim.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Volver
+        </a>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Información del Siniestro
-                </h5>
+<!-- Form Card -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto">
+    <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-pencil-square mr-2"></i>
+            Editar Información del Siniestro
+        </h2>
+    </div>
+    <div class="p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <h3 class="text-red-800 font-bold">Por favor corrija los siguientes errores:</h3>
+                </div>
+                <ul class="list-disc list-inside text-red-700 ml-6">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="card-body">
-                <form method="post" enctype="multipart/form-data">
-                    {% csrf_token %}
+            {% endif %}
 
-                    <!-- Póliza Relacionada -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ form.policy.id_for_label }}" class="form-label">
-                                {{ form.policy.label }}
-                            </label>
-                            {{ form.policy }}
-                            <div class="form-text">{{ form.policy.help_text }}</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="{{ form.policy_number.id_for_label }}" class="form-label">
-                                {{ form.policy_number.label }}
-                            </label>
-                            {{ form.policy_number }}
-                            <div class="form-text">{{ form.policy_number.help_text }}</div>
-                        </div>
+            <!-- Incident Information -->
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="bi bi-info-circle mr-2 text-red-600"></i>
+                    Información del Incidente
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.incident_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.incident_date.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.incident_date }}
                     </div>
-
-                    <!-- Fechas -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ form.incident_date.id_for_label }}" class="form-label">
-                                {{ form.incident_date.label }} *
-                            </label>
-                            {{ form.incident_date }}
-                        </div>
-                        <div class="col-md-6">
-                            <label for="{{ form.report_date.id_for_label }}" class="form-label">
-                                {{ form.report_date.label }} *
-                            </label>
-                            {{ form.report_date }}
-                        </div>
-                    </div>
-
-                    <!-- Ubicación y Descripción -->
-                    <div class="mb-3">
-                        <label for="{{ form.incident_location.id_for_label }}" class="form-label">
-                            {{ form.incident_location.label }} *
+                    <div>
+                        <label for="{{ form.incident_location.id_for_label }}"
+                            class="block text-gray-700 font-bold mb-2">
+                            {{ form.incident_location.label }} <span class="text-red-500">*</span>
                         </label>
                         {{ form.incident_location }}
                     </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.incident_description.id_for_label }}" class="form-label">
-                            {{ form.incident_description.label }} *
-                        </label>
-                        {{ form.incident_description }}
-                    </div>
-
-                    <!-- Información del Bien Afectado -->
-                    <h6 class="mb-3 text-primary">
-                        <i class="bi bi-box-seam"></i>
-                        Información del Bien Afectado
-                    </h6>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ form.asset_type.id_for_label }}" class="form-label">
-                                {{ form.asset_type.label }}
-                            </label>
-                            {{ form.asset_type }}
-                        </div>
-                        <div class="col-md-6">
-                            <label for="{{ form.asset_code.id_for_label }}" class="form-label">
-                                {{ form.asset_code.label }}
-                            </label>
-                            {{ form.asset_code }}
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="{{ form.asset_description.id_for_label }}" class="form-label">
-                            {{ form.asset_description.label }}
-                        </label>
-                        {{ form.asset_description }}
-                    </div>
-
-                    <!-- Pérdida Estimada -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="{{ form.estimated_loss.id_for_label }}" class="form-label">
-                                {{ form.estimated_loss.label }} *
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                {{ form.estimated_loss }}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Asignación -->
-                    <h6 class="mb-3 text-primary">
-                        <i class="bi bi-person-gear"></i>
-                        Asignación y Reporte
-                    </h6>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="{{ form.reported_by.id_for_label }}" class="form-label">
-                                {{ form.reported_by.label }} *
-                            </label>
-                            {{ form.reported_by }}
-                        </div>
-                        <div class="col-md-6">
-                            <label for="{{ form.assigned_to.id_for_label }}" class="form-label">
-                                {{ form.assigned_to.label }}
-                            </label>
-                            {{ form.assigned_to }}
-                        </div>
-                    </div>
-
-                    <!-- Botones -->
-                    <div class="d-flex justify-content-end gap-2">
-                        <a href="{% url 'claims:claim_list' %}" class="btn btn-secondary">
-                            <i class="bi bi-x-circle"></i> Cancelar
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-circle"></i> {{ submit_text }}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Panel Lateral con Información de Ayuda -->
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-info-circle"></i>
-                    Información de Ayuda
-                </h6>
-            </div>
-            <div class="card-body">
-                <h6>Campos Obligatorios</h6>
-                <ul class="mb-3 small">
-                    <li>Fecha del incidente</li>
-                    <li>Fecha del reporte</li>
-                    <li>Ubicación del incidente</li>
-                    <li>Descripción del incidente</li>
-                    <li>Pérdida estimada</li>
-                    <li>Reportado por</li>
-                </ul>
-
-                <h6>Campos Opcionales</h6>
-                <ul class="mb-3 small">
-                    <li>Póliza relacionada</li>
-                    <li>Información del bien afectado</li>
-                    <li>Asignado a (se puede asignar después)</li>
-                </ul>
-
-                <h6>Estados del Siniestro</h6>
-                <div class="mb-3">
-                    <span class="badge bg-secondary">Reportado</span>
-                    <small class="text-muted d-block">Estado inicial al crear</small>
                 </div>
-
-                <div class="alert alert-info small">
-                    <i class="bi bi-lightbulb"></i>
-                    <strong>Tip:</strong> Después de crear el siniestro, podrás agregar documentos
-                    y actualizar su estado en la página de detalle.
+                <div class="mt-6">
+                    <label for="{{ form.incident_description.id_for_label }}"
+                        class="block text-gray-700 font-bold mb-2">
+                        {{ form.incident_description.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.incident_description }}
                 </div>
             </div>
-        </div>
 
-        <!-- Resumen de Pólizas Activas -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <h6 class="mb-0">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Pólizas Activas
-                </h6>
+            <!-- Asset Information -->
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="bi bi-box mr-2 text-red-600"></i>
+                    Información del Bien
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.asset_type.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.asset_type.label }}
+                        </label>
+                        {{ form.asset_type }}
+                    </div>
+                    <div>
+                        <label for="{{ form.asset_code.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.asset_code.label }}
+                        </label>
+                        {{ form.asset_code }}
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label for="{{ form.asset_description.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        {{ form.asset_description.label }}
+                    </label>
+                    {{ form.asset_description }}
+                </div>
             </div>
-            <div class="card-body">
-                {% load policies_tags %}
-                {% active_policies_count as policies_count %}
-                <p class="mb-2">
-                    <strong>{{ policies_count }}</strong> pólizas activas disponibles
-                </p>
-                <small class="text-muted">
-                    Puedes relacionar este siniestro con una póliza existente
-                    usando el número de póliza o seleccionándola del listado.
-                </small>
+
+            <!-- Financial Information -->
+            <div>
+                <label for="{{ form.estimated_loss.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.estimated_loss.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.estimated_loss }}
+                <p class="text-gray-500 text-sm mt-1">Estimación inicial del valor de la pérdida</p>
             </div>
-        </div>
+
+            <!-- Assignment -->
+            {% if form.assigned_to %}
+            <div>
+                <label for="{{ form.assigned_to.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.assigned_to.label }}
+                </label>
+                {{ form.assigned_to }}
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'claims:claim_detail' claim.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                    <i class="bi bi-x-circle mr-2"></i> Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="bi bi-check-circle mr-2"></i> {{ submit_text }}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<style>
-.input-group-text {
-    background-color: #f8f9fa;
-    border-color: #dee2e6;
-}
-
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
-}
-
-.form-text {
-    font-size: 0.875rem;
-    color: #6c757d;
-}
-</style>
-
 {% endblock %}
-
-
-
-

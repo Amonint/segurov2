@@ -145,13 +145,15 @@ class Asset(models.Model):
         """
         super().clean()
 
-        # Validate custodian role
-        if self.custodian and self.custodian.role != 'requester':
-            raise ValidationError(_('El custodio debe tener el rol de "Custodio de bienes"'))
+        # Validate custodian role - check if custodian exists first
+        if hasattr(self, 'custodian_id') and self.custodian_id:
+            if self.custodian and self.custodian.role != 'requester':
+                raise ValidationError(_('El custodio debe tener el rol de "Custodio de bienes"'))
 
-        # Validate current value
-        if self.current_value > self.acquisition_cost:
-            raise ValidationError(_('El valor actual no puede ser mayor al costo de adquisición'))
+        # Validate current value - check if both values exist first
+        if self.current_value is not None and self.acquisition_cost is not None:
+            if self.current_value > self.acquisition_cost:
+                raise ValidationError(_('El valor actual no puede ser mayor al costo de adquisición'))
 
         # Validate insurance policy
         if self.is_insured and not self.insurance_policy:
@@ -192,6 +194,29 @@ class Asset(models.Model):
             return False
 
         return self.insurance_policy.status == 'active'
+    
+    def get_active_claims(self):
+        """
+        Retorna siniestros activos de este bien
+        """
+        return self.claims.exclude(status__in=['cerrado', 'rechazado'])
+    
+    def can_report_claim(self):
+        """
+        Verifica si se puede reportar un siniestro para este bien
+        Returns: (bool, str) - (puede_reportar, razon_si_no)
+        """
+        # Debe tener seguro activo
+        if not self.has_valid_insurance():
+            return False, "El bien no tiene seguro activo"
+        
+        # No debe tener siniestros pendientes
+        active_claims = self.get_active_claims()
+        if active_claims.exists():
+            claim_numbers = ', '.join([c.claim_number for c in active_claims[:3]])
+            return False, f"Ya existe un siniestro activo: {claim_numbers}"
+        
+        return True, ""
 
     @staticmethod
     def generate_asset_code():

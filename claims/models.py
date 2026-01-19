@@ -12,16 +12,17 @@ class Claim(models.Model):
     Model for insurance claims with workflow management
     """
 
-    # Claim status choices (workflow states)
+    # Claim status choices (workflow states) - Enhanced for TDR
     STATUS_CHOICES = [
-        ('reported', _('Reportado')),
-        ('documentation_pending', _('Documentación pendiente')),
-        ('sent_to_insurer', _('Enviado a aseguradora')),
-        ('under_evaluation', _('En evaluación')),
-        ('liquidated', _('Liquidado')),
-        ('paid', _('Pagado')),
-        ('closed', _('Cerrado')),
-        ('rejected', _('Rechazado')),
+        ('reportado', _('Reportado')),
+        ('docs_pendientes', _('Documentación pendiente')),
+        ('docs_completos', _('Documentación completa')),
+        ('enviado_aseguradora', _('Enviado a aseguradora')),
+        ('en_revision', _('En revisión')),
+        ('liquidado', _('Liquidado')),
+        ('pagado', _('Pagado')),
+        ('cerrado', _('Cerrado')),
+        ('rechazado', _('Rechazado')),
     ]
 
     # Claim fields
@@ -30,6 +31,18 @@ class Claim(models.Model):
         max_length=50,
         unique=True
     )
+    
+    # Asset relationship - NUEVO: Relación directa con el bien
+    asset = models.ForeignKey(
+        'assets.Asset',
+        on_delete=models.PROTECT,
+        null=True,  # Nullable for migration
+        blank=True,
+        verbose_name=_('Bien afectado'),
+        related_name='claims',
+        help_text=_('Bien al que pertenece este siniestro')
+    )
+    
     policy = models.ForeignKey(
         Policy,
         on_delete=models.SET_NULL,
@@ -38,17 +51,64 @@ class Claim(models.Model):
         verbose_name=_('Póliza'),
         related_name='claims'
     )
-
-    # Incident information
-    incident_date = models.DateField(_('Fecha del incidente'))
-    report_date = models.DateField(_('Fecha de reporte'))
+    
+    # Incident information - Enhanced for TDR
+    fecha_siniestro = models.DateField(
+        _('Fecha del siniestro'),
+        help_text=_('Fecha real en que ocurrió el siniestro')
+    )
+    incident_date = models.DateField(
+        _('Fecha del incidente'),
+        help_text=_('Alias para fecha_siniestro (compatibilidad)')
+    )
+    fecha_notificacion = models.DateField(
+        _('Fecha de notificación'),
+        auto_now_add=True,
+        help_text=_('Fecha en que se notifica el siniestro')
+    )
+    report_date = models.DateField(
+        _('Fecha de reporte'),
+        auto_now_add=True,
+        help_text=_('Fecha en que se reporta el siniestro')
+    )
+    fecha_cierre = models.DateField(
+        _('Fecha de cierre'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se cierra el siniestro')
+    )
+    
+    # Detailed incident information
+    causa = models.TextField(
+        _('Causa del siniestro'),
+        help_text=_('Descripción detallada de la causa')
+    )
+    ubicacion_detallada = models.TextField(
+        _('Ubicación detallada'),
+        help_text=_('Ubicación específica donde ocurrió el siniestro')
+    )
     incident_location = models.CharField(
         _('Ubicación del incidente'),
-        max_length=255
+        max_length=255,
+        help_text=_('Alias para ubicacion_detallada (compatibilidad)')
     )
-    incident_description = models.TextField(_('Descripción del incidente'))
+    incident_description = models.TextField(
+        _('Descripción del incidente'),
+        help_text=_('Descripción general del incidente')
+    )
+    
+    # Coverage applied
+    cobertura_aplicada = models.ForeignKey(
+        'policies.Coverage',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Cobertura aplicada'),
+        related_name='siniestros',
+        help_text=_('Cobertura de la póliza que aplica a este siniestro')
+    )
 
-    # Asset information
+    # Asset information (cached from Asset model for historical purposes)
     asset_type = models.CharField(
         _('Tipo de bien afectado'),
         max_length=100
@@ -76,7 +136,45 @@ class Claim(models.Model):
         _('Estado'),
         max_length=25,
         choices=STATUS_CHOICES,
-        default='reported'
+        default='reportado'
+    )
+    
+    # SLA Control dates - TDR Requirements
+    fecha_solicitud_documentos = models.DateField(
+        _('Fecha solicitud documentos'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se solicitan documentos al reportante')
+    )
+    fecha_docs_completos = models.DateField(
+        _('Fecha documentos completos'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se completa la documentación')
+    )
+    fecha_envio_aseguradora = models.DateField(
+        _('Fecha envío aseguradora'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se envía a la aseguradora')
+    )
+    fecha_respuesta_aseguradora = models.DateField(
+        _('Fecha respuesta aseguradora'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que responde la aseguradora')
+    )
+    
+    # SLA Limits
+    dias_limite_documentos = models.PositiveIntegerField(
+        _('Días límite documentos'),
+        default=30,
+        help_text=_('Días límite máximo para completar documentación')
+    )
+    dias_limite_respuesta_aseguradora = models.PositiveIntegerField(
+        _('Días hábiles respuesta aseguradora'),
+        default=8,
+        help_text=_('Días hábiles para respuesta de aseguradora')
     )
 
     # Resolution information
@@ -98,12 +196,20 @@ class Claim(models.Model):
         blank=True
     )
 
-    # Relations
+    # Relations - Enhanced for TDR
+    reportante = models.ForeignKey(
+        UserProfile,
+        on_delete=models.PROTECT,
+        verbose_name=_('Reportante'),
+        related_name='siniestros_reportados',
+        help_text=_('Usuario que reporta el siniestro')
+    )
     reported_by = models.ForeignKey(
         UserProfile,
         on_delete=models.PROTECT,
         verbose_name=_('Reportado por'),
-        related_name='reported_claims'
+        related_name='reported_claims',
+        help_text=_('Alias para reportante (compatibilidad)')
     )
     assigned_to = models.ForeignKey(
         UserProfile,
@@ -112,6 +218,24 @@ class Claim(models.Model):
         blank=True,
         verbose_name=_('Asignado a'),
         related_name='assigned_claims'
+    )
+    
+    # Notification tracking
+    broker_notificado = models.ForeignKey(
+        'brokers.Broker',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Broker notificado'),
+        help_text=_('Broker al que se notificó el siniestro')
+    )
+    aseguradora_notificada = models.ForeignKey(
+        'companies.InsuranceCompany',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Aseguradora notificada'),
+        help_text=_('Aseguradora a la que se notificó')
     )
 
     # Timestamps
@@ -167,10 +291,9 @@ class Claim(models.Model):
         if new_status not in transitions.get(self.status, []):
             return False
 
-        # Role-based permissions for status changes
+        # Role-based permissions for status changes (SIMPLIFIED TO 3 ROLES)
         role_permissions = {
             'requester': ['reported'],  # Can only report
-            'consultant': ['reported', 'documentation_pending', 'sent_to_insurer'],
             'insurance_manager': ['reported', 'documentation_pending', 'sent_to_insurer',
                                 'under_evaluation', 'liquidated', 'paid', 'closed', 'rejected'],
             'admin': ['reported', 'documentation_pending', 'sent_to_insurer',
@@ -225,14 +348,46 @@ class Claim(models.Model):
 
         # Define overdue thresholds
         overdue_thresholds = {
-            'documentation_pending': 8,  # 8 days to gather documentation
-            'sent_to_insurer': 30,       # 30 days for insurer evaluation
-            'under_evaluation': 30,      # 30 days for evaluation
-            'liquidated': 2             # 2 days to pay after liquidation
+            'docs_pendientes': 8,  # 8 days to gather documentation
+            'enviado_aseguradora': 30,       # 30 days for insurer evaluation
+            'en_revision': 30,      # 30 days for evaluation
+            'liquidado': 2             # 2 days to pay after liquidation
         }
 
         threshold = overdue_thresholds.get(self.status, 999)
         return days_in_status > threshold
+    
+    def verificar_sla_documentos(self):
+        """
+        Verifica si se excedió el plazo de documentación (8 días)
+        Requisito TDR: Control de plazos de documentación
+        """
+        if self.fecha_solicitud_documentos and not self.fecha_docs_completos:
+            dias = (timezone.now().date() - self.fecha_solicitud_documentos).days
+            return dias > 8
+        return False
+    
+    def verificar_sla_respuesta_aseguradora(self):
+        """
+        Verifica si se excedió el plazo de respuesta de aseguradora (8 días hábiles)
+        Requisito TDR: Control de respuesta aseguradora
+        """
+        if self.fecha_envio_aseguradora and not self.fecha_respuesta_aseguradora:
+            # Calcular días hábiles (simplificado: días totales * 5/7)
+            dias_totales = (timezone.now().date() - self.fecha_envio_aseguradora).days
+            dias_habiles = int(dias_totales * 5 / 7)  # Aproximación
+            return dias_habiles > 8
+        return False
+    
+    def verificar_limite_maximo_30_dias(self):
+        """
+        Verifica si se excedió el límite máximo de 30 días para documentación
+        Requisito TDR: Límite máximo absoluto
+        """
+        if self.fecha_solicitud_documentos and not self.fecha_docs_completos:
+            dias = (timezone.now().date() - self.fecha_solicitud_documentos).days
+            return dias > self.dias_limite_documentos
+        return False
 
     @staticmethod
     def generate_claim_number():
@@ -258,11 +413,28 @@ class Claim(models.Model):
     def save(self, *args, **kwargs):
         """
         Override save to generate claim number and perform validation
+        Auto-fill asset information from related asset
         """
         is_new = self.pk is None
 
         if not self.claim_number:
             self.claim_number = self.generate_claim_number()
+        
+        # Auto-fill asset information from the related asset
+        if self.asset:
+            self.asset_type = self.asset.asset_type
+            self.asset_description = self.asset.name
+            self.asset_code = self.asset.asset_code
+            
+            # Auto-fill policy from asset if not set
+            if not self.policy and self.asset.insurance_policy:
+                self.policy = self.asset.insurance_policy
+            
+            # Auto-fill incident_date and incident_location aliases
+            if not self.incident_date:
+                self.incident_date = self.fecha_siniestro
+            if not self.incident_location:
+                self.incident_location = self.ubicacion_detallada[:255] if self.ubicacion_detallada else ''
 
         self.full_clean()
         super().save(*args, **kwargs)
@@ -661,55 +833,130 @@ class ClaimSettlement(models.Model):
         unique=True,
         blank=True
     )
+    numero_reclamo = models.CharField(
+        _('Número de reclamo aseguradora'),
+        max_length=100,
+        help_text=_('Número de reclamo asignado por la aseguradora')
+    )
     claim_reference_number = models.CharField(
         _('Número de Reclamo'),
         max_length=100,
         blank=True,
-        help_text=_('Número de referencia del reclamo en la aseguradora')
+        help_text=_('Número de referencia del reclamo en la aseguradora (alias)')
     )
 
-    # Financial details
+    # Financial details - Enhanced for TDR
+    valor_total_reclamo = models.DecimalField(
+        _('Valor total del reclamo'),
+        max_digits=15,
+        decimal_places=2,
+        help_text=_('Monto total reclamado')
+    )
     total_claim_amount = models.DecimalField(
         _('Valor Total del Reclamo'),
         max_digits=12,
         decimal_places=2,
-        help_text=_('Monto total aprobado por la aseguradora')
+        help_text=_('Monto total aprobado por la aseguradora (alias)')
+    )
+    deducible_aplicado = models.DecimalField(
+        _('Deducible aplicado'),
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        help_text=_('Monto del deducible aplicado según cobertura')
     )
     deductible_amount = models.DecimalField(
         _('Deducible Aplicado'),
         max_digits=12,
         decimal_places=2,
         default=0,
-        help_text=_('Monto del deducible aplicado')
+        help_text=_('Monto del deducible aplicado (alias)')
+    )
+    depreciacion = models.DecimalField(
+        _('Depreciación'),
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        help_text=_('Valor de depreciación aplicado al bien')
     )
     depreciation_amount = models.DecimalField(
         _('Depreciación'),
         max_digits=12,
         decimal_places=2,
         default=0,
-        help_text=_('Valor de depreciación aplicado')
+        help_text=_('Valor de depreciación aplicado (alias)')
+    )
+    valor_a_pagar = models.DecimalField(
+        _('Valor final a pagar'),
+        max_digits=15,
+        decimal_places=2,
+        help_text=_('Valor total - deducible - depreciación')
     )
     final_payment_amount = models.DecimalField(
         _('Valor Final a Pagar'),
         max_digits=12,
         decimal_places=2,
-        help_text=_('Monto final que se pagará al asegurado')
+        help_text=_('Monto final que se pagará al asegurado (alias)')
     )
 
-    # Settlement details
+    # Settlement details - Enhanced for TDR (72-hour control)
+    fecha_recepcion_finiquito = models.DateField(
+        _('Fecha recepción finiquito'),
+        help_text=_('Fecha en que se recibe el finiquito de la aseguradora')
+    )
     settlement_date = models.DateField(
         _('Fecha de Finiquito'),
-        auto_now_add=True
+        auto_now_add=True,
+        help_text=_('Fecha de creación del finiquito (alias)')
+    )
+    fecha_firma = models.DateField(
+        _('Fecha de firma'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se firma el finiquito')
+    )
+    signed_date = models.DateField(
+        _('Fecha de Firma'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha de firma (alias)')
+    )
+    fecha_limite_pago = models.DateField(
+        _('Fecha límite pago (72h)'),
+        editable=False,
+        null=True,
+        blank=True,
+        help_text=_('Fecha límite para pago (72 horas desde firma)')
+    )
+    fecha_pago = models.DateField(
+        _('Fecha pago real'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se realizó el pago')
     )
     payment_date = models.DateField(
         _('Fecha de Pago'),
         null=True,
-        blank=True
+        blank=True,
+        help_text=_('Fecha de pago (alias)')
     )
     payment_reference = models.CharField(
         _('Referencia de Pago'),
         max_length=100,
         blank=True
+    )
+    
+    # Financial management notification - TDR Requirement
+    notificado_gerencia_financiera = models.BooleanField(
+        _('Notificado a gerencia financiera'),
+        default=False,
+        help_text=_('Si se notificó a gerencia sobre deducible a cobrar')
+    )
+    fecha_notificacion_gerencia = models.DateTimeField(
+        _('Fecha notificación gerencia'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha en que se notificó a gerencia financiera')
     )
 
     # Status and approval
@@ -763,6 +1010,7 @@ class ClaimSettlement(models.Model):
     def save(self, *args, **kwargs):
         """
         Override save to generate settlement number and validate amounts
+        Enhanced for TDR: 72-hour payment control and financial notification
         """
         if not self.settlement_number:
             self.settlement_number = self.generate_settlement_number()
@@ -774,9 +1022,47 @@ class ClaimSettlement(models.Model):
                 self.deductible_amount -
                 self.depreciation_amount
             )
+        
+        # Sync alias fields
+        if not self.valor_a_pagar:
+            self.valor_a_pagar = self.final_payment_amount
+        if not self.valor_total_reclamo:
+            self.valor_total_reclamo = self.total_claim_amount
+        if not self.deducible_aplicado:
+            self.deducible_aplicado = self.deductible_amount
+        if not self.depreciacion:
+            self.depreciacion = self.depreciation_amount
+        
+        # TDR Requirement: Calculate 72-hour payment deadline from signature
+        if self.fecha_firma and not self.fecha_limite_pago:
+            from datetime import timedelta
+            self.fecha_limite_pago = self.fecha_firma + timedelta(days=3)
+        
+        # Sync signed_date alias
+        if self.fecha_firma and not self.signed_date:
+            self.signed_date = self.fecha_firma
 
         self.full_clean()
         super().save(*args, **kwargs)
+        
+        # TDR Requirement: Notify financial management about deductible
+        if self.deducible_aplicado > 0 and not self.notificado_gerencia_financiera:
+            self.notificar_gerencia_financiera()
+    
+    def notificar_gerencia_financiera(self):
+        """
+        Notifica a gerencia financiera sobre deducible a cobrar
+        Requisito TDR: Notificación automática de deducibles
+        """
+        try:
+            from notifications.email_service import EmailService
+            EmailService.send_deductible_notification(self)
+            self.notificado_gerencia_financiera = True
+            self.fecha_notificacion_gerencia = timezone.now()
+            self.save(update_fields=['notificado_gerencia_financiera', 'fecha_notificacion_gerencia'])
+        except Exception as e:
+            import logging
+            logging.error(f"Error notificando gerencia financiera: {e}")
 
     def generate_settlement_number(self):
         """

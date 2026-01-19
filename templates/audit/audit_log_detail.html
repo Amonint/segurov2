@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Auditoria{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-journal-text"></i> Detalle de Auditoria
+            </h1>
+            <a href="{% url 'audit:audit_log_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Informacion general</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Fecha:</strong> {{ log_entry.created_at|date:"d/m/Y H:i:s" }}</p>
+                <p><strong>Usuario:</strong> {{ log_entry.user.get_full_name|default:"Sistema" }}</p>
+                <p><strong>Accion:</strong> {{ log_entry.get_action_type_display }}</p>
+                <p><strong>Entidad:</strong> {{ log_entry.get_entity_type_display }}</p>
+                <p><strong>ID Entidad:</strong> {{ log_entry.entity_id }}</p>
+                <p><strong>IP:</strong> {{ log_entry.ip_address|default:"-" }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Descripcion</h6>
+            </div>
+            <div class="card-body">
+                <p>{{ log_entry.description }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Valores anteriores</h6>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded small">{{ log_entry.old_values|default:"-" }}</pre>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Valores nuevos</h6>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded small">{{ log_entry.new_values|default:"-" }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

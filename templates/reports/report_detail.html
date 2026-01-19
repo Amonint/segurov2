@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ report.name }} - Reporte{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-graph-up mr-3 text-indigo-600"></i>
+                {{ report.name }}
+            </h1>
+            <p class="text-gray-600">{{ report.get_report_type_display }}</p>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+            <a href="{% url 'reports:report_list' %}"
+                class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                <i class="bi bi-arrow-left mr-2"></i> Volver
+            </a>
+            {% if can_execute %}
+            <a href="{% url 'reports:report_execute' report.pk %}"
+                class="bg-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-green-700 transition-all duration-300">
+                <i class="bi bi-play mr-2"></i> Ejecutar
+            </a>
+            {% endif %}
+            {% if can_edit %}
+            <a href="{% url 'reports:report_edit' report.pk %}"
+                class="bg-amber-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-amber-700 transition-all duration-300">
+                <i class="bi bi-pencil mr-2"></i> Editar
+            </a>
+            {% endif %}
+            {% if perms.reports.reports_delete %}
+            <a href="{% url 'reports:report_delete' report.pk %}"
+                class="bg-red-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-700 transition-all duration-300"
+                onclick="return confirm('Confirmar eliminacion del reporte?')">
+                <i class="bi bi-trash mr-2"></i> Eliminar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-6">
+                <h2 class="text-white font-bold text-xl flex items-center">
+                    <i class="bi bi-info-circle mr-2"></i>
+                    Informacion del reporte
+                </h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Tipo</p>
+                            <p class="font-semibold text-gray-900">{{ report.get_report_type_display }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Creado</p>
+                            <p class="text-gray-900">{{ report.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Creado por</p>
+                            <p class="text-gray-900">
+                                {% if report.created_by %}
+                                {{ report.created_by.get_full_name }}
+                                {% else %}
+                                Sistema
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Programado</p>
+                            <p class="text-gray-900">
+                                {% if report.is_scheduled %}
+                                {{ report.get_schedule_frequency_display }}
+                                {% else %}
+                                No
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Ultima ejecucion</p>
+                            <p class="text-gray-900">
+                                {% if report.last_run %}
+                                {{ report.last_run|date:"d/m/Y H:i" }}
+                                {% else %}
+                                Nunca
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Destinatarios</p>
+                            <p class="text-gray-900">
+                                {% for user in report.recipients.all %}
+                                {{ user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                Sin destinatarios
+                                {% endfor %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if report.description %}
+                <div class="mt-6 border-t border-gray-200 pt-4">
+                    <p class="text-sm text-gray-500">Descripcion</p>
+                    <p class="text-gray-900 mt-2">{{ report.description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-gray-700 to-gray-800 p-6">
+                <h2 class="text-white font-bold text-xl flex items-center">
+                    <i class="bi bi-clock-history mr-2"></i>
+                    Ultimas ejecuciones
+                </h2>
+            </div>
+            <div class="p-6">
+                {% if executions %}
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-gray-200">
+                                <th class="text-left py-3 px-3 text-gray-700">Fecha</th>
+                                <th class="text-left py-3 px-3 text-gray-700">Usuario</th>
+                                <th class="text-left py-3 px-3 text-gray-700">Formato</th>
+                                <th class="text-left py-3 px-3 text-gray-700">Tiempo</th>
+                                <th class="text-left py-3 px-3 text-gray-700">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for execution in executions %}
+                            <tr class="border-b border-gray-100">
+                                <td class="py-3 px-3">{{ execution.executed_at|date:"d/m/Y H:i" }}</td>
+                                <td class="py-3 px-3">
+                                    {% if execution.executed_by %}
+                                    {{ execution.executed_by.get_full_name }}
+                                    {% else %}
+                                    Sistema
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-3">{{ execution.get_export_format_display }}</td>
+                                <td class="py-3 px-3">{{ execution.execution_time_seconds|floatformat:2 }}s</td>
+                                <td class="py-3 px-3">
+                                    {% if execution.success %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">OK</span>
+                                    {% else %}
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">Error</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if execution.error_message %}
+                            <tr class="border-b border-gray-100">
+                                <td colspan="5" class="py-2 px-3 text-sm text-red-700">
+                                    {{ execution.error_message }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 text-gray-500">
+                    No hay ejecuciones registradas.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-6">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
+                <h3 class="text-white font-bold text-lg flex items-center">
+                    <i class="bi bi-filter mr-2"></i>
+                    Filtros
+                </h3>
+            </div>
+            <div class="p-6">
+                {% if report.filters %}
+                <pre class="bg-gray-50 p-4 rounded-lg text-sm overflow-x-auto">{{ report.filters }}</pre>
+                {% else %}
+                <p class="text-gray-500">Sin filtros definidos.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

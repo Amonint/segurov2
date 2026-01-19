@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportar Siniestro - {{ asset.name }}{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-exclamation-triangle-fill mr-3 text-red-600"></i>
+                Reportar Siniestro
+            </h1>
+            <p class="text-gray-600">Complete la información del siniestro para el bien seleccionado</p>
+        </div>
+        <a href="{% url 'assets:asset_detail' asset.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+            <i class="bi bi-arrow-left mr-2"></i> Volver al Bien
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Form -->
+    <div class="lg:col-span-2">
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+                <h2 class="text-white font-bold text-xl flex items-center">
+                    <i class="bi bi-file-earmark-text mr-2"></i>
+                    Formulario de Reporte
+                </h2>
+            </div>
+            <div class="p-6">
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                        <div class="flex items-start">
+                            <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-3 mt-1"></i>
+                            <div>
+                                <h4 class="font-bold text-red-800 mb-1">Errores en el formulario</h4>
+                                <ul class="text-sm text-red-700 list-disc list-inside">
+                                    {% for field in form %}
+                                    {% for error in field.errors %}
+                                    <li>{{ field.label }}: {{ error }}</li>
+                                    {% endfor %}
+                                    {% endfor %}
+                                    {% for error in form.non_field_errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Fecha del Siniestro -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="bi bi-calendar-event mr-1"></i> {{ form.fecha_siniestro.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.fecha_siniestro }}
+                        {% if form.fecha_siniestro.help_text %}
+                        <p class="text-gray-500 text-sm mt-1">{{ form.fecha_siniestro.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Causa del Siniestro -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="bi bi-question-circle mr-1"></i> {{ form.causa.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.causa }}
+                        <p class="text-gray-500 text-sm mt-1">Ej: Robo con violencia, Daño por agua, Incendio,
+                            Accidente, etc.</p>
+                    </div>
+
+                    <!-- Ubicación Detallada -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="bi bi-geo-alt mr-1"></i> {{ form.ubicacion_detallada.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.ubicacion_detallada }}
+                        <p class="text-gray-500 text-sm mt-1">Ubicación específica donde ocurrió el siniestro</p>
+                    </div>
+
+                    <!-- Descripción del Incidente -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="bi bi-file-text mr-1"></i> {{ form.incident_description.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.incident_description }}
+                        {% if form.incident_description.help_text %}
+                        <p class="text-gray-500 text-sm mt-1">{{ form.incident_description.help_text }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Pérdida Estimada -->
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">
+                            <i class="bi bi-cash mr-1"></i> {{ form.estimated_loss.label }}
+                            <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-3 text-gray-500 font-bold">$</span>
+                            {{ form.estimated_loss }}
+                        </div>
+                        <p class="text-gray-500 text-sm mt-1">Estimación del valor de la pérdida en USD</p>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex gap-4 pt-6 border-t border-gray-200">
+                        <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold py-4 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg flex items-center justify-center">
+                            <i class="bi bi-check-circle mr-2"></i> Reportar Siniestro
+                        </button>
+                        <a href="{% url 'assets:asset_detail' asset.pk %}"
+                            class="bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center justify-center">
+                            <i class="bi bi-x-circle mr-2"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar - Asset Info -->
+    <div class="space-y-6">
+        <!-- Asset Information Card -->
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
+                <h3 class="text-white font-bold text-lg flex items-center">
+                    <i class="bi bi-box mr-2"></i>
+                    Bien Afectado
+                </h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <label class="text-gray-600 text-sm font-semibold">Código</label>
+                        <p class="text-gray-900 font-bold text-lg mt-1">{{ asset.asset_code }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <label class="text-gray-600 text-sm font-semibold">Nombre</label>
+                        <p class="text-gray-900 font-medium mt-1">{{ asset.name }}</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <label class="text-gray-600 text-sm font-semibold">Tipo</label>
+                        <div class="mt-2">
+                            <span class="px-4 py-2 rounded-full text-sm font-bold inline-block
+                                {% if asset.asset_type == 'vehiculo' %}bg-blue-500 text-white
+                                {% elif asset.asset_type == 'electronics' %}bg-purple-500 text-white
+                                {% elif asset.asset_type == 'machinery' %}bg-amber-500 text-white
+                                {% elif asset.asset_type == 'furniture' %}bg-green-500 text-white
+                                {% else %}bg-gray-500 text-white{% endif %}">
+                                {{ asset.get_asset_type_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded-xl">
+                        <label class="text-gray-600 text-sm font-semibold">Valor Actual</label>
+                        <p class="text-green-600 font-bold text-2xl mt-1">${{ asset.current_value|floatformat:2 }}</p>
+                    </div>
+
+                    {% if asset.insurance_policy %}
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4">
+                        <label class="text-gray-700 font-semibold mb-2 flex items-center">
+                            <i class="bi bi-shield-check mr-1 text-green-600"></i> Póliza
+                        </label>
+                        <p class="text-green-800 font-bold">{{ asset.insurance_policy.policy_number }}</p>
+                        <p class="text-sm text-gray-600 mt-1">{{ asset.insurance_policy.insurance_company.name }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-lg p-6 border border-blue-200">
+            <div class="flex items-start mb-4">
+                <div class="bg-blue-600 p-3 rounded-xl mr-3">
+                    <i class="bi bi-info-circle text-white text-2xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mt-2">Información Importante</h3>
+            </div>
+            <div class="space-y-3 text-sm text-gray-700">
+                <div class="flex items-start">
+                    <i class="bi bi-check-circle text-blue-600 mr-2 mt-1"></i>
+                    <p>Complete todos los campos marcados con <span class="text-red-500">*</span></p>
+                </div>
+                <div class="flex items-start">
+                    <i class="bi bi-check-circle text-blue-600 mr-2 mt-1"></i>
+                    <p>Sea lo más específico posible en la descripción</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="bi bi-check-circle text-blue-600 mr-2 mt-1"></i>
+                    <p>La fecha del siniestro no puede ser futura</p>
+                </div>
+                <div class="flex items-start">
+                    <i class="bi bi-check-circle text-blue-600 mr-2 mt-1"></i>
+                    <p>Podrá adjuntar documentos después de crear el reporte</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-focus first field
+    document.addEventListener('DOMContentLoaded', function () {
+        const firstInput = document.querySelector('input[type="date"]');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    });
+</script>
+{% endblock %}
