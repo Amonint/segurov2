@@ -5,7 +5,8 @@ from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import EmailTemplate, EmailLog, Notification, Alert
-from .forms import EmailTemplateForm
+from .forms import EmailTemplateForm, AlertForm
+from .email_service import EmailService
 from .tasks import run_scheduled_alerts
 from accounts.models import UserProfile
 from audit.models import AuditLog
@@ -175,6 +176,57 @@ def test_email_template(request, pk):
             'total_amount': '1250.00',
             'days_remaining': '7',
         },
+        'policy_expired': {
+            'policy_number': 'POL-2024-0001',
+            'company_name': 'Seguros Pichincha',
+            'expiry_date': '01/01/2024',
+            'policy_url': '/policies/1/',
+        },
+        'invoice_overdue': {
+            'invoice_number': 'INV-2024-0001',
+            'amount': '1250.00',
+            'days_overdue': '5',
+            'due_date': '15/01/2024',
+            'invoice_url': '/invoices/1/',
+        },
+        'claim_overdue': {
+            'claim_number': 'SIN-2024-0001',
+            'policy_number': 'POL-2024-0001',
+            'days_overdue': '12',
+            'last_update': '10/01/2024 09:30',
+            'claim_url': '/claims/1/',
+        },
+        'document_overdue': {
+            'document_name': 'Reporte policial',
+            'claim_number': 'SIN-2024-0001',
+            'days_overdue': '8',
+            'deadline': '05/01/2024',
+            'claim_url': '/claims/1/',
+        },
+        'maintenance_required': {
+            'asset_code': 'ACT-2024-0001',
+            'asset_name': 'Laptop Dell',
+            'condition': 'Regular',
+            'asset_url': '/assets/1/',
+        },
+        'system_alert': {
+            'alert_name': 'Alerta General',
+            'message': 'Mantenimiento programado del sistema a las 22:00.',
+            'priority': 'normal',
+        },
+        'settlement_signed': {
+            'user_name': 'Juan Pérez',
+            'claim_number': 'SIN-2024-0001',
+            'settlement_number': 'FIN-2024-0001',
+            'final_amount': '980.00',
+        },
+        'payment_completed': {
+            'user_name': 'Juan Pérez',
+            'claim_number': 'SIN-2024-0001',
+            'settlement_number': 'FIN-2024-0001',
+            'payment_amount': '980.00',
+            'payment_date': '20/01/2024',
+        },
     }
 
     context = sample_contexts.get(template.template_type, {})
@@ -288,7 +340,7 @@ def alert_detail(request, pk):
     alert = get_object_or_404(Alert, pk=pk)
 
     # Check permissions - users can only see alerts they created or alerts they're recipients of
-    if not request.user.has_role_permission('notifications.alerts_read'):
+    if not request.user.has_role_permission('alerts_read'):
         if alert.created_by != request.user and request.user not in alert.recipients.all():
             messages.error(request, _('No tienes permisos para ver esta alerta.'))
             return redirect('notifications:alert_list')
@@ -305,7 +357,7 @@ def alert_edit(request, pk):
     alert = get_object_or_404(Alert, pk=pk)
 
     # Check ownership
-    if not request.user.has_role_permission('notifications.alerts_write') and alert.created_by != request.user:
+    if not request.user.has_role_permission('alerts_write') and alert.created_by != request.user:
         messages.error(request, _('No tienes permisos para editar esta alerta.'))
         return redirect('notifications:alert_detail', pk=pk)
 
@@ -359,7 +411,7 @@ def alert_execute(request, pk):
     alert = get_object_or_404(Alert, pk=pk)
 
     # Check permissions
-    if not request.user.has_role_permission('notifications.alerts_execute') and alert.created_by != request.user:
+    if not request.user.has_role_permission('alerts_execute') and alert.created_by != request.user:
         messages.error(request, _('No tienes permisos para ejecutar esta alerta.'))
         return redirect('notifications:alert_detail', pk=pk)
 
@@ -386,7 +438,7 @@ def alert_delete(request, pk):
     alert = get_object_or_404(Alert, pk=pk)
 
     # Check ownership
-    if not request.user.has_role_permission('notifications.alerts_delete') and alert.created_by != request.user:
+    if not request.user.has_role_permission('alerts_delete') and alert.created_by != request.user:
         messages.error(request, _('No tienes permisos para eliminar esta alerta.'))
         return redirect('notifications:alert_detail', pk=pk)
 

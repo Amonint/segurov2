@@ -253,7 +253,7 @@ def policy_renew(request, pk):
                     action_type='update',
                     entity_type='policy',
                     entity_id=str(renewed_policy.id),
-                    description=f'Póliza renovada: {policy.policy_number} → {renewed_policy.policy_number}',
+                    description=f'Póliza renovada: {policy.policy_number} -> {renewed_policy.policy_number}',
                     old_values={'status': 'active'},
                     new_values={'status': 'renewed', 'new_policy_number': renewed_policy.policy_number}
                 )
@@ -576,20 +576,3 @@ def policy_bulk_action(request):
         messages.info(request, _('Funcionalidad de exportación en desarrollo.'))
 
     return redirect('policies:policy_list')
-
-@login_required
-def policy_document_upload(request, pk):
-    """Upload policy document"""
-    policy = get_object_or_404(Policy, pk=pk)
-    # Placeholder - will be implemented with forms
-    messages.info(request, _('Funcionalidad en desarrollo'))
-    return redirect('policies:policy_documents', pk=pk)
-
-@login_required
-def policy_document_delete(request, pk):
-    """Delete policy document"""
-    document = get_object_or_404(PolicyDocument, pk=pk)
-    policy_pk = document.policy.pk
-    # Placeholder - will be implemented
-    messages.info(request, _('Funcionalidad en desarrollo'))
-    return redirect('policies:policy_documents', pk=policy_pk)

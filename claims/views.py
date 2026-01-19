@@ -111,7 +111,10 @@ def claim_detail(request, pk):
     documents = claim.documents.all().order_by('-uploaded_at')
 
     # Get settlement if exists
-    settlement = claim.settlements.first() if hasattr(claim, 'settlements') and claim.settlements.exists() else None
+    try:
+        settlement = claim.settlement
+    except ClaimSettlement.DoesNotExist:
+        settlement = None
 
     # Check if claim has overdue documents
     overdue_documents = []
@@ -240,7 +243,7 @@ def claim_update_status(request, pk):
                     action_type='update',
                     entity_type='claim',
                     entity_id=str(claim.id),
-                    description=f'Estado de siniestro cambiado: {claim.claim_number} ({old_status} → {new_status})',
+                    description=f'Estado de siniestro cambiado: {claim.claim_number} ({old_status} -> {new_status})',
                     old_values={'status': old_status},
                     new_values={'status': new_status, 'notes': notes}
                 )
@@ -276,7 +279,7 @@ def claim_delete(request, pk):
         return redirect('claims:claim_detail', pk=pk)
 
     # Check if claim has documents or settlements
-    if claim.documents.exists() or (hasattr(claim, 'settlements') and claim.settlements.exists()):
+    if claim.documents.exists() or ClaimSettlement.objects.filter(claim=claim).exists():
         messages.error(request, _('No se puede eliminar el siniestro porque tiene documentos o finiquitos asociados.'))
         return redirect('claims:claim_detail', pk=pk)
 
@@ -349,9 +352,10 @@ def claim_settlement_create(request, claim_pk):
         return redirect('claims:claim_detail', pk=claim_pk)
 
     # Check if settlement already exists
-    if hasattr(claim, 'settlement'):
+    existing_settlement = ClaimSettlement.objects.filter(claim=claim).first()
+    if existing_settlement:
         messages.warning(request, _('Este siniestro ya tiene un finiquito creado.'))
-        return redirect('claims:claim_settlement_detail', pk=claim.settlement.pk)
+        return redirect('claims:claim_settlement_detail', pk=existing_settlement.pk)
 
     if request.method == 'POST':
         form = ClaimSettlementForm(request.POST, request.FILES)

@@ -43,6 +43,14 @@ def execute_alert(alert):
     return results
 
 
+def normalize_priority(priority):
+    """
+    Normalize notification priority to a valid choice.
+    """
+    valid_priorities = {choice[0] for choice in Notification.PRIORITY_CHOICES}
+    return priority if priority in valid_priorities else 'normal'
+
+
 def execute_policy_expiring_alert(alert):
     """
     Alert for policies expiring soon
@@ -70,12 +78,9 @@ def execute_policy_expiring_alert(alert):
                 notification_type='policy_expiring',
                 title=f'Póliza por vencer: {policy.policy_number}',
                 message=f'La póliza {policy.policy_number} de {policy.insurance_company.name} vence en {days_until_expiry} días ({policy.end_date}).',
-                priority='high' if days_until_expiry <= 7 else 'medium',
+                priority=normalize_priority('high' if days_until_expiry <= 7 else 'normal'),
                 link=f'/policies/{policy.pk}/'
             )
-            notification.related_object_type = 'policy'
-            notification.related_object_id = policy.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -121,12 +126,9 @@ def execute_policy_expired_alert(alert):
                 notification_type='policy_expired',
                 title=f'Póliza vencida: {policy.policy_number}',
                 message=f'La póliza {policy.policy_number} de {policy.insurance_company.name} ha vencido el {policy.end_date}.',
-                priority='urgent',
+                priority=normalize_priority('urgent'),
                 link=f'/policies/{policy.pk}/'
             )
-            notification.related_object_type = 'policy'
-            notification.related_object_id = policy.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -171,12 +173,9 @@ def execute_invoice_overdue_alert(alert):
                 notification_type='invoice_overdue',
                 title=f'Factura vencida: {invoice.invoice_number}',
                 message=f'La factura {invoice.invoice_number} por ${invoice.total_amount} está vencida hace {days_overdue} días.',
-                priority='high',
+                priority=normalize_priority('high'),
                 link=f'/invoices/{invoice.pk}/'
             )
-            notification.related_object_type = 'invoice'
-            notification.related_object_id = invoice.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -223,12 +222,9 @@ def execute_claim_overdue_alert(alert):
                 notification_type='claim_overdue',
                 title=f'Siniestro atrasado: {claim.claim_number}',
                 message=f'El siniestro {claim.claim_number} no ha sido actualizado hace {days_overdue} días.',
-                priority='high',
+                priority=normalize_priority('high'),
                 link=f'/claims/{claim.pk}/'
             )
-            notification.related_object_type = 'claim'
-            notification.related_object_id = claim.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -276,12 +272,9 @@ def execute_document_overdue_alert(alert):
                 notification_type='document_overdue',
                 title=f'Documento vencido: {document.document_name}',
                 message=f'El documento requerido "{document.document_name}" para el siniestro {document.claim.claim_number} está vencido hace {days_overdue} días.',
-                priority='urgent',
+                priority=normalize_priority('urgent'),
                 link=f'/claims/{document.claim.pk}/documents/'
             )
-            notification.related_object_type = 'claim'
-            notification.related_object_id = document.claim.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -332,12 +325,9 @@ def execute_payment_due_alert(alert):
                 notification_type='payment_due',
                 title=f'Pago próximo: {invoice.invoice_number}',
                 message=f'La factura {invoice.invoice_number} por ${invoice.total_amount} vence en {days_until_due} días.',
-                priority='medium',
+                priority=normalize_priority('normal'),
                 link=f'/invoices/{invoice.pk}/'
             )
-            notification.related_object_type = 'invoice'
-            notification.related_object_id = invoice.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -381,12 +371,9 @@ def execute_maintenance_required_alert(alert):
                 notification_type='maintenance_required',
                 title=f'Mantenimiento requerido: {asset.name}',
                 message=f'El activo "{asset.name}" ({asset.asset_code}) requiere mantenimiento. Estado actual: {asset.get_condition_status_display()}.',
-                priority='medium',
+                priority=normalize_priority('normal'),
                 link=f'/assets/{asset.pk}/'
             )
-            notification.related_object_type = 'asset'
-            notification.related_object_id = asset.id
-            notification.save()
             results['notifications_created'] += 1
 
         # Send email if configured
@@ -416,7 +403,7 @@ def execute_system_alert(alert):
 
     # Get alert message from conditions
     message = alert.conditions.get('message', 'Alerta del sistema')
-    priority = alert.conditions.get('priority', 'medium')
+    priority = normalize_priority(alert.conditions.get('priority', 'normal'))
 
     # Create notifications for all recipients
     for user in alert.recipients.all():
