@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-receipt mr-3 text-green-600"></i>
+                {{ title }}
+            </h1>
+            <p class="text-gray-600">Complete la información de la factura</p>
+        </div>
+        <a href="{% url 'invoices:invoice_list' %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Form Card -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto">
+    <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-pencil-square mr-2"></i>
+            Información de la Factura
+        </h2>
+    </div>
+    <div class="p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <h3 class="text-red-800 font-bold">Por favor corrija los siguientes errores:</h3>
+                </div>
+                <ul class="list-disc list-inside text-red-700 ml-6">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Policy Selection -->
+            <div>
+                <label for="{{ form.policy.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.policy.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.policy }}
+                {% if form.policy.help_text %}
+                <p class="text-gray-500 text-sm mt-1">{{ form.policy.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Invoice Date and Due Date -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.invoice_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        {{ form.invoice_date.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.invoice_date }}
+                </div>
+                <div>
+                    <label for="{{ form.due_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        {{ form.due_date.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.due_date }}
+                </div>
+            </div>
+
+            <!-- Amount Fields -->
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="bi bi-calculator mr-2 text-green-600"></i>
+                    Montos
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.base_amount.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.base_amount.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.base_amount }}
+                    </div>
+                    <div>
+                        <label for="{{ form.tax_amount.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.tax_amount.label }}
+                        </label>
+                        {{ form.tax_amount }}
+                    </div>
+                    <div>
+                        <label for="{{ form.discount_amount.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.discount_amount.label }}
+                        </label>
+                        {{ form.discount_amount }}
+                    </div>
+                    <div>
+                        <label for="{{ form.total_amount.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.total_amount.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.total_amount }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            {% if form.notes %}
+            <div>
+                <label for="{{ form.notes.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.notes.label }}
+                </label>
+                {{ form.notes }}
+                {% if form.notes.help_text %}
+                <p class="text-gray-500 text-sm mt-1">{{ form.notes.help_text }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'invoices:invoice_list' %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                    <i class="bi bi-x-circle mr-2"></i> Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="bi bi-check-circle mr-2"></i> {{ submit_text }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Auto-calculate total amount
+        const baseAmount = document.querySelector('[name="base_amount"]');
+        const taxAmount = document.querySelector('[name="tax_amount"]');
+        const discountAmount = document.querySelector('[name="discount_amount"]');
+        const totalAmount = document.querySelector('[name="total_amount"]');
+
+        function calculateTotal() {
+            const base = parseFloat(baseAmount.value) || 0;
+            const tax = parseFloat(taxAmount.value) || 0;
+            const discount = parseFloat(discountAmount.value) || 0;
+            const total = base + tax - discount;
+            totalAmount.value = total.toFixed(2);
+        }
+
+        if (baseAmount && taxAmount && discountAmount && totalAmount) {
+            baseAmount.addEventListener('input', calculateTotal);
+            taxAmount.addEventListener('input', calculateTotal);
+            discountAmount.addEventListener('input', calculateTotal);
+        }
+    });
+</script>
+{% endblock %}

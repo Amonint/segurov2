@@ -6,6 +6,7 @@ app_name = 'claims'
 urlpatterns = [
     # Claim management
     path('', views.claim_list, name='claim_list'),
+    path('my-claims/', views.my_claims, name='my_claims'),
     path('create/', views.claim_create, name='claim_create'),
     path('<int:pk>/', views.claim_detail, name='claim_detail'),
     path('<int:pk>/edit/', views.claim_edit, name='claim_edit'),

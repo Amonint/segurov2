@@ -93,17 +93,55 @@ class Invoice(models.Model):
         editable=False
     )
 
-    # Payment information
+    # Payment information - Enhanced for TDR requirements
+    PAYMENT_STATUS_CHOICES = [
+        ('pendiente', _('Pendiente')),
+        ('pagada', _('Pagada')),
+        ('pagada_pronto_pago', _('Pagada con descuento pronto pago')),
+        ('vencida', _('Vencida')),
+        ('cancelada', _('Cancelada')),
+    ]
     payment_status = models.CharField(
         _('Estado de pago'),
-        max_length=20,
+        max_length=25,
         choices=PAYMENT_STATUS_CHOICES,
-        default='pending'
+        default='pendiente'
     )
     payment_date = models.DateField(
-        _('Fecha de pago'),
+        _('Fecha de pago real'),
         null=True,
-        blank=True
+        blank=True,
+        help_text=_('Fecha en que se realizó el pago')
+    )
+    fecha_vencimiento = models.DateField(
+        _('Fecha de vencimiento'),
+        help_text=_('Fecha límite para el pago')
+    )
+    documento_contable = models.CharField(
+        _('Documento contable'),
+        max_length=100,
+        blank=True,
+        help_text=_('Número de documento contable o comprobante')
+    )
+    
+    # Early payment discount control (5% if paid within 20 days)
+    descuento_pronto_pago_aplicado = models.BooleanField(
+        _('Descuento pronto pago aplicado'),
+        default=False,
+        help_text=_('Si se aplicó el descuento del 5% por pronto pago')
+    )
+    descuento_pronto_pago_valor = models.DecimalField(
+        _('Valor descuento pronto pago'),
+        max_digits=15,
+        decimal_places=2,
+        default=0,
+        help_text=_('Monto del descuento aplicado (5% sobre prima)')
+    )
+    dias_desde_emision = models.PositiveIntegerField(
+        _('Días desde emisión'),
+        editable=False,
+        default=0,
+        help_text=_('Días transcurridos desde la emisión (calculado)')
     )
 
     # Relations
@@ -205,16 +243,46 @@ class Invoice(models.Model):
 
         self.withholding_tax = total_withholding
 
-    def apply_early_payment_discount(self):
+    def aplicar_descuento_pronto_pago(self):
         """
-        Apply early payment discount if payment is within 20 days
+        Aplica descuento del 5% sobre la prima si el pago se realiza dentro de 20 días
+        Requisito TDR: Control de pronto pago
         """
-        if self.payment_date and self.payment_status == 'paid':
-            days_paid = (self.payment_date - self.invoice_date).days
-            if days_paid <= 20 and self.early_payment_discount == 0:
-                self.early_payment_discount = self.tax_base * Decimal('0.05')
-                self.calculate_amounts()  # Recalculate total
+        if self.payment_date and self.invoice_date:
+            dias = (self.payment_date - self.invoice_date).days
+            
+            if dias <= 20 and not self.descuento_pronto_pago_aplicado:
+                # Aplicar 5% de descuento sobre la prima
+                self.descuento_pronto_pago_valor = self.premium * Decimal('0.05')
+                self.descuento_pronto_pago_aplicado = True
+                self.payment_status = 'pagada_pronto_pago'
+                
+                # Recalcular total
+                self.total_amount = (
+                    self.tax_base +
+                    self.iva -
+                    self.descuento_pronto_pago_valor -
+                    self.withholding_tax
+                )
                 self.save()
+                return True
+        return False
+    
+    def calcular_dias_desde_emision(self):
+        """Calcula los días transcurridos desde la emisión"""
+        if self.invoice_date:
+            from django.utils import timezone
+            self.dias_desde_emision = (timezone.now().date() - self.invoice_date).days
+    
+    def verificar_vencimiento(self):
+        """Verifica si la factura está vencida y actualiza el estado"""
+        if self.fecha_vencimiento and self.payment_status == 'pendiente':
+            from django.utils import timezone
+            if timezone.now().date() > self.fecha_vencimiento:
+                self.payment_status = 'vencida'
+                self.save()
+                return True
+        return False
 
     def clean(self):
         """

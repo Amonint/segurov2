@@ -9,12 +9,10 @@ class UserProfile(AbstractUser):
     Includes role-based permissions and additional profile fields.
     """
 
-    # Role choices
+    # Role choices - SIMPLIFIED TO 3 ROLES
     ROLE_CHOICES = [
         ('admin', _('Administrador')),
         ('insurance_manager', _('Gerente de Seguros')),
-        ('financial_analyst', _('Analista Financiero')),
-        ('consultant', _('Consultor')),
         ('requester', _('Custodio de Bienes')),
     ]
 
@@ -69,13 +67,23 @@ class UserProfile(AbstractUser):
     def get_role_permissions(self):
         """
         Return list of permissions for the user's role
+        SIMPLIFIED: Only 3 roles
+        
+        BUSINESS LOGIC:
+        - Only CUSTODIANS create claims
+        - ADMIN/MANAGER review and manage claims (change status, validate docs)
+        - MANAGER cannot manage assets
+        - ADMIN manages assets (assign to custodians)
         """
         permissions_map = {
             'admin': [
+                # Full access to everything
                 'users_read', 'users_write', 'users_create', 'users_update', 'users_delete', 'users_manage',
                 'policies_read', 'policies_write', 'policies_create', 'policies_update', 'policies_delete', 'policies_manage',
-                'claims_read', 'claims_write', 'claims_create', 'claims_update', 'claims_delete', 'claims_manage',
+                # Claims: READ, WRITE (review/manage), UPDATE, DELETE - NO CREATE
+                'claims_read', 'claims_write', 'claims_update', 'claims_delete', 'claims_manage',
                 'invoices_read', 'invoices_write', 'invoices_create', 'invoices_update', 'invoices_delete', 'invoices_manage',
+                # Assets: Manage for assignment purposes
                 'assets_read', 'assets_write', 'assets_create', 'assets_update', 'assets_delete', 'assets_manage',
                 'reports_read', 'reports_write', 'reports_create', 'reports_update', 'reports_delete', 'reports_manage',
                 'insurance_companies_read', 'insurance_companies_write', 'insurance_companies_create', 'insurance_companies_update', 'insurance_companies_delete', 'insurance_companies_manage',
@@ -84,38 +92,23 @@ class UserProfile(AbstractUser):
                 'alerts_read', 'alerts_create', 'alerts_write', 'alerts_execute', 'alerts_delete'
             ],
             'insurance_manager': [
+                # Insurance manager permissions
                 'users_read',
                 'policies_read', 'policies_write', 'policies_create', 'policies_update', 'policies_delete',
-                'claims_read', 'claims_write', 'claims_create', 'claims_update', 'claims_delete',
+                # Claims: READ, WRITE (review/manage), UPDATE - NO CREATE, NO DELETE
+                'claims_read', 'claims_write', 'claims_update', 'claims_manage',
                 'invoices_read', 'invoices_write', 'invoices_create', 'invoices_update',
-                'assets_read', 'assets_write', 'assets_create', 'assets_update',
+                # Assets: ONLY READ - Cannot manage assets
+                'assets_read',
                 'reports_read',
                 'insurance_companies_read', 'insurance_companies_write', 'insurance_companies_create', 'insurance_companies_update',
                 'brokers_read', 'brokers_write', 'brokers_create', 'brokers_update'
             ],
-            'financial_analyst': [
-                'users_read',
-                'policies_read', 'policies_write', 'policies_create', 'policies_update',
-                'claims_read', 'claims_write',
-                'invoices_read', 'invoices_write', 'invoices_create', 'invoices_update', 'invoices_delete',
-                'assets_read',
-                'reports_read', 'reports_write', 'reports_create',
-                'insurance_companies_read',
-                'brokers_read'
-            ],
-            'consultant': [
-                'users_read',
-                'policies_read',
-                'claims_read', 'claims_write', 'claims_create',
-                'invoices_read',
-                'assets_read',
-                'reports_read',
-                'insurance_companies_read',
-                'brokers_read'
-            ],
             'requester': [
+                # Custodian permissions - VERY LIMITED
+                # Claims: Can CREATE, READ, WRITE (edit their own)
                 'claims_read', 'claims_write', 'claims_create',
-                'assets_read'
+                'assets_read'  # Only their own assets
             ]
         }
 

@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Siniestros - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">
+                <i class="bi bi-exclamation-triangle"></i> Siniestros
+            </h1>
+            {% if 'claims_create' in user_permissions %}
+            <a href="{% url 'claims:claim_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Nuevo Siniestro
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Lista de Siniestros</h5>
+            </div>
+            <div class="card-body">
+                {% if claims %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Número</th>
+                                <th>Póliza</th>
+                                <th>Fecha Incidente</th>
+                                <th>Estado</th>
+                                <th>Monto Estimado</th>
+                                <th>Reportado por</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for claim in claims %}
+                            <tr>
+                                <td>{{ claim.claim_number }}</td>
+                                <td>
+                                    {% if claim.policy %}
+                                        {{ claim.policy.policy_number }}
+                                    {% else %}
+                                        <span class="text-muted">Sin póliza</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ claim.incident_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if claim.status == 'reported' %}secondary{% elif claim.status == 'documentation_pending' %}warning{% elif claim.status == 'sent_to_insurer' %}info{% elif claim.status == 'under_evaluation' %}primary{% elif claim.status == 'liquidated' %}success{% elif claim.status == 'paid' %}success{% elif claim.status == 'closed' %}dark{% else %}danger{% endif %}">
+                                        {{ claim.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>${{ claim.estimated_loss|floatformat:2 }}</td>
+                                <td>{{ claim.reported_by.get_full_name }}</td>
+                                <td>
+                                    <a href="{% url 'claims:claim_detail' claim.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    {% if 'claims_write' in user_permissions %}
+                                    <a href="{% url 'claims:claim_edit' claim.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if claims.has_other_pages %}
+                <nav aria-label="Navegación de páginas" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if claims.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ claims.previous_page_number }}">Anterior</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link">Anterior</a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in claims.paginator.page_range %}
+                        {% if claims.number == num %}
+                        <li class="page-item active">
+                            <a class="page-link">{{ num }}</a>
+                        </li>
+                        {% elif num > claims.number|add:'-3' and num < claims.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if claims.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ claims.next_page_number }}">Siguiente</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link">Siguiente</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-exclamation-triangle text-muted" style="font-size: 3rem;"></i>
+                    <h4 class="text-muted mt-3">No hay siniestros registrados</h4>
+                    <p class="text-muted">Los siniestros aparecerán aquí cuando sean reportados.</p>
+                    {% if 'claims_create' in user_permissions %}
+                    <a href="{% url 'claims:claim_create' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Reportar Primer Siniestro
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
