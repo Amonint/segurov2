@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Versiones - {{ document.document_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'accounts:dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_list' %}">Polizas</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_detail' policy.pk %}">{{ policy.policy_number }}</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'policies:policy_documents' policy.pk %}">Documentos</a></li>
+                <li class="breadcrumb-item active">Versiones</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-0">
+                    <i class="bi bi-clock-history"></i> Versiones del Documento
+                </h1>
+                <p class="text-muted mb-0">{{ document.document_name }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'policies:policy_documents' policy.pk %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                {% if perms.policies.policies_write %}
+                <a href="{% url 'policies:policy_document_new_version' document.pk %}" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat"></i> Nueva Version
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Historial de versiones</h5>
+            </div>
+            <div class="card-body">
+                {% if versions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Version</th>
+                                <th>Tipo</th>
+                                <th>Subido por</th>
+                                <th>Fecha</th>
+                                <th>Tamano</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for version in versions %}
+                            <tr>
+                                <td>
+                                    v{{ version.version }}
+                                    {% if version.is_latest_version %}
+                                    <span class="badge bg-success ms-2">Actual</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ version.get_document_type_display }}</td>
+                                <td>{{ version.uploaded_by.get_full_name }}</td>
+                                <td>{{ version.uploaded_at|date:"d/m/Y H:i" }}</td>
+                                <td>{{ version.formatted_file_size }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if version.can_view_inline %}
+                                        <a href="{% url 'policies:policy_document_view' version.pk %}" class="btn btn-outline-info" title="Ver">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% endif %}
+                                        <a href="{% url 'policies:policy_document_download' version.pk %}" class="btn btn-outline-primary" title="Descargar">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-file-earmark-x fs-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No hay versiones registradas</h5>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

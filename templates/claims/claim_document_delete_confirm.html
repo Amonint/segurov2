@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Documento - {{ document.document_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+            <h1 class="text-white font-bold text-2xl flex items-center">
+                <i class="bi bi-trash mr-2"></i>
+                Confirmar eliminacion
+            </h1>
+        </div>
+        <div class="p-6 space-y-4">
+            <p class="text-gray-700">
+                Estas a punto de eliminar el documento <strong>{{ document.document_name }}</strong>
+                del siniestro <strong>{{ claim.claim_number }}</strong>.
+            </p>
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-gray-600">
+                <p>Tipo: {{ document.get_document_type_display }}</p>
+                <p>Version: {{ document.version }}</p>
+                <p>Subido por: {{ document.uploaded_by.get_full_name }}</p>
+            </div>
+            <form method="post" class="flex justify-end gap-3">
+                {% csrf_token %}
+                <a href="{% url 'claims:claim_documents' claim.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-all duration-300">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-all duration-300">
+                    Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

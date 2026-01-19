@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Email{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-envelope-check"></i> Detalle de Email
+            </h1>
+            <a href="{% url 'notifications:email_logs_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Informacion general</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Estado:</strong> {{ log.get_status_display }}</p>
+                <p><strong>Asunto:</strong> {{ log.subject }}</p>
+                <p><strong>Destinatario:</strong> {{ log.recipient_name|default:log.recipient_email }}</p>
+                <p><strong>Email:</strong> {{ log.recipient_email }}</p>
+                <p><strong>Plantilla:</strong> {{ log.template.get_template_type_display }}</p>
+                <p><strong>Creado:</strong> {{ log.created_at|date:"d/m/Y H:i" }}</p>
+                <p><strong>Enviado:</strong> {{ log.sent_at|date:"d/m/Y H:i"|default:"-" }}</p>
+                {% if log.error_message %}
+                <div class="alert alert-danger mt-3">
+                    <strong>Error:</strong> {{ log.error_message }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Relacion</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Siniestro:</strong> {{ log.claim|default:"-" }}</p>
+                <p><strong>Poliza:</strong> {{ log.policy|default:"-" }}</p>
+                <p><strong>Factura:</strong> {{ log.invoice|default:"-" }}</p>
+                <p><strong>Creado por:</strong> {{ log.created_by.get_full_name|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">Contexto usado</h6>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded small">{{ log.context_data }}</pre>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Contenido de plantilla</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>HTML:</strong>
+                    <div class="border p-3 bg-light rounded" style="max-height: 250px; overflow-y: auto;">
+                        {{ log.template.body_html|safe }}
+                    </div>
+                </div>
+                {% if log.template.body_text %}
+                <div>
+                    <strong>Texto:</strong>
+                    <div class="border p-3 bg-light rounded" style="white-space: pre-wrap;">
+                        {{ log.template.body_text }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

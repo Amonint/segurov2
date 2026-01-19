@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Compania - {{ company.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-0">
+                    <i class="bi bi-building"></i> {{ company.name }}
+                </h1>
+                <p class="text-muted mb-0">RUC: {{ company.ruc }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'companies:insurance_company_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                {% if perms.companies.insurance_companies_write %}
+                <a href="{% url 'companies:insurance_company_edit' company.pk %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                {% endif %}
+                {% if perms.companies.insurance_companies_manage %}
+                {% if company.is_active %}
+                <a href="{% url 'companies:insurance_company_toggle_active' company.pk %}" class="btn btn-danger">
+                    <i class="bi bi-toggle-off"></i> Desactivar
+                </a>
+                {% else %}
+                <a href="{% url 'companies:insurance_company_toggle_active' company.pk %}" class="btn btn-success">
+                    <i class="bi bi-toggle-on"></i> Activar
+                </a>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-text fa-2x mb-2"></i>
+                <h4>{{ total_policies }}</h4>
+                <p class="mb-0">Polizas Totales</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fa-2x mb-2"></i>
+                <h4>{{ active_policies }}</h4>
+                <p class="mb-0">Polizas Activas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-cash-stack fa-2x mb-2"></i>
+                <h4>${{ total_insured_value|floatformat:2 }}</h4>
+                <p class="mb-0">Valor Asegurado</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-check2-circle fa-2x mb-2"></i>
+                <h4>{% if company.is_active %}Activa{% else %}Inactiva{% endif %}</h4>
+                <p class="mb-0">Estado</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informacion de contacto</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Direccion:</strong> {{ company.address|default:"-" }}</p>
+                <p><strong>Telefono:</strong> {{ company.phone|default:"-" }}</p>
+                <p><strong>Email:</strong> {{ company.email|default:"-" }}</p>
+                <p><strong>Contacto:</strong> {{ company.contact_person|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Polizas recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_policies %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Poliza</th>
+                                <th>Estado</th>
+                                <th>Valor</th>
+                                <th>Vence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for policy in recent_policies %}
+                            <tr>
+                                <td>{{ policy.policy_number }}</td>
+                                <td>{{ policy.get_status_display }}</td>
+                                <td>${{ policy.insured_value|floatformat:2 }}</td>
+                                <td>{{ policy.end_date|date:"d/m/Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-file-earmark-x fs-1 text-muted"></i>
+                    <p class="text-muted mt-2">No hay polizas asociadas</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

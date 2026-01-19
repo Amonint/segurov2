@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Alerta - {{ alert.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-0">
+                    <i class="bi bi-bell"></i> {{ alert.name }}
+                </h1>
+                <p class="text-muted mb-0">{{ alert.get_alert_type_display }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'notifications:alert_list' %}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+                {% if perms.notifications.alerts_execute %}
+                <a href="{% url 'notifications:alert_execute' alert.pk %}" class="btn btn-success">
+                    <i class="bi bi-play"></i> Ejecutar
+                </a>
+                {% endif %}
+                {% if perms.notifications.alerts_write %}
+                <a href="{% url 'notifications:alert_edit' alert.pk %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Editar
+                </a>
+                {% endif %}
+                {% if perms.notifications.alerts_delete %}
+                <a href="{% url 'notifications:alert_delete' alert.pk %}" class="btn btn-danger" onclick="return confirm('Eliminar esta alerta?')">
+                    <i class="bi bi-trash"></i> Eliminar
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Informacion general</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Tipo:</strong> {{ alert.get_alert_type_display }}</p>
+                <p><strong>Frecuencia:</strong> {{ alert.get_frequency_display }}</p>
+                <p><strong>Estado:</strong>
+                    {% if alert.is_active %}
+                    <span class="badge bg-success">Activa</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inactiva</span>
+                    {% endif %}
+                </p>
+                <p><strong>Creada:</strong> {{ alert.created_at|date:"d/m/Y H:i" }}</p>
+                <p><strong>Ultima ejecucion:</strong> {{ alert.last_run|date:"d/m/Y H:i"|default:"-" }}</p>
+                <p><strong>Proxima ejecucion:</strong> {{ alert.next_run|date:"d/m/Y H:i"|default:"-" }}</p>
+                {% if alert.description %}
+                <p><strong>Descripcion:</strong> {{ alert.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Destinatarios</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Usuarios:</strong>
+                    {% for user in alert.recipients.all %}
+                        {{ user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        Ninguno
+                    {% endfor %}
+                </p>
+                <p><strong>Emails adicionales:</strong> {{ alert.email_recipients|default:"-" }}</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Condiciones</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded small">{{ alert.conditions }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
