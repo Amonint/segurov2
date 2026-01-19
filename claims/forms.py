@@ -4,65 +4,9 @@ from django.utils import timezone
 from .models import Claim, ClaimSettlement
 
 
-class ClaimCreateForm(forms.ModelForm):
-    """Form for creating new claims"""
+# ClaimCreateForm has been REMOVED - Claims are now created via AssetClaimReportForm
+# from the asset detail page (asset-centric workflow)
 
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user', None)
-        super().__init__(*args, **kwargs)
-
-        # Add modern CSS classes to all fields
-        for field_name, field in self.fields.items():
-            field.widget.attrs.update({
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none'
-            })
-        
-        # Special handling for textarea
-        if 'incident_description' in self.fields:
-            self.fields['incident_description'].widget.attrs.update({
-                'rows': 4,
-                'class': 'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none'
-            })
-
-        # Filter policies based on user permissions
-        if user:
-            # If user is requester, only show policies related to their assets
-            if user.role == 'requester':
-                from assets.models import Asset
-                # Get policies related to user's assets
-                user_assets = Asset.objects.filter(custodian=user)
-                if user_assets.exists():
-                    policy_ids = user_assets.values_list('policy_id', flat=True).distinct()
-                    self.fields['policy'].queryset = self.fields['policy'].queryset.filter(id__in=policy_ids)
-
-    class Meta:
-        model = Claim
-        fields = [
-            'policy', 'asset_code', 'asset_type', 'asset_description',
-            'incident_date', 'incident_location', 'incident_description',
-            'estimated_loss', 'assigned_to'
-        ]
-        widgets = {
-            'incident_date': forms.DateInput(attrs={'type': 'date'}),
-            'incident_description': forms.Textarea(attrs={'rows': 4}),
-        }
-        labels = {
-            'policy': 'Póliza',
-            'asset_code': 'Código del Bien',
-            'asset_type': 'Tipo de Bien',
-            'asset_description': 'Descripción del Bien',
-            'incident_date': 'Fecha del Incidente',
-            'incident_location': 'Ubicación del Incidente',
-            'incident_description': 'Descripción del Incidente',
-            'estimated_loss': 'Pérdida Estimada (USD)',
-            'assigned_to': 'Asignado a',
-        }
-
-    def clean_incident_date(self):
-        incident_date = self.cleaned_data.get('incident_date')
-        if incident_date and incident_date > timezone.now().date():
-            raise forms.ValidationError(_('La fecha del incidente no puede ser futura.'))
-        return incident_date
 
 
 class ClaimSettlementForm(forms.ModelForm):
@@ -125,13 +69,12 @@ class ClaimEditForm(forms.ModelForm):
     class Meta:
         model = Claim
         fields = [
-            'policy', 'incident_date', 'report_date', 'incident_location',
+            'policy', 'incident_date', 'incident_location',
             'incident_description', 'asset_type', 'asset_description',
             'asset_code', 'estimated_loss', 'assigned_to'
         ]
         widgets = {
             'incident_date': forms.DateInput(attrs={'type': 'date'}),
-            'report_date': forms.DateInput(attrs={'type': 'date'}),
             'incident_description': forms.Textarea(attrs={'rows': 3}),
             'asset_description': forms.Textarea(attrs={'rows': 2}),
             'estimated_loss': forms.NumberInput(attrs={'step': '0.01'}),
@@ -152,12 +95,7 @@ class ClaimEditForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         incident_date = cleaned_data.get('incident_date')
-        report_date = cleaned_data.get('report_date')
         estimated_loss = cleaned_data.get('estimated_loss')
-
-        # Validate dates
-        if incident_date and report_date and report_date < incident_date:
-            raise forms.ValidationError(_('La fecha de reporte no puede ser anterior a la fecha del incidente'))
 
         # Validate estimated loss
         if estimated_loss and estimated_loss <= 0:

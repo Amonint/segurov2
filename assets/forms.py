@@ -55,6 +55,9 @@ class AssetForm(forms.ModelForm):
                 is_active=True,
                 role='requester'
             )
+            # Make custodian required and add help text
+            self.fields['custodian'].required = True
+            self.fields['custodian'].help_text = _('Seleccione el custodio responsable del bien (requerido)')
 
             # Limit insurance policies based on permissions
             if not self.user.has_role_permission('policies_read'):
@@ -160,5 +163,85 @@ class AssetCustodianChangeForm(forms.ModelForm):
         return custodian
 
 
+class AssetClaimReportForm(forms.ModelForm):
+    """
+    Formulario simplificado para reportar siniestro desde un bien
+    El bien ya está seleccionado, solo se necesita información del siniestro
+    """
+    
+    class Meta:
+        fields = [
+            'fecha_siniestro',
+            'causa',
+            'ubicacion_detallada',
+            'incident_description',
+            'estimated_loss',
+        ]
+        widgets = {
+            'fecha_siniestro': forms.DateInput(attrs={
+                'type': 'date',
+                'class': 'form-control'
+            }),
+            'causa': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Describa la causa del siniestro (ej: Robo, Daño por agua, Incendio, etc.)'
+            }),
+            'ubicacion_detallada': forms.Textarea(attrs={
+                'rows': 2,
+                'class': 'form-control',
+                'placeholder': 'Ubicación específica donde ocurrió el siniestro'
+            }),
+            'incident_description': forms.Textarea(attrs={
+                'rows': 4,
+                'class': 'form-control',
+                'placeholder': 'Descripción detallada de lo ocurrido'
+            }),
+            'estimated_loss': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '0.01',
+                'placeholder': '0.00'
+            }),
+        }
+        labels = {
+            'fecha_siniestro': _('Fecha del Siniestro'),
+            'causa': _('Causa del Siniestro'),
+            'ubicacion_detallada': _('Ubicación Detallada'),
+            'incident_description': _('Descripción del Incidente'),
+            'estimated_loss': _('Pérdida Estimada (USD)'),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        # Import here to avoid circular import
+        from claims.models import Claim
+        self.Meta.model = Claim
+        
+        self.asset = kwargs.pop('asset', None)
+        super().__init__(*args, **kwargs)
+        
+        # Prellenar fecha con hoy
+        if not self.instance.pk:
+            self.fields['fecha_siniestro'].initial = timezone.now().date()
+        
+        # Prellenar ubicación con la del bien si está disponible
+        if self.asset and not self.instance.pk:
+            self.fields['ubicacion_detallada'].initial = self.asset.location
+            
+            # Agregar información del bien en help_text
+            self.fields['incident_description'].help_text = _(
+                f'Bien afectado: {self.asset.name} ({self.asset.asset_code})'
+            )
+    
+    def clean_fecha_siniestro(self):
+        fecha = self.cleaned_data.get('fecha_siniestro')
+        if fecha and fecha > timezone.now().date():
+            raise forms.ValidationError(_('La fecha del siniestro no puede ser futura'))
+        return fecha
+    
+    def clean_estimated_loss(self):
+        loss = self.cleaned_data.get('estimated_loss')
+        if loss and loss < 0:
+            raise forms.ValidationError(_('La pérdida estimada no puede ser negativa'))
+        return loss
 
 

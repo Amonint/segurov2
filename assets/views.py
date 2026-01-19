@@ -2,10 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 from django.db.models import Q, Sum
 from django.core.paginator import Paginator
 from .models import Asset
-from .forms import AssetForm, AssetSearchForm, AssetCustodianChangeForm
+from .forms import AssetForm, AssetSearchForm, AssetCustodianChangeForm, AssetClaimReportForm
 from audit.models import AuditLog
 
 @login_required
@@ -85,7 +86,9 @@ def asset_list(request):
 
 @login_required
 def asset_detail(request, pk):
-    """View asset details"""
+    """
+    View asset details with claim history and report option
+    """
     asset = get_object_or_404(
         Asset.objects.select_related(
             'custodian', 'responsible_user', 'insurance_policy__insurance_company'
@@ -101,12 +104,23 @@ def asset_detail(request, pk):
     # Calculate depreciation
     depreciation_years = (timezone.now().date() - asset.acquisition_date).days / 365.25
     depreciated_value = asset.calculate_depreciation(depreciation_years)
+    
+    # Get claim history for this asset
+    claims = asset.claims.all().order_by('-created_at')
+    active_claims = asset.get_active_claims()
+    
+    # Check if can report claim
+    can_report, cannot_report_reason = asset.can_report_claim()
 
     context = {
         'asset': asset,
         'depreciation_years': round(depreciation_years, 1),
         'depreciated_value': depreciated_value,
         'has_valid_insurance': asset.has_valid_insurance(),
+        'claims': claims,
+        'active_claims': active_claims,
+        'can_report_claim': can_report,
+        'cannot_report_reason': cannot_report_reason,
     }
 
     return render(request, 'assets/asset_detail.html', context)
@@ -121,24 +135,32 @@ def asset_create(request):
         if form.is_valid():
             asset = form.save()
 
-            # Log the action
-            AuditLog.log_action(
-                user=request.user,
-                action_type='create',
-                entity_type='asset',
-                entity_id=str(asset.id),
-                description=f'Activo creado: {asset.asset_code} - {asset.name}',
-                new_values={
-                    'asset_code': asset.asset_code,
-                    'name': asset.name,
-                    'asset_type': asset.asset_type,
-                    'acquisition_cost': str(asset.acquisition_cost),
-                    'is_insured': asset.is_insured
-                }
-            )
+            # Log the action - wrap in try-except to avoid errors
+            try:
+                AuditLog.log_action(
+                    user=request.user,
+                    action_type='create',
+                    entity_type='asset',
+                    entity_id=str(asset.id),
+                    description=f'Activo creado: {asset.asset_code} - {asset.name}',
+                    new_values={
+                        'asset_code': asset.asset_code,
+                        'name': asset.name,
+                        'asset_type': asset.asset_type,
+                        'acquisition_cost': str(asset.acquisition_cost),
+                        'is_insured': asset.is_insured,
+                        'custodian': asset.custodian.get_full_name() if hasattr(asset, 'custodian') and asset.custodian else None
+                    }
+                )
+            except Exception:
+                # Silently fail audit log if there's an error
+                pass
 
             messages.success(request, _('Activo creado exitosamente.'))
             return redirect('assets:asset_detail', pk=asset.pk)
+        else:
+            # Form has validation errors
+            messages.error(request, _('Por favor corrija los errores en el formulario.'))
     else:
         form = AssetForm(user=request.user)
 
@@ -312,3 +334,72 @@ def asset_update_value(request, pk):
 
     messages.success(request, _('Valor del activo actualizado según depreciación.'))
     return redirect('assets:asset_detail', pk=pk)
+
+
+@login_required
+def asset_report_claim(request, pk):
+    """
+    Reportar siniestro desde un bien específico
+    El bien ya está seleccionado, solo se completa información del siniestro
+    """
+    from .forms import AssetClaimReportForm
+    from claims.models import Claim
+    
+    asset = get_object_or_404(Asset, pk=pk)
+    
+    # Check permissions - requesters can only report claims for their own assets
+    if request.user.role == 'requester' and asset.custodian != request.user:
+        messages.error(request, _('No tienes permisos para reportar siniestros de este activo.'))
+        return redirect('assets:asset_detail', pk=pk)
+    
+    # Verify that claim can be reported
+    can_report, reason = asset.can_report_claim()
+    if not can_report:
+        messages.error(request, f'No se puede reportar siniestro: {reason}')
+        return redirect('assets:asset_detail', pk=pk)
+    
+    if request.method == 'POST':
+        form = AssetClaimReportForm(request.POST, asset=asset)
+        if form.is_valid():
+            claim = form.save(commit=False)
+            claim.asset = asset
+            claim.reportante = request.user
+            claim.reported_by = request.user
+            claim.status = 'reportado'
+            
+            # Auto-fill broker and insurance company for notifications
+            if asset.insurance_policy:
+                claim.broker_notificado = asset.insurance_policy.broker
+                claim.aseguradora_notificada = asset.insurance_policy.insurance_company
+            
+            claim.save()
+            
+            # Log the action
+            try:
+                AuditLog.log_action(
+                    user=request.user,
+                    action_type='create',
+                    entity_type='claim',
+                    entity_id=str(claim.id),
+                    description=f'Siniestro reportado: {claim.claim_number} para bien {asset.asset_code}',
+                    new_values={
+                        'claim_number': claim.claim_number,
+                        'asset': asset.asset_code,
+                        'fecha_siniestro': str(claim.fecha_siniestro),
+                        'causa': claim.causa,
+                    }
+                )
+            except Exception:
+                pass
+            
+            messages.success(request, f'Siniestro {claim.claim_number} reportado exitosamente')
+            return redirect('claims:claim_detail', pk=claim.pk)
+    else:
+        form = AssetClaimReportForm(asset=asset)
+    
+    context = {
+        'form': form,
+        'asset': asset,
+        'title': _('Reportar Siniestro'),
+    }
+    return render(request, 'assets/asset_report_claim.html', context)

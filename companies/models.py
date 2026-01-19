@@ -135,11 +135,11 @@ class EmissionRights(models.Model):
         ordering = ['min_amount', 'valid_from']
         constraints = [
             models.CheckConstraint(
-                check=models.Q(max_amount__gt=models.F('min_amount')),
+                condition=models.Q(max_amount__gt=models.F('min_amount')),
                 name='emission_rights_min_less_than_max'
             ),
             models.CheckConstraint(
-                check=models.Q(emission_right__gte=0),
+                condition=models.Q(emission_right__gte=0),
                 name='emission_rights_positive'
             )
         ]

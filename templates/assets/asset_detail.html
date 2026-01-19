@@ -15,11 +15,13 @@
             <p class="text-gray-600">{{ asset.name }}</p>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'assets:asset_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+            <a href="{% url 'assets:asset_list' %}"
+                class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
                 <i class="bi bi-arrow-left mr-2"></i> Volver
             </a>
             {% if 'assets_write' in user_permissions %}
-            <button class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg flex items-center">
+            <button
+                class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg flex items-center">
                 <i class="bi bi-pencil mr-2"></i> Editar
             </button>
             {% endif %}
@@ -42,8 +44,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- General Info -->
                     <div class="space-y-4">
-                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-blue-200">Información General</h3>
-                        
+                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-blue-200">Información
+                            General</h3>
+
                         <div class="bg-gray-50 p-4 rounded-xl">
                             <label class="text-gray-600 text-sm font-semibold">Código</label>
                             <p class="text-gray-900 font-bold text-lg mt-1">{{ asset.asset_code }}</p>
@@ -86,8 +89,9 @@
 
                     <!-- Specifications -->
                     <div class="space-y-4">
-                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-purple-200">Especificaciones</h3>
-                        
+                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-purple-200">
+                            Especificaciones</h3>
+
                         {% if asset.brand %}
                         <div class="bg-gray-50 p-4 rounded-xl">
                             <label class="text-gray-600 text-sm font-semibold">Marca</label>
@@ -186,8 +190,8 @@
                         </span>
                     </div>
                     <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                        <div class="bg-gradient-to-r from-amber-500 to-red-500 h-4 rounded-full transition-all duration-1000" 
-                             style="width: {% widthratio asset.current_value asset.acquisition_cost 100 %}%"></div>
+                        <div class="bg-gradient-to-r from-amber-500 to-red-500 h-4 rounded-full transition-all duration-1000"
+                            style="width: {% widthratio asset.current_value asset.acquisition_cost 100 %}%"></div>
                     </div>
                 </div>
                 {% endif %}
@@ -239,7 +243,8 @@
                                 <i class="bi bi-person-check text-white text-3xl"></i>
                             </div>
                             <div>
-                                <h4 class="text-lg font-bold text-gray-900">{{ asset.responsible_user.get_full_name }}</h4>
+                                <h4 class="text-lg font-bold text-gray-900">{{ asset.responsible_user.get_full_name }}
+                                </h4>
                                 <p class="text-green-700 font-medium">{{ asset.responsible_user.get_role_display }}</p>
                                 <p class="text-gray-600 text-sm">{{ asset.responsible_user.department }}</p>
                             </div>
@@ -260,42 +265,79 @@
             <div class="bg-gradient-to-r from-red-600 to-red-700 p-6 flex justify-between items-center">
                 <h2 class="text-white font-bold text-xl flex items-center">
                     <i class="bi bi-exclamation-triangle mr-2"></i>
-                    Siniestros Relacionados
+                    Historial de Siniestros
                 </h2>
-                {% if 'claims_create' in user_permissions %}
-                <button onclick="reportNewClaim()" class="bg-white text-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-red-50 transition-all duration-300 flex items-center">
-                    <i class="bi bi-plus mr-2"></i> Reportar Siniestro
+                {% if can_report_claim %}
+                <a href="{% url 'assets:asset_report_claim' asset.pk %}"
+                    class="bg-white text-red-600 font-semibold py-2 px-4 rounded-lg hover:bg-red-50 transition-all duration-300 flex items-center">
+                    <i class="bi bi-plus-circle mr-2"></i> Reportar Siniestro
+                </a>
+                {% else %}
+                <button disabled title="{{ cannot_report_reason }}"
+                    class="bg-gray-300 text-gray-500 font-semibold py-2 px-4 rounded-lg cursor-not-allowed flex items-center">
+                    <i class="bi bi-x-circle mr-2"></i> No Disponible
                 </button>
                 {% endif %}
             </div>
             <div class="p-6">
-                {% if False %}
+                {% if claims %}
+                <!-- Active Claims Alert -->
+                {% if active_claims %}
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
+                    <div class="flex items-start">
+                        <i class="bi bi-exclamation-triangle text-amber-600 text-xl mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold text-amber-800 mb-1">Siniestro Activo</h4>
+                            <p class="text-sm text-amber-700">Este bien tiene {{ active_claims.count }} siniestro(s) en
+                                proceso. No se pueden reportar nuevos siniestros hasta que se resuelvan.</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
                             <tr class="border-b-2 border-gray-200">
                                 <th class="text-left py-3 px-4 font-bold text-gray-700">Número</th>
                                 <th class="text-left py-3 px-4 font-bold text-gray-700">Fecha</th>
+                                <th class="text-left py-3 px-4 font-bold text-gray-700">Causa</th>
                                 <th class="text-left py-3 px-4 font-bold text-gray-700">Estado</th>
                                 <th class="text-left py-3 px-4 font-bold text-gray-700">Pérdida</th>
                                 <th class="text-center py-3 px-4 font-bold text-gray-700">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for claim in related_claims %}
+                            {% for claim in claims %}
                             <tr class="border-b border-gray-100 hover:bg-gray-50">
                                 <td class="py-3 px-4">
-                                    <a href="{% url 'claims:claim_detail' claim.pk %}" class="text-blue-600 hover:text-blue-800 font-semibold">
+                                    <a href="{% url 'claims:claim_detail' claim.pk %}"
+                                        class="text-blue-600 hover:text-blue-800 font-semibold">
                                         {{ claim.claim_number }}
                                     </a>
                                 </td>
-                                <td class="py-3 px-4">{{ claim.incident_date|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4">{{ claim.fecha_siniestro|date:"d/m/Y" }}</td>
+                                <td class="py-3 px-4 text-gray-700">{{ claim.causa|truncatewords:5 }}</td>
                                 <td class="py-3 px-4">
-                                    <span class="px-3 py-1 rounded-full text-sm font-semibold">{{ claim.get_status_display }}</span>
+                                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                                        {% if claim.status == 'reportado' %}bg-blue-100 text-blue-800
+                                        {% elif claim.status == 'docs_pendientes' %}bg-amber-100 text-amber-800
+                                        {% elif claim.status == 'docs_completos' %}bg-green-100 text-green-800
+                                        {% elif claim.status == 'enviado_aseguradora' %}bg-purple-100 text-purple-800
+                                        {% elif claim.status == 'en_revision' %}bg-indigo-100 text-indigo-800
+                                        {% elif claim.status == 'liquidado' %}bg-teal-100 text-teal-800
+                                        {% elif claim.status == 'pagado' %}bg-green-100 text-green-800
+                                        {% elif claim.status == 'cerrado' %}bg-gray-100 text-gray-800
+                                        {% elif claim.status == 'rechazado' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ claim.get_status_display }}
+                                    </span>
                                 </td>
-                                <td class="py-3 px-4 text-red-600 font-bold">${{ claim.estimated_loss|floatformat:2 }}</td>
+                                <td class="py-3 px-4 text-red-600 font-bold">${{ claim.estimated_loss|floatformat:2 }}
+                                </td>
                                 <td class="py-3 px-4 text-center">
-                                    <a href="{% url 'claims:claim_detail' claim.pk %}" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors inline-flex items-center">
+                                    <a href="{% url 'claims:claim_detail' claim.pk %}"
+                                        class="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors inline-flex items-center">
                                         <i class="bi bi-eye mr-1"></i> Ver
                                     </a>
                                 </td>
@@ -308,7 +350,20 @@
                 <div class="text-center py-12">
                     <i class="bi bi-check-circle text-green-500 text-7xl mb-4"></i>
                     <h3 class="text-xl font-bold text-gray-700 mb-2">Sin Siniestros Registrados</h3>
-                    <p class="text-gray-500">Este activo no tiene siniestros relacionados</p>
+                    <p class="text-gray-500 mb-4">Este bien no tiene siniestros en su historial</p>
+                    {% if can_report_claim %}
+                    <a href="{% url 'assets:asset_report_claim' asset.pk %}"
+                        class="bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg inline-flex items-center">
+                        <i class="bi bi-plus-circle mr-2"></i> Reportar Primer Siniestro
+                    </a>
+                    {% else %}
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 inline-block">
+                        <div class="flex items-center text-red-700">
+                            <i class="bi bi-info-circle mr-2"></i>
+                            <span class="font-medium">{{ cannot_report_reason }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
             </div>
@@ -337,8 +392,8 @@
                 {% if asset.insurance_policy %}
                 <div class="bg-gradient-to-br from-green-50 to-green-100 border border-green-200 rounded-xl p-4">
                     <p class="font-semibold text-gray-700 mb-2">Póliza Asociada:</p>
-                    <a href="{% url 'policies:policy_detail' asset.insurance_policy.pk %}" 
-                       class="text-green-700 hover:text-green-900 font-bold text-lg block mb-3">
+                    <a href="{% url 'policies:policy_detail' asset.insurance_policy.pk %}"
+                        class="text-green-700 hover:text-green-900 font-bold text-lg block mb-3">
                         {{ asset.insurance_policy.policy_number }}
                     </a>
                     <div class="flex items-center text-sm text-gray-600">
@@ -369,7 +424,8 @@
                     <div class="flex items-start">
                         <i class="bi bi-info-circle text-red-600 text-xl mr-2 mt-1"></i>
                         <div>
-                            <p class="text-sm text-red-700">Este activo no tiene cobertura de seguro. Considere asegurarlo para proteger la inversión.</p>
+                            <p class="text-sm text-red-700">Este activo no tiene cobertura de seguro. Considere
+                                asegurarlo para proteger la inversión.</p>
                         </div>
                     </div>
                 </div>
@@ -411,16 +467,20 @@
                 <h3 class="text-lg font-bold text-gray-900">Acciones Rápidas</h3>
             </div>
             <div class="space-y-3">
-                <button onclick="changeCustodian()" class="w-full bg-white hover:bg-blue-50 text-blue-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-blue-200 hover:border-blue-400">
+                <button onclick="changeCustodian()"
+                    class="w-full bg-white hover:bg-blue-50 text-blue-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-blue-200 hover:border-blue-400">
                     <i class="bi bi-person-check mr-2"></i> Cambiar Custodio
                 </button>
-                <button onclick="updateInsurance()" class="w-full bg-white hover:bg-green-50 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-green-200 hover:border-green-400">
+                <button onclick="updateInsurance()"
+                    class="w-full bg-white hover:bg-green-50 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-green-200 hover:border-green-400">
                     <i class="bi bi-shield-plus mr-2"></i> Actualizar Seguro
                 </button>
-                <button onclick="updateCondition()" class="w-full bg-white hover:bg-purple-50 text-purple-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-purple-200 hover:border-purple-400">
+                <button onclick="updateCondition()"
+                    class="w-full bg-white hover:bg-purple-50 text-purple-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-purple-200 hover:border-purple-400">
                     <i class="bi bi-wrench mr-2"></i> Actualizar Estado
                 </button>
-                <button onclick="reportIncident()" class="w-full bg-white hover:bg-red-50 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-red-200 hover:border-red-400">
+                <button onclick="reportIncident()"
+                    class="w-full bg-white hover:bg-red-50 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-red-200 hover:border-red-400">
                     <i class="bi bi-exclamation-triangle mr-2"></i> Reportar Incidente
                 </button>
             </div>
@@ -433,40 +493,40 @@
 
 {% block extra_js %}
 <script>
-function changeCustodian() {
-    showNotification('Funcionalidad en desarrollo: Cambiar custodio del activo', 'info');
-}
+    function changeCustodian() {
+        showNotification('Funcionalidad en desarrollo: Cambiar custodio del activo', 'info');
+    }
 
-function updateInsurance() {
-    showNotification('Funcionalidad en desarrollo: Actualizar información de seguro', 'info');
-}
+    function updateInsurance() {
+        showNotification('Funcionalidad en desarrollo: Actualizar información de seguro', 'info');
+    }
 
-function updateCondition() {
-    showNotification('Funcionalidad en desarrollo: Actualizar estado del activo', 'info');
-}
+    function updateCondition() {
+        showNotification('Funcionalidad en desarrollo: Actualizar estado del activo', 'info');
+    }
 
-function reportIncident() {
-    window.location.href = '{% url "claims:claim_create" %}';
-}
+    function reportIncident() {
+        window.location.href = '{% url "claims:claim_create" %}';
+    }
 
-function reportNewClaim() {
-    const assetCode = '{{ asset.asset_code }}';
-    const assetDescription = '{{ asset.name }} - {{ asset.description|truncatechars:50 }}';
+    function reportNewClaim() {
+        const assetCode = '{{ asset.asset_code }}';
+        const assetDescription = '{{ asset.name }} - {{ asset.description|truncatechars:50 }}';
 
-    sessionStorage.setItem('preselected_asset_code', assetCode);
-    sessionStorage.setItem('preselected_asset_description', assetDescription);
+        sessionStorage.setItem('preselected_asset_code', assetCode);
+        sessionStorage.setItem('preselected_asset_description', assetDescription);
 
-    window.location.href = '{% url "claims:claim_create" %}';
-}
+        window.location.href = '{% url "claims:claim_create" %}';
+    }
 
-// Animate cards on load
-document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.space-y-6 > div');
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            card.classList.add('fade-in');
-        }, index * 100);
+    // Animate cards on load
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.space-y-6 > div');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('fade-in');
+            }, index * 100);
+        });
     });
-});
 </script>
 {% endblock %}

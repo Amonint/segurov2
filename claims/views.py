@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -7,10 +7,13 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from .models import Claim, ClaimDocument, ClaimSettlement, ClaimTimeline
 from .forms import (
-    ClaimCreateForm, ClaimEditForm, ClaimStatusChangeForm,
+    ClaimEditForm, ClaimStatusChangeForm,
     ClaimSearchForm, ClaimSettlementForm
 )
+# Note: ClaimCreateForm removed - claims now created via AssetClaimReportForm
 from audit.models import AuditLog
+from accounts.decorators import permission_required as role_permission_required, requester_own_data_only
+
 
 @login_required
 def claim_list(request):
@@ -20,7 +23,8 @@ def claim_list(request):
         'policy__insurance_company', 'reported_by', 'assigned_to'
     ).order_by('-created_at')
 
-    # Filter based on user role
+    # Filter based on user role - get base queryset for the user
+    base_claims = claims  # Keep original for some stats
     if request.user.role == 'requester':
         # Requesters can only see their own claims
         claims = claims.filter(reported_by=request.user)
@@ -74,22 +78,132 @@ def claim_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # Statistics - Role-specific
+    total_claims = claims.count()
+    open_claims = claims.filter(
+        status__in=['reportado', 'docs_pendientes', 'enviado_aseguradora', 'en_revision']
+    ).count()
+    closed_claims = claims.filter(status__in=['cerrado', 'pagado']).count()
+    rejected_claims = claims.filter(status='rechazado').count()
+    
+    # SLA Alerts - Check for claims exceeding deadlines
+    claims_with_alerts = []
+    for claim in claims.filter(status__in=['docs_pendientes', 'enviado_aseguradora']):
+        alerts = []
+        if claim.verificar_sla_documentos():
+            alerts.append('Documentación excede 8 días')
+        if claim.verificar_sla_respuesta_aseguradora():
+            alerts.append('Respuesta aseguradora excede 8 días hábiles')
+        if claim.verificar_limite_maximo_30_dias():
+            alerts.append('Límite máximo de 30 días excedido')
+        
+        if alerts:
+            claims_with_alerts.append({
+                'claim': claim,
+                'alerts': alerts
+            })
+    
+    # Additional statistics based on role
+    if request.user.role == 'requester':
+        # For requesters: show their personal stats
+        needs_attention = claims.filter(
+            status__in=['docs_pendientes', 'rechazado']
+        ).count()
+        resolved_claims = claims.filter(status__in=['cerrado', 'pagado']).count()
+        
+        context = {
+            'page_obj': page_obj,
+            'search_form': search_form,
+            'total_claims': total_claims,
+            'open_claims': open_claims,
+            'closed_claims': closed_claims,
+            'rejected_claims': rejected_claims,
+            'needs_attention': needs_attention,
+            'resolved_claims': resolved_claims,
+            'claims_with_alerts': claims_with_alerts,
+            'user_role': request.user.role,
+        }
+    elif request.user.role in ['insurance_manager', 'admin']:
+        # For managers: show system-wide stats and assigned stats
+        assigned_to_me = base_claims.filter(assigned_to=request.user).count()
+        pending_review = base_claims.filter(
+            status__in=['reportado', 'docs_pendientes']
+        ).count()
+        in_process = base_claims.filter(
+            status__in=['enviado_aseguradora', 'en_revision', 'liquidado']
+        ).count()
+        
+        context = {
+            'page_obj': page_obj,
+            'search_form': search_form,
+            'total_claims': total_claims,
+            'open_claims': open_claims,
+            'closed_claims': closed_claims,
+            'rejected_claims': rejected_claims,
+            'assigned_to_me': assigned_to_me,
+            'pending_review': pending_review,
+            'in_process': in_process,
+            'claims_with_alerts': claims_with_alerts,
+            'user_role': request.user.role,
+        }
+    else:
+        # For consultants and others: basic stats
+        context = {
+            'page_obj': page_obj,
+            'search_form': search_form,
+            'total_claims': total_claims,
+            'open_claims': open_claims,
+            'closed_claims': closed_claims,
+            'rejected_claims': rejected_claims,
+            'claims_with_alerts': claims_with_alerts,
+            'user_role': request.user.role,
+        }
+
+    return render(request, 'claims/claim_list.html', context)
+
+
+@login_required
+@role_permission_required('claims_read')
+def my_claims(request):
+    """View for requesters to see their own claims with traceability"""
+    # Get claims reported by the current user
+    claims = Claim.objects.filter(
+        reported_by=request.user
+    ).select_related(
+        'policy__insurance_company', 'asset', 'assigned_to'
+    ).prefetch_related(
+        'timeline', 'documents'
+    ).order_by('-created_at')
+    
+    # Pagination
+    paginator = Paginator(claims, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     # Statistics
     total_claims = claims.count()
     open_claims = claims.filter(
         status__in=['reported', 'documentation_pending', 'sent_to_insurer', 'under_evaluation']
     ).count()
-    closed_claims = claims.filter(status__in=['closed', 'paid', 'rejected']).count()
-
+    resolved_claims = claims.filter(status__in=['closed', 'paid']).count()
+    rejected_claims = claims.filter(status='rejected').count()
+    
+    # Claims needing attention (documentation pending or rejected)
+    needs_attention = claims.filter(
+        status__in=['documentation_pending', 'rejected']
+    ).count()
+    
     context = {
         'page_obj': page_obj,
-        'search_form': search_form,
         'total_claims': total_claims,
         'open_claims': open_claims,
-        'closed_claims': closed_claims,
+        'resolved_claims': resolved_claims,
+        'rejected_claims': rejected_claims,
+        'needs_attention': needs_attention,
     }
+    
+    return render(request, 'claims/my_claims.html', context)
 
-    return render(request, 'claims/claim_list.html', context)
 
 
 @login_required
@@ -132,31 +246,19 @@ def claim_detail(request, pk):
     return render(request, 'claims/claim_detail.html', context)
 
 @login_required
+@role_permission_required('claims_create')
 def claim_create(request):
-    """Create new claim"""
-    if 'claims_create' not in request.user.get_role_permissions():
-        messages.error(request, _('No tienes permisos para crear siniestros.'))
-        return redirect('claims:claim_list')
+    """
+    Redirect to assets list for claim reporting
+    Claims are now reported from asset detail pages
+    """
+    messages.info(request, _('Para reportar un siniestro, seleccione el bien afectado de su lista de bienes'))
+    return redirect('assets:asset_list')
 
-    if request.method == 'POST':
-        form = ClaimCreateForm(request.POST, user=request.user)
-        if form.is_valid():
-            claim = form.save(commit=False)
-            claim.save()
 
-            messages.success(request, _('Siniestro creado exitosamente.'))
-            return redirect('claims:claim_detail', pk=claim.pk)
-    else:
-        form = ClaimCreateForm(user=request.user)
-
-    return render(request, 'claims/claim_form.html', {
-        'form': form,
-        'title': _('Crear Nuevo Siniestro'),
-        'submit_text': _('Crear Siniestro'),
-    })
 
 @login_required
-@permission_required('claims.claims_write', raise_exception=True)
+@role_permission_required('claims_write')
 def claim_edit(request, pk):
     """Edit existing claim"""
     claim = get_object_or_404(Claim, pk=pk)
@@ -219,7 +321,7 @@ def claim_edit(request, pk):
 
 
 @login_required
-@permission_required('claims.claims_write', raise_exception=True)
+@role_permission_required('claims_write')
 def claim_update_status(request, pk):
     """Update claim status"""
     claim = get_object_or_404(Claim, pk=pk)
@@ -260,7 +362,7 @@ def claim_update_status(request, pk):
 
 
 @login_required
-@permission_required('claims.claims_delete', raise_exception=True)
+@role_permission_required('claims_delete')
 def claim_delete(request, pk):
     """Delete claim"""
     claim = get_object_or_404(Claim, pk=pk)
@@ -299,7 +401,13 @@ def claim_delete(request, pk):
 def claim_documents(request, pk):
     """View claim documents"""
     claim = get_object_or_404(Claim, pk=pk)
-    documents = claim.documents.all()
+    
+    # Check permissions - requesters can only see their own claims
+    if request.user.role == 'requester' and claim.reported_by != request.user:
+        messages.error(request, _('No tienes permisos para ver este siniestro.'))
+        return redirect('claims:my_claims')
+    
+    documents = claim.documents.filter(status='active').order_by('-uploaded_at')
     return render(request, 'claims/claim_documents.html', {
         'claim': claim,
         'documents': documents
@@ -309,16 +417,75 @@ def claim_documents(request, pk):
 def claim_document_upload(request, pk):
     """Upload claim document"""
     claim = get_object_or_404(Claim, pk=pk)
-    messages.info(request, _('Funcionalidad en desarrollo'))
-    return redirect('claims:claim_documents', pk=pk)
+    
+    # Check permissions - requesters can only upload to their own claims
+    if request.user.role == 'requester' and claim.reported_by != request.user:
+        messages.error(request, _('No tienes permisos para subir documentos a este siniestro.'))
+        return redirect('claims:my_claims')
+    
+    if request.method == 'POST':
+        # Get form data
+        document_name = request.POST.get('document_name')
+        document_type = request.POST.get('document_type')
+        description = request.POST.get('description', '')
+        file = request.FILES.get('file')
+        
+        if not document_name or not document_type or not file:
+            messages.error(request, _('Por favor complete todos los campos requeridos.'))
+            return redirect('claims:claim_documents', pk=pk)
+        
+        try:
+            # Create document
+            document = ClaimDocument.objects.create(
+                claim=claim,
+                document_name=document_name,
+                document_type=document_type,
+                description=description,
+                file=file,
+                uploaded_by=request.user,
+                status='active'
+            )
+            
+            messages.success(request, _('Documento subido exitosamente.'))
+            return redirect('claims:claim_documents', pk=pk)
+        except Exception as e:
+            messages.error(request, _('Error al subir el documento: %(error)s') % {'error': str(e)})
+            return redirect('claims:claim_documents', pk=pk)
+    
+    return render(request, 'claims/claim_document_upload.html', {
+        'claim': claim,
+        'document_types': ClaimDocument.DOCUMENT_TYPE_CHOICES
+    })
 
 @login_required
 def claim_document_delete(request, pk):
     """Delete claim document"""
     document = get_object_or_404(ClaimDocument, pk=pk)
     claim_pk = document.claim.pk
-    messages.info(request, _('Funcionalidad en desarrollo'))
-    return redirect('claims:claim_documents', pk=claim_pk)
+    
+    # Check permissions - requesters can only delete from their own claims
+    if request.user.role == 'requester' and document.claim.reported_by != request.user:
+        messages.error(request, _('No tienes permisos para eliminar este documento.'))
+        return redirect('claims:my_claims')
+    
+    # Check if user has permission to delete documents
+    if not request.user.has_role_permission('claims_write'):
+        messages.error(request, _('No tienes permisos para eliminar documentos.'))
+        return redirect('claims:claim_documents', pk=claim_pk)
+    
+    if request.method == 'POST':
+        document_name = document.document_name
+        # Soft delete - mark as deleted instead of actually deleting
+        document.status = 'deleted'
+        document.save()
+        
+        messages.success(request, _('Documento "%(name)s" eliminado exitosamente.') % {'name': document_name})
+        return redirect('claims:claim_documents', pk=claim_pk)
+    
+    return render(request, 'claims/claim_document_delete_confirm.html', {
+        'document': document,
+        'claim': document.claim
+    })
 
 
 @login_required

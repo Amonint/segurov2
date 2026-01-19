@@ -9,279 +9,136 @@
     <div class="flex justify-between items-center">
         <div>
             <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
-                <i class="bi bi-exclamation-triangle mr-3 text-amber-600"></i>
+                <i class="bi bi-file-earmark-text mr-3 text-red-600"></i>
                 {{ title }}
             </h1>
-            <p class="text-gray-600">Complete el formulario para reportar un nuevo siniestro</p>
+            <p class="text-gray-600">Siniestro {{ claim.claim_number }}</p>
         </div>
-        <a href="{% url 'claims:claim_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
-            <i class="bi bi-arrow-left mr-2"></i> Volver a la lista
+        <a href="{% url 'claims:claim_detail' claim.pk %}"
+            class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+            <i class="bi bi-arrow-left mr-2"></i> Volver
         </a>
     </div>
 </div>
 
-<form method="post" enctype="multipart/form-data" data-validate>
-    {% csrf_token %}
-    
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Main Form Section -->
-        <div class="lg:col-span-2 space-y-6">
-            
-            <!-- Información General -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
-                    <h2 class="text-white font-bold text-xl flex items-center">
-                        <i class="bi bi-info-circle mr-2"></i>
-                        Información General
-                    </h2>
+<!-- Form Card -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-4xl mx-auto">
+    <div class="bg-gradient-to-r from-red-600 to-red-700 p-6">
+        <h2 class="text-white font-bold text-xl flex items-center">
+            <i class="bi bi-pencil-square mr-2"></i>
+            Editar Información del Siniestro
+        </h2>
+    </div>
+    <div class="p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <i class="bi bi-exclamation-triangle text-red-600 text-xl mr-2"></i>
+                    <h3 class="text-red-800 font-bold">Por favor corrija los siguientes errores:</h3>
                 </div>
-                <div class="p-6 space-y-6">
-                    <!-- Policy Selection -->
-                    <div>
-                        <label for="{{ form.policy.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                            <i class="bi bi-file-earmark-text mr-2"></i>{{ form.policy.label }}
-                            <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.policy }}
-                        {% if form.policy.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.policy.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-gray-500 text-sm mt-1">Seleccione la póliza relacionada con este siniestro</p>
-                    </div>
-
-                    <!-- Dates Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="{{ form.incident_date.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                                <i class="bi bi-calendar-event mr-2"></i>{{ form.incident_date.label }}
-                                <span class="text-red-500">*</span>
-                            </label>
-                            {{ form.incident_date }}
-                            {% if form.incident_date.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.incident_date.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div>
-                            <label for="{{ form.assigned_to.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                                <i class="bi bi-person mr-2"></i>{{ form.assigned_to.label }}
-                            </label>
-                            {{ form.assigned_to }}
-                            {% if form.assigned_to.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.assigned_to.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Location -->
-                    <div>
-                        <label for="{{ form.incident_location.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                            <i class="bi bi-geo-alt mr-2"></i>{{ form.incident_location.label }}
-                            <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.incident_location }}
-                        {% if form.incident_location.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.incident_location.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-gray-500 text-sm mt-1">Indique el lugar exacto donde ocurrió el incidente</p>
-                    </div>
-
-                    <!-- Description -->
-                    <div>
-                        <label for="{{ form.incident_description.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                            <i class="bi bi-chat-left-text mr-2"></i>{{ form.incident_description.label }}
-                            <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.incident_description }}
-                        {% if form.incident_description.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.incident_description.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-gray-500 text-sm mt-1">Describa detalladamente lo ocurrido</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Información del Bien Afectado -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div class="bg-gradient-to-r from-amber-600 to-amber-700 p-6">
-                    <h2 class="text-white font-bold text-xl flex items-center">
-                        <i class="bi bi-box-seam mr-2"></i>
-                        Información del Bien Afectado
-                    </h2>
-                </div>
-                <div class="p-6 space-y-6">
-                    <!-- Asset Code and Type -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="{{ form.asset_code.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                                <i class="bi bi-upc mr-2"></i>{{ form.asset_code.label }}
-                            </label>
-                            {{ form.asset_code }}
-                            {% if form.asset_code.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.asset_code.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-
-                        <div>
-                            <label for="{{ form.asset_type.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                                <i class="bi bi-tag mr-2"></i>{{ form.asset_type.label }}
-                                <span class="text-red-500">*</span>
-                            </label>
-                            {{ form.asset_type }}
-                            {% if form.asset_type.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ form.asset_type.errors.0 }}</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Asset Description -->
-                    <div>
-                        <label for="{{ form.asset_description.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                            <i class="bi bi-card-text mr-2"></i>{{ form.asset_description.label }}
-                            <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.asset_description }}
-                        {% if form.asset_description.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.asset_description.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <!-- Estimated Loss -->
-                    <div>
-                        <label for="{{ form.estimated_loss.id_for_label }}" class="block text-gray-700 font-semibold mb-2">
-                            <i class="bi bi-currency-dollar mr-2"></i>{{ form.estimated_loss.label }}
-                            <span class="text-red-500">*</span>
-                        </label>
-                        {{ form.estimated_loss }}
-                        {% if form.estimated_loss.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.estimated_loss.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-gray-500 text-sm mt-1">Indique el valor estimado de la pérdida en dólares</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="flex gap-4">
-                <button type="submit" class="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-4 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                    <i class="bi bi-check-circle mr-2"></i>
-                    Crear Siniestro
-                </button>
-                <a href="{% url 'claims:claim_list' %}" class="flex-1 bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 text-center">
-                    <i class="bi bi-x-circle mr-2"></i>
-                    Cancelar
-                </a>
-            </div>
-        </div>
-
-        <!-- Sidebar - Information Panel -->
-        <div class="space-y-6">
-            <!-- Help Card -->
-            <div class="bg-gradient-to-br rounded-2xl shadow-lg p-6 border" style="background: linear-gradient(to bottom right, #f0f4f9 0%, #dce5f0 100%); border-color: #b8cae3;">
-                <div class="flex items-center mb-4">
-                    <div class="p-3 rounded-xl mr-3" style="background-color: #4a7dbb;">
-                        <i class="bi bi-question-circle text-white text-2xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Ayuda</h3>
-                </div>
-                <ul class="space-y-3 text-sm text-gray-700">
-                    <li class="flex items-start">
-                        <i class="bi bi-check-circle-fill mr-2 mt-1" style="color: #4a7dbb;"></i>
-                        <span>Complete todos los campos requeridos marcados con <span class="text-red-500">*</span></span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="bi bi-check-circle-fill mr-2 mt-1" style="color: #4a7dbb;"></i>
-                        <span>La fecha del incidente no puede ser futura</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="bi bi-check-circle-fill text-blue-600 mr-2 mt-1"></i>
-                        <span>Proporcione una descripción detallada del incidente</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="bi bi-check-circle-fill mr-2 mt-1" style="color: #4a7dbb;"></i>
-                        <span>Indique la pérdida estimada lo más precisa posible</span>
-                    </li>
+                <ul class="list-disc list-inside text-red-700 ml-6">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
                 </ul>
             </div>
+            {% endif %}
 
-            <!-- Workflow Info -->
-            <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl shadow-lg p-6 border border-amber-200">
-                <div class="flex items-center mb-4">
-                    <div class="bg-amber-600 p-3 rounded-xl mr-3">
-                        <i class="bi bi-diagram-3 text-white text-2xl"></i>
+            <!-- Incident Information -->
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="bi bi-info-circle mr-2 text-red-600"></i>
+                    Información del Incidente
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.incident_date.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.incident_date.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.incident_date }}
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Proceso</h3>
+                    <div>
+                        <label for="{{ form.incident_location.id_for_label }}"
+                            class="block text-gray-700 font-bold mb-2">
+                            {{ form.incident_location.label }} <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.incident_location }}
+                    </div>
                 </div>
-                <div class="space-y-3">
-                    <div class="flex items-center">
-                        <div class="bg-amber-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">1</div>
-                        <span class="text-sm text-gray-700">Reporte del Siniestro</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">2</div>
-                        <span class="text-sm text-gray-700">Revisión de Documentación</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="bg-amber-400 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">3</div>
-                        <span class="text-sm text-gray-700">Evaluación de la Aseguradora</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="bg-amber-300 text-gray-900 rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">4</div>
-                        <span class="text-sm text-gray-700">Liquidación</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">5</div>
-                        <span class="text-sm text-gray-700">Pago y Cierre</span>
-                    </div>
+                <div class="mt-6">
+                    <label for="{{ form.incident_description.id_for_label }}"
+                        class="block text-gray-700 font-bold mb-2">
+                        {{ form.incident_description.label }} <span class="text-red-500">*</span>
+                    </label>
+                    {{ form.incident_description }}
                 </div>
             </div>
 
-            <!-- Contact Card -->
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl shadow-lg p-6 border border-purple-200">
-                <div class="flex items-center mb-4">
-                    <div class="bg-purple-600 p-3 rounded-xl mr-3">
-                        <i class="bi bi-headset text-white text-2xl"></i>
+            <!-- Asset Information -->
+            <div class="bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                    <i class="bi bi-box mr-2 text-red-600"></i>
+                    Información del Bien
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.asset_type.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.asset_type.label }}
+                        </label>
+                        {{ form.asset_type }}
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Soporte</h3>
+                    <div>
+                        <label for="{{ form.asset_code.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                            {{ form.asset_code.label }}
+                        </label>
+                        {{ form.asset_code }}
+                    </div>
                 </div>
-                <p class="text-sm text-gray-700 mb-3">
-                    ¿Necesita ayuda para completar el formulario?
-                </p>
-                <div class="space-y-2 text-sm">
-                    <div class="flex items-center text-gray-700">
-                        <i class="bi bi-telephone-fill text-purple-600 mr-2"></i>
-                        <span>(07) 370-1444</span>
-                    </div>
-                    <div class="flex items-center text-gray-700">
-                        <i class="bi bi-envelope-fill text-purple-600 mr-2"></i>
-                        <span>seguros@utpl.edu.ec</span>
-                    </div>
+                <div class="mt-6">
+                    <label for="{{ form.asset_description.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                        {{ form.asset_description.label }}
+                    </label>
+                    {{ form.asset_description }}
                 </div>
             </div>
-        </div>
+
+            <!-- Financial Information -->
+            <div>
+                <label for="{{ form.estimated_loss.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.estimated_loss.label }} <span class="text-red-500">*</span>
+                </label>
+                {{ form.estimated_loss }}
+                <p class="text-gray-500 text-sm mt-1">Estimación inicial del valor de la pérdida</p>
+            </div>
+
+            <!-- Assignment -->
+            {% if form.assigned_to %}
+            <div>
+                <label for="{{ form.assigned_to.id_for_label }}" class="block text-gray-700 font-bold mb-2">
+                    {{ form.assigned_to.label }}
+                </label>
+                {{ form.assigned_to }}
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end gap-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'claims:claim_detail' claim.pk %}"
+                    class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300">
+                    <i class="bi bi-x-circle mr-2"></i> Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-gradient-to-r from-red-600 to-red-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i class="bi bi-check-circle mr-2"></i> {{ submit_text }}
+                </button>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 {% endblock %}
-
-<<<<<<< HEAD
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-calculate estimated loss based on asset type if needed
-        const assetTypeField = document.getElementById('{{ form.asset_type.id_for_label }}');
-        const estimatedLossField = document.getElementById('{{ form.estimated_loss.id_for_label }}');
-        
-        // Form submission loading
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function() {
-            showLoading();
-        });
-    });
-</script>
-{% endblock %}
-=======
-
-
-
->>>>>>> upstream/main
