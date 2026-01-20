@@ -16,6 +16,7 @@ urlpatterns = [
     # Claim documents
     path('<int:pk>/documents/', views.claim_documents, name='claim_documents'),
     path('<int:pk>/documents/upload/', views.claim_document_upload, name='claim_document_upload'),
+    path('<int:pk>/documents/request/', views.claim_request_documents, name='claim_request_documents'),
     path('documents/<int:pk>/delete/', views.claim_document_delete, name='claim_document_delete'),
 
     # Claim settlements

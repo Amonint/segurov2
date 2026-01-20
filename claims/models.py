@@ -275,29 +275,31 @@ class Claim(models.Model):
     def can_change_status(self, new_status, user):
         """
         Check if user can change claim status based on role and current status
+        Enhanced: Allow managers and administrators to approve/reject claims
         """
         # Define valid status transitions
         transitions = {
-            'reported': ['documentation_pending', 'sent_to_insurer', 'rejected'],
-            'documentation_pending': ['sent_to_insurer', 'rejected'],
-            'sent_to_insurer': ['under_evaluation', 'rejected'],
-            'under_evaluation': ['liquidated', 'rejected'],
-            'liquidated': ['paid', 'rejected'],
-            'paid': ['closed'],
-            'rejected': [],  # Cannot change from rejected
-            'closed': []  # Cannot change from closed
+            'reportado': ['docs_pendientes', 'enviado_aseguradora', 'rechazado'],
+            'docs_pendientes': ['docs_completos', 'enviado_aseguradora', 'rechazado'],
+            'docs_completos': ['enviado_aseguradora', 'rechazado'],
+            'enviado_aseguradora': ['en_revision', 'rechazado'],
+            'en_revision': ['liquidado', 'rechazado'],
+            'liquidado': ['pagado', 'rechazado'],
+            'pagado': ['cerrado'],
+            'rechazado': [],  # Cannot change from rejected
+            'cerrado': []  # Cannot change from closed
         }
 
         if new_status not in transitions.get(self.status, []):
             return False
 
-        # Role-based permissions for status changes (SIMPLIFIED TO 3 ROLES)
+        # Role-based permissions for status changes - Enhanced for manager/admin approval
         role_permissions = {
-            'requester': ['reported'],  # Can only report
-            'insurance_manager': ['reported', 'documentation_pending', 'sent_to_insurer',
-                                'under_evaluation', 'liquidated', 'paid', 'closed', 'rejected'],
-            'admin': ['reported', 'documentation_pending', 'sent_to_insurer',
-                     'under_evaluation', 'liquidated', 'paid', 'closed', 'rejected']
+            'requester': ['reportado'],  # Can only report
+            'insurance_manager': ['docs_pendientes', 'docs_completos', 'enviado_aseguradora',
+                                'en_revision', 'liquidado', 'pagado', 'cerrado', 'rechazado'],
+            'admin': ['docs_pendientes', 'docs_completos', 'enviado_aseguradora',
+                     'en_revision', 'liquidado', 'pagado', 'cerrado', 'rechazado']
         }
 
         return new_status in role_permissions.get(user.role, [])
@@ -321,15 +323,21 @@ class Claim(models.Model):
             old_status=old_status,
             new_status=new_status,
             created_by=user,
-            notes=notes  # Assuming ClaimTimeline has a notes field, if not we might need to add it or append to description
+            notes=notes
         )
 
-        # --- TDR Notification Logic ---
+        # Auto-create settlement when claim is approved (liquidated) by manager/admin
+        if new_status == 'liquidado' and user.role in ['insurance_manager', 'admin']:
+            self._auto_create_settlement(user, notes)
+
+        # --- TDR Notification Logic - Enhanced ---
         from notifications.models import Notification
-        
+        from django.db import models
+
         # Determine notification recipient (usually the reporter/custodian)
         recipient = self.reported_by
-        
+
+        # Notify reporter/custodian
         if recipient and recipient != user: # Don't notify self
             if new_status == 'docs_pendientes':
                 Notification.create_notification(
@@ -365,6 +373,37 @@ class Claim(models.Model):
                     title=f'Siniestro Pagado: {self.claim_number}',
                     message=f'El pago de su siniestro ha sido procesado.',
                     priority='normal',
+                    link=f'/claims/{self.pk}/'
+                )
+
+        # Notify managers and administrators for important status changes
+        if new_status in ['en_revision', 'liquidado', 'rechazado', 'pagado']:
+            manager_admin_users = UserProfile.objects.filter(
+                role__in=['insurance_manager', 'admin'],
+                is_active=True
+            ).exclude(id=user.id)  # Don't notify the user who made the change
+
+            status_messages = {
+                'en_revision': f'Siniestro {self.claim_number} enviado a revisión.',
+                'liquidado': f'Siniestro {self.claim_number} ha sido liquidado.',
+                'rechazado': f'Siniestro {self.claim_number} ha sido rechazado.',
+                'pagado': f'Siniestro {self.claim_number} ha sido pagado.'
+            }
+
+            priority_levels = {
+                'en_revision': 'normal',
+                'liquidado': 'high',
+                'rechazado': 'urgent',
+                'pagado': 'normal'
+            }
+
+            for manager_user in manager_admin_users:
+                Notification.create_notification(
+                    user=manager_user,
+                    notification_type='claim_update',
+                    title=f'Actualización de Siniestro: {self.claim_number}',
+                    message=status_messages.get(new_status, f'Siniestro {self.claim_number} actualizado a {new_status}.'),
+                    priority=priority_levels.get(new_status, 'normal'),
                     link=f'/claims/{self.pk}/'
                 )
 
@@ -492,14 +531,84 @@ class Claim(models.Model):
     def _send_creation_notifications(self):
         """
         Send email notifications when claim is created
+        Enhanced: Notify managers and administrators
         """
         try:
             from notifications.email_service import EmailService
+            from notifications.models import Notification
+            from django.db import models
+
+            # Send existing email notifications
             EmailService.send_claim_reported_notification(self)
+
+            # Send system notifications to managers and administrators
+            # Get all users with manager or admin roles
+            manager_admin_users = UserProfile.objects.filter(
+                role__in=['insurance_manager', 'admin'],
+                is_active=True
+            )
+
+            for user in manager_admin_users:
+                Notification.create_notification(
+                    user=user,
+                    notification_type='claim_update',
+                    title=f'Nuevo Siniestro Reportado: {self.claim_number}',
+                    message=f'Se ha reportado un nuevo siniestro por {self.reported_by.get_full_name()}. Requiere revisión.',
+                    priority='high',
+                    link=f'/claims/{self.pk}/'
+                )
+
         except Exception as e:
             # Log error but don't break the save operation
             import logging
             logging.error(f"Error sending claim creation notifications: {e}")
+
+    def _auto_create_settlement(self, approved_by, approval_notes):
+        """
+        Automatically create settlement when claim is approved by manager/admin
+        """
+        try:
+            # Check if settlement already exists
+            if hasattr(self, 'settlement'):
+                return  # Settlement already exists
+
+            # Create settlement with claim data
+            settlement = ClaimSettlement.objects.create(
+                claim=self,
+                numero_reclamo=f"REF-{self.claim_number}",
+                valor_total_reclamo=self.estimated_loss or 0,
+                total_claim_amount=self.estimated_loss or 0,
+                final_payment_amount=self.approved_amount or self.estimated_loss or 0,
+                status='approved',  # Auto-approve since manager/admin approved the claim
+                created_by=approved_by,
+                approved_by=approved_by
+            )
+
+            # Create timeline entry for auto-created settlement
+            ClaimTimeline.objects.create(
+                claim=self,
+                event_type='comment',
+                event_description=f'Finiquito creado automáticamente tras aprobación del siniestro. Notas: {approval_notes or "Sin notas adicionales."}',
+                created_by=approved_by,
+                notes=f'Aprobación automática del finiquito por {approved_by.get_full_name()}'
+            )
+
+            # Log the automatic settlement creation
+            from audit.models import AuditLog
+            AuditLog.log_action(
+                user=approved_by,
+                action_type='create',
+                entity_type='settlement',
+                entity_id=str(settlement.id),
+                description=f'Finiquito creado automáticamente para siniestro {self.claim_number}',
+                old_values={},
+                new_values={'status': 'approved', 'approved_by': approved_by.get_full_name()}
+            )
+
+        except Exception as e:
+            import logging
+            logging.error(f"Error creating automatic settlement for claim {self.claim_number}: {e}")
+            # Don't raise exception to avoid breaking the status change
 
 
 class ClaimDocument(models.Model):
@@ -662,6 +771,10 @@ class ClaimDocument(models.Model):
                 created_by=self.uploaded_by
             )
 
+            # Notify managers and administrators when required documents are uploaded
+            if self.is_required:
+                self._notify_managers_document_uploaded()
+
     def delete(self, *args, **kwargs):
         """
         Override delete to handle versioning and file cleanup
@@ -767,9 +880,38 @@ class ClaimDocument(models.Model):
             return False
         return timezone.now().date() > self.required_deadline
 
+    def _notify_managers_document_uploaded(self):
+        """
+        Notify managers and administrators when required documents are uploaded
+        """
+        try:
+            from notifications.models import Notification
+            from django.db import models
+
+            manager_admin_users = UserProfile.objects.filter(
+                role__in=['insurance_manager', 'admin'],
+                is_active=True
+            ).exclude(id=self.uploaded_by.id)  # Don't notify the uploader
+
+            for user in manager_admin_users:
+                Notification.create_notification(
+                    user=user,
+                    notification_type='document_required',
+                    title=f'Documento Requerido Subido: {self.claim.claim_number}',
+                    message=f'Se ha subido el documento requerido "{self.document_name}" para el siniestro {self.claim.claim_number}.',
+                    priority='normal',
+                    link=f'/claims/{self.claim.pk}/'
+                )
+        except Exception as e:
+            import logging
+            logging.error(f"Error notifying managers about document upload: {e}")
+
     @staticmethod
     def get_required_documents_for_claim(claim):
-        """Get list of required documents based on claim type and status"""
+        """
+        Get list of required documents based on claim type and status
+        Enhanced: More comprehensive document requirements based on workflow
+        """
         required_docs = []
 
         # Always required documents
@@ -778,20 +920,60 @@ class ClaimDocument(models.Model):
             ('photos', _('Fotos del siniestro')),
         ])
 
-        # Status-based requirements
-        if claim.status in ['documentation_pending', 'sent_to_insurer', 'under_evaluation']:
+        # Status-based requirements - Enhanced workflow
+        if claim.status in ['docs_pendientes', 'docs_completos', 'enviado_aseguradora', 'en_revision']:
             required_docs.extend([
                 ('police_report', _('Reporte policial')),
                 ('appraisal', _('Avalúo')),
             ])
 
-        if claim.status in ['liquidated', 'paid', 'closed']:
+        if claim.status in ['liquidado', 'pagado', 'cerrado']:
             required_docs.extend([
                 ('invoice', _('Factura')),
                 ('settlement', _('Finiquito')),
             ])
 
+        # Asset-type specific requirements
+        if claim.asset_type and 'vehicle' in claim.asset_type.lower():
+            required_docs.append(('vehicle_registration', _('Registro vehicular')))
+
+        if claim.asset_type and 'property' in claim.asset_type.lower():
+            required_docs.append(('property_deed', _('Escritura de propiedad')))
+
         return required_docs
+
+    @staticmethod
+    def create_required_documents_for_claim(claim, created_by):
+        """
+        Create required document entries for a claim based on its status
+        Used by managers/administrators to specify required documents with deadlines
+        """
+        from datetime import timedelta
+
+        required_docs = ClaimDocument.get_required_documents_for_claim(claim)
+        created_documents = []
+
+        for doc_type, doc_name in required_docs:
+            # Check if document already exists
+            existing = claim.documents.filter(
+                document_type=doc_type,
+                status='active'
+            ).exists()
+
+            if not existing:
+                # Create required document entry
+                document = ClaimDocument.objects.create(
+                    claim=claim,
+                    document_name=doc_name,
+                    document_type=doc_type,
+                    is_required=True,
+                    required_deadline=claim.fecha_solicitud_documentos + timedelta(days=30) if claim.fecha_solicitud_documentos else timezone.now().date() + timedelta(days=30),
+                    uploaded_by=created_by,
+                    status='active'
+                )
+                created_documents.append(document)
+
+        return created_documents
 
 
 class ClaimTimeline(models.Model):
@@ -1137,10 +1319,28 @@ class ClaimSettlement(models.Model):
     def mark_as_signed(self):
         """
         Mark settlement as signed
+        Enhanced: Auto-update claim status to paid when settlement is signed
         """
         self.status = 'signed'
         self.signed_date = timezone.now().date()
         self.save()
+
+        # Auto-update claim status to paid when settlement is signed
+        if self.claim.status == 'liquidado':
+            self.claim.status = 'pagado'
+            self.claim.payment_date = self.signed_date
+            self.claim.save()
+
+            # Create timeline entry for automatic status change
+            ClaimTimeline.objects.create(
+                claim=self.claim,
+                event_type='status_change',
+                event_description='Estado cambiado automáticamente a "Pagado" tras firma del finiquito',
+                old_status='liquidado',
+                new_status='pagado',
+                created_by=self.created_by,
+                notes='Cambio automático por firma del finiquito'
+            )
 
         # Send notification
         self._send_signed_notification()

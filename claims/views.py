@@ -236,23 +236,28 @@ def claim_detail(request, pk):
         if doc.is_overdue():
             overdue_documents.append(doc)
 
-    # Calculate validation checklist for managers
+    # Calculate validation checklist for managers - Enhanced
     validation_checklist = []
-    if request.user.has_role_permission('claims_update'):
-        required_types = ['initial_report', 'photos', 'police_report', 'invoice']
+    if request.user.role in ['insurance_manager', 'admin']:
+        required_docs = ClaimDocument.get_required_documents_for_claim(claim)
         uploaded_types = [doc.document_type for doc in documents]
-        
-        for doc_type in required_types:
+
+        for doc_type, display_name in required_docs:
             is_present = doc_type in uploaded_types
-            # get display name from model choices
-            display_name = dict(ClaimDocument.DOCUMENT_TYPE_CHOICES).get(doc_type, doc_type)
-            
+            is_overdue = False
+
+            # Check if document is overdue
+            doc_obj = next((doc for doc in documents if doc.document_type == doc_type), None)
+            if doc_obj and doc_obj.is_overdue():
+                is_overdue = True
+
             validation_checklist.append({
                 'type': doc_type,
                 'name': display_name,
                 'is_present': is_present,
-                'status_icon': 'bi-check-circle-fill text-green-500' if is_present else 'bi-x-circle-fill text-red-500',
-                'status_text': _('Cargado') if is_present else _('Pendiente')
+                'is_overdue': is_overdue,
+                'status_icon': 'bi-check-circle-fill text-success' if is_present else ('bi-exclamation-triangle-fill text-warning' if is_overdue else 'bi-x-circle-fill text-danger'),
+                'status_text': _('Cargado') if is_present else (_('Vencido') if is_overdue else _('Pendiente'))
             })
 
     # Get latest status change note for feedback
@@ -262,6 +267,50 @@ def claim_detail(request, pk):
         if last_change and last_change.notes:
             latest_status_note = last_change.notes
             
+    # Management options for managers and administrators
+    management_actions = []
+    if request.user.role in ['insurance_manager', 'admin']:
+        # Available actions based on current status
+        if claim.status == 'reportado':
+            management_actions.extend([
+                {'action': 'request_docs', 'label': _('Solicitar Documentos'), 'style': 'btn-warning'},
+                {'action': 'approve_direct', 'label': _('Aprobar Directamente'), 'style': 'btn-success'},
+                {'action': 'reject', 'label': _('Rechazar'), 'style': 'btn-danger'},
+            ])
+        elif claim.status == 'docs_pendientes':
+            management_actions.extend([
+                {'action': 'docs_complete', 'label': _('Marcar Documentos Completos'), 'style': 'btn-info'},
+                {'action': 'request_more_docs', 'label': _('Solicitar Más Documentos'), 'style': 'btn-warning'},
+                {'action': 'reject', 'label': _('Rechazar'), 'style': 'btn-danger'},
+            ])
+        elif claim.status == 'docs_completos':
+            management_actions.extend([
+                {'action': 'send_to_insurer', 'label': _('Enviar a Aseguradora'), 'style': 'btn-primary'},
+                {'action': 'reject', 'label': _('Rechazar'), 'style': 'btn-danger'},
+            ])
+        elif claim.status == 'enviado_aseguradora':
+            management_actions.extend([
+                {'action': 'under_evaluation', 'label': _('Enviar a Revisión'), 'style': 'btn-info'},
+                {'action': 'reject', 'label': _('Rechazar'), 'style': 'btn-danger'},
+            ])
+        elif claim.status == 'en_revision':
+            management_actions.extend([
+                {'action': 'approve', 'label': _('Aprobar y Liquidar'), 'style': 'btn-success'},
+                {'action': 'reject', 'label': _('Rechazar'), 'style': 'btn-danger'},
+            ])
+
+    # Check if required documents are missing for approval
+    can_approve = True
+    missing_required_docs = []
+    if request.user.role in ['insurance_manager', 'admin'] and claim.status == 'en_revision':
+        required_docs = ClaimDocument.get_required_documents_for_claim(claim)
+        uploaded_types = [doc.document_type for doc in documents]
+
+        for doc_type, doc_name in required_docs:
+            if doc_type not in uploaded_types:
+                missing_required_docs.append(doc_name)
+                can_approve = False
+
     context = {
         'claim': claim,
         'timeline': timeline,
@@ -272,6 +321,10 @@ def claim_detail(request, pk):
         'can_edit': request.user.has_role_permission('claims_write') or claim.reported_by == request.user,
         'can_change_status': request.user.has_role_permission('claims_update'),
         'latest_status_note': latest_status_note,
+        'management_actions': management_actions,
+        'can_approve': can_approve,
+        'missing_required_docs': missing_required_docs,
+        'is_manager_or_admin': request.user.role in ['insurance_manager', 'admin'],
     }
 
     return render(request, 'claims/claim_detail.html', context)
@@ -693,3 +746,76 @@ def claim_settlement_pay(request, pk):
     settlement.mark_as_paid(payment_reference)
     messages.success(request, _('Finiquito marcado como pagado.'))
     return redirect('claims:claim_settlement_detail', pk=pk)
+
+
+@login_required
+@role_permission_required('claims_write')
+def claim_request_documents(request, pk):
+    """
+    Allow managers/administrators to request specific required documents for a claim
+    """
+    claim = get_object_or_404(Claim, pk=pk)
+
+    # Only managers and administrators can request documents
+    if request.user.role not in ['insurance_manager', 'admin']:
+        messages.error(request, _('No tienes permisos para solicitar documentos.'))
+        return redirect('claims:claim_detail', pk=pk)
+
+    if request.method == 'POST':
+        # Create required document entries
+        created_docs = ClaimDocument.create_required_documents_for_claim(claim, request.user)
+
+        if created_docs:
+            # Update claim status if needed
+            if claim.status == 'reportado':
+                claim.fecha_solicitud_documentos = timezone.now().date()
+                claim.status = 'docs_pendientes'
+                claim.save()
+
+                # Create timeline entry
+                ClaimTimeline.objects.create(
+                    claim=claim,
+                    event_type='status_change',
+                    event_description='Documentos requeridos solicitados por gestión',
+                    old_status='reportado',
+                    new_status='docs_pendientes',
+                    created_by=request.user,
+                    notes='Solicitud automática de documentos requeridos'
+                )
+
+            messages.success(request, _('Se han solicitado %(count)d documentos requeridos.') % {'count': len(created_docs)})
+
+            # Notify the claim reporter
+            from notifications.models import Notification
+            Notification.create_notification(
+                user=claim.reported_by,
+                notification_type='document_required',
+                title=f'Documentos Requeridos: {claim.claim_number}',
+                message=f'Se requieren documentos adicionales para procesar su siniestro. Por favor revise los detalles.',
+                priority='high',
+                link=f'/claims/{claim.pk}/'
+            )
+        else:
+            messages.info(request, _('Todos los documentos requeridos ya han sido solicitados.'))
+
+        return redirect('claims:claim_detail', pk=pk)
+
+    # Get current required documents status
+    required_docs = ClaimDocument.get_required_documents_for_claim(claim)
+    uploaded_types = [doc.document_type for doc in claim.documents.all()]
+
+    docs_status = []
+    for doc_type, doc_name in required_docs:
+        is_uploaded = doc_type in uploaded_types
+        docs_status.append({
+            'type': doc_type,
+            'name': doc_name,
+            'is_uploaded': is_uploaded,
+            'status': _('Ya cargado') if is_uploaded else _('Pendiente')
+        })
+
+    return render(request, 'claims/claim_request_documents.html', {
+        'claim': claim,
+        'docs_status': docs_status,
+        'title': _('Solicitar Documentos Requeridos'),
+    })

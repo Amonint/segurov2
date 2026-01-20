@@ -73,6 +73,96 @@
 </div>
 {% endif %}
 
+<!-- Management Panel for Managers and Administrators -->
+{% if is_manager_or_admin %}
+<div class="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white">
+    <h2 class="text-xl font-bold mb-4 flex items-center">
+        <i class="bi bi-shield-check mr-2"></i>
+        Panel de Gestión
+    </h2>
+
+    {% if management_actions %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+        {% for action in management_actions %}
+        <button onclick="executeAction('{{ action.action }}')"
+            class="bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl p-4 transition-all duration-300 text-left group {{ action.style }}">
+            <div class="font-semibold text-white group-hover:text-white">
+                {{ action.label }}
+            </div>
+            <div class="text-white/70 text-sm mt-1">
+                {% if action.action == 'request_docs' %}Solicitar documentos requeridos{% endif %}
+                {% if action.action == 'approve_direct' %}Aprobar sin revisión adicional{% endif %}
+                {% if action.action == 'reject' %}Rechazar el siniestro{% endif %}
+                {% if action.action == 'docs_complete' %}Marcar documentación completa{% endif %}
+                {% if action.action == 'request_more_docs' %}Solicitar documentos adicionales{% endif %}
+                {% if action.action == 'send_to_insurer' %}Enviar a la aseguradora{% endif %}
+                {% if action.action == 'under_evaluation' %}Enviar a evaluación interna{% endif %}
+                {% if action.action == 'approve' %}Aprobar y liquidar{% endif %}
+            </div>
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="border-t border-white/20 pt-4">
+        <div class="flex flex-wrap gap-3">
+            {% if claim.status == 'reportado' %}
+            <a href="{% url 'claims:claim_request_documents' claim.pk %}"
+                class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center text-sm">
+                <i class="bi bi-file-earmark-plus mr-2"></i> Solicitar Documentos
+            </a>
+            {% endif %}
+
+            <a href="{% url 'claims:claim_update_status' claim.pk %}"
+                class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center text-sm">
+                <i class="bi bi-arrow-repeat mr-2"></i> Cambiar Estado
+            </a>
+
+            {% if settlement %}
+            <a href="{% url 'claims:claim_settlement_detail' settlement.pk %}"
+                class="bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 flex items-center text-sm">
+                <i class="bi bi-cash mr-2"></i> Ver Finiquito
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Document Validation Checklist -->
+    {% if validation_checklist %}
+    <div class="border-t border-white/20 pt-4 mt-4">
+        <h3 class="font-semibold mb-3 flex items-center">
+            <i class="bi bi-checklist mr-2"></i>
+            Validación de Documentos
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {% for item in validation_checklist %}
+            <div class="flex items-center justify-between bg-white/10 rounded-lg p-2">
+                <span class="text-sm text-white/90">{{ item.name }}</span>
+                <i class="bi {{ item.status_icon }} text-lg"></i>
+            </div>
+            {% endfor %}
+        </div>
+        {% if not can_approve %}
+        <div class="mt-3 p-3 bg-red-500/20 border border-red-400/50 rounded-lg">
+            <p class="text-red-100 text-sm flex items-center">
+                <i class="bi bi-exclamation-triangle mr-2"></i>
+                No se puede aprobar: faltan documentos requeridos
+            </p>
+            {% if missing_required_docs %}
+            <ul class="text-red-100 text-xs mt-1 ml-6 list-disc">
+                {% for doc in missing_required_docs %}
+                <li>{{ doc }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Main Content -->
     <div class="lg:col-span-2 space-y-6">
@@ -559,6 +649,58 @@
 
     // changeStatus function removed - using direct links now
 
+
+    // Management Panel Actions
+    function executeAction(action) {
+        const claimId = {{ claim.pk }};
+        let url, newStatus;
+
+        switch(action) {
+            case 'request_docs':
+                url = `{% url 'claims:claim_request_documents' claim.pk %}`;
+                window.location.href = url;
+                return;
+
+            case 'approve_direct':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
+                window.location.href = url;
+                return;
+
+            case 'reject':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=rechazado`;
+                window.location.href = url;
+                return;
+
+            case 'docs_complete':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_completos`;
+                window.location.href = url;
+                return;
+
+            case 'request_more_docs':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_pendientes`;
+                window.location.href = url;
+                return;
+
+            case 'send_to_insurer':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=enviado_aseguradora`;
+                window.location.href = url;
+                return;
+
+            case 'under_evaluation':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=en_revision`;
+                window.location.href = url;
+                return;
+
+            case 'approve':
+                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
+                window.location.href = url;
+                return;
+
+            default:
+                console.error('Unknown action:', action);
+                return;
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function () {
         const cards = document.querySelectorAll('.space-y-6 > div');

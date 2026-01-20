@@ -162,12 +162,34 @@ class ClaimStatusChangeForm(forms.Form):
         cleaned_data = super().clean()
         new_status = cleaned_data.get('new_status')
         notes = cleaned_data.get('notes')
-        
-        # Require notes for corrections or rejections
-        if new_status in ['docs_pendientes', 'rechazado'] and not notes:
-            msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
+        claim = getattr(self, 'claim', None)
+
+        # Require notes for corrections, rejections, or approvals
+        if new_status in ['docs_pendientes', 'rechazado', 'liquidado'] and not notes:
+            if new_status == 'liquidado':
+                msg = _('Es obligatorio indicar las razones de la aprobación del siniestro.')
+            else:
+                msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
             self.add_error('notes', msg)
-            
+
+        # Validate required documents before approval
+        if claim and new_status == 'liquidado':
+            missing_docs = []
+            required_docs = ClaimDocument.get_required_documents_for_claim(claim)
+
+            for doc_type, doc_name in required_docs:
+                # Check if required document exists and is uploaded
+                doc_exists = claim.documents.filter(
+                    document_type=doc_type,
+                    status='active'
+                ).exists()
+                if not doc_exists:
+                    missing_docs.append(doc_name)
+
+            if missing_docs:
+                msg = _('No se puede aprobar el siniestro. Faltan los siguientes documentos requeridos: %(docs)s')
+                self.add_error('new_status', msg % {'docs': ', '.join(missing_docs)})
+
         return cleaned_data
 
     def clean_new_status(self):
