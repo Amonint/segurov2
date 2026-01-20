@@ -15,10 +15,27 @@ from accounts.models import UserProfile
 try:
     company = InsuranceCompany.objects.first()
     user = UserProfile.objects.filter(role='admin').first()
-    
+
     if not company or not user:
-        print("❌ Necesitas ejecutar primero la creación de usuarios y compañías")
-        exit(1)
+        print("⚠️  Advertencia: No se encontraron datos de prueba (usuarios/compañías)")
+        print("Creando datos de prueba temporales...")
+
+        # Create test company if doesn't exist
+        if not company:
+            company = InsuranceCompany.objects.create(
+                name='Compañía de Prueba',
+                ruc='1234567890123'
+            )
+            print("✅ Compañía de prueba creada")
+
+        # Create test user if doesn't exist
+        if not user:
+            user = UserProfile.objects.create_user(
+                username='admin_test',
+                password='testpass123',
+                role='admin'
+            )
+            print("✅ Usuario de prueba creado")
     
     today = date.today()
     

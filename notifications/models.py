@@ -84,7 +84,7 @@ class Notification(models.Model):
             self.save()
 
     @staticmethod
-    def create_notification(user, notification_type, title, message, priority='normal', link=None):
+    def create_notification(user, notification_type, title, message, priority='normal', link=''):
         """
         Create a new notification
         """

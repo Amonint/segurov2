@@ -36,7 +36,10 @@ class ClaimWorkflowTests(TestCase):
             start_date=today,
             end_date=today + timedelta(days=365),
             insured_value=Decimal('10000.00'),
-            status='active'
+            status='active',
+            objeto_asegurado='Equipo electrónico de oficina',
+            prima=Decimal('500.00'),
+            responsible_user=self.manager
         )
 
     def create_claim(self):

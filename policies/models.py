@@ -261,6 +261,13 @@ class Policy(models.Model):
         """
         super().clean()
 
+        # Validate required fields
+        if not self.objeto_asegurado:
+            raise ValidationError(_('El objeto asegurado es obligatorio'))
+
+        if not self.prima or self.prima <= 0:
+            raise ValidationError(_('La prima debe ser mayor a cero'))
+
         # Validate dates
         if self.start_date and self.end_date and self.start_date >= self.end_date:
             raise ValidationError(_('La fecha de fin debe ser posterior a la fecha de inicio'))
