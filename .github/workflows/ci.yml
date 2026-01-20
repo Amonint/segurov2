@@ -1,0 +1,198 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, master ]
+  pull_request:
+    branches: [ main, develop, master ]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 black isort
+
+    - name: Run flake8
+      run: |
+        echo "Running flake8..."
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || true
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
+
+    - name: Check code formatting with black
+      run: |
+        echo "Checking code formatting with black..."
+        black --check --diff . || true
+
+    - name: Check import sorting with isort
+      run: |
+        echo "Checking import sorting with isort..."
+        isort --check-only --diff . || true
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: seguros_db_test
+          POSTGRES_USER: seguros_user
+          POSTGRES_PASSWORD: seguros_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_NAME: seguros_db_test
+      DB_USER: seguros_user
+      DB_PASSWORD: seguros_pass
+      DB_HOST: localhost
+      DB_PORT: 5432
+      SECRET_KEY: "test-secret-key-for-ci"
+      DEBUG: "True"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage
+
+    - name: Check migrations
+      run: python manage.py makemigrations --check --dry-run
+
+    - name: Run migrations
+      run: python manage.py migrate
+
+    - name: Collect static files
+      run: python manage.py collectstatic --noinput
+
+    - name: Run Django system checks
+      run: python manage.py check --deploy
+
+    - name: Run tests with coverage
+      run: |
+        coverage run --source='.' manage.py test
+        coverage report
+        coverage xml
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install safety bandit
+
+    - name: Check for known security vulnerabilities
+      run: |
+        echo "Checking for known security vulnerabilities..."
+        safety check --json || true
+
+    - name: Run Bandit security linter
+      run: |
+        echo "Running Bandit security linter..."
+        bandit -r . -f json -o bandit-report.json || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: bandit-report.json
+        retention-days: 7
+
+  build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master'
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Check migrations
+      run: python manage.py makemigrations --check --dry-run
+
+    - name: Collect static files for production
+      run: SECRET_KEY="test-secret-key" DEBUG="False" python manage.py collectstatic --noinput
+
+    - name: Run Django deployment checks
+      run: SECRET_KEY="test-secret-key" DEBUG="False" python manage.py check --deploy
