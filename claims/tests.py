@@ -46,30 +46,34 @@ class ClaimWorkflowTests(TestCase):
         today = timezone.now().date()
         return Claim.objects.create(
             policy=self.policy,
+            fecha_siniestro=today,
             incident_date=today,
             report_date=today,
+            causa='Daño por agua en equipo electrónico',
+            ubicacion_detallada='Campus universitario, edificio principal',
             incident_location='Campus',
             incident_description='Daño por agua',
             asset_type='equipo_electronico',
             asset_description='Laptop',
             estimated_loss=Decimal('500.00'),
+            reportante=self.reporter,
             reported_by=self.reporter
         )
 
     def test_status_change_creates_timeline(self):
         claim = self.create_claim()
-        claim.change_status('documentation_pending', self.manager)
+        claim.change_status('docs_pendientes', self.manager)
 
-        self.assertEqual(claim.status, 'documentation_pending')
+        self.assertEqual(claim.status, 'docs_pendientes')
         entry = ClaimTimeline.objects.filter(
             claim=claim,
             event_type='status_change'
         ).first()
         self.assertIsNotNone(entry)
-        self.assertEqual(entry.old_status, 'reported')
-        self.assertEqual(entry.new_status, 'documentation_pending')
+        self.assertEqual(entry.old_status, 'reportado')
+        self.assertEqual(entry.new_status, 'docs_pendientes')
 
     def test_invalid_status_transition_raises(self):
         claim = self.create_claim()
         with self.assertRaises(ValidationError):
-            claim.change_status('paid', self.manager)
+            claim.change_status('pagado', self.manager)

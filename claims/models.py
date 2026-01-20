@@ -323,7 +323,7 @@ class Claim(models.Model):
             old_status=old_status,
             new_status=new_status,
             created_by=user,
-            notes=notes
+            notes=notes or ''
         )
 
         # Auto-create settlement when claim is approved (liquidated) by manager/admin
