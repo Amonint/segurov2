@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+   # Force reload to pick up form changes v6
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

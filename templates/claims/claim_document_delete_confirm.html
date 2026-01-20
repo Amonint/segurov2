@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+<<<<<<< HEAD
 {% load static %}
 
 {% block title %}Eliminar Documento - {{ document.document_name }}{% endblock %}
@@ -31,9 +32,48 @@
                 <button type="submit"
                     class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-700 transition-all duration-300">
                     Eliminar
+=======
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-lg">
+    <div class="bg-white rounded-xl shadow-md overflow-hidden border-t-4 border-red-500">
+        <div class="p-6 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-6">
+                <i class="bi bi-exclamation-triangle-fill text-3xl text-red-600"></i>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">¿Eliminar Documento?</h2>
+            <p class="text-gray-600 mb-6">
+                Estás a punto de eliminar el archivo: <br>
+                <span class="font-semibold text-gray-800">{{ document.document_name }}</span>
+            </p>
+
+            <div class="bg-red-50 rounded-lg p-4 mb-6 text-left text-sm text-red-700">
+                <p class="flex items-start">
+                    <i class="bi bi-info-circle-fill mr-2 mt-0.5"></i>
+                    Esta acción no se puede deshacer completamente. El archivo se marcará como eliminado pero
+                    permanecerá en los registros de auditoría.
+                </p>
+            </div>
+
+            <form method="post" class="flex justify-center space-x-4">
+                {% csrf_token %}
+                <a href="{% url 'claims:claim_documents' claim.pk %}"
+                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-6 rounded-lg transition">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition flex items-center">
+                    <i class="bi bi-trash mr-2"></i> Confirmar Eliminación
+>>>>>>> Frontend_LuisMorales
                 </button>
             </form>
         </div>
     </div>
 </div>
+<<<<<<< HEAD
 {% endblock %}
+=======
+{% endblock %}
+>>>>>>> Frontend_LuisMorales

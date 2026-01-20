@@ -128,4 +128,30 @@
     </div>
 </div>
 
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const statusSelect = document.getElementById('{{ form.new_status.id_for_label }}');
+        const notesLabel = document.querySelector('label[for="{{ form.notes.id_for_label }}"]');
+        const notesHelp = notesLabel.nextElementSibling.nextElementSibling; // Adjust if structure changes
+
+        function updateNotesField() {
+            const selectedStatus = statusSelect.value;
+
+            if (selectedStatus === 'docs_pendientes' || selectedStatus === 'rechazado') {
+                notesLabel.innerHTML = 'Razón / Correcciones Necesarías <span class="text-red-500">*</span>';
+                notesHelp.innerText = 'Indique claramente qué documentos faltan o por qué se rechaza.';
+                // Visual cue only, backend enforces validation
+                notesLabel.classList.add('text-red-700');
+            } else {
+                notesLabel.innerHTML = 'Notas del Cambio';
+                notesHelp.innerText = 'Opcional: Agregue observaciones sobre el cambio de estado.';
+                notesLabel.classList.remove('text-red-700');
+            }
+        }
+
+        statusSelect.addEventListener('change', updateNotesField);
+        updateNotesField(); // Run on load
+    });
+</script>
 {% endblock %}

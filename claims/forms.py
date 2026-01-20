@@ -158,6 +158,18 @@ class ClaimStatusChangeForm(forms.Form):
         help_text=_('Opcional: Agregue notas sobre el cambio de estado.')
     )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        new_status = cleaned_data.get('new_status')
+        notes = cleaned_data.get('notes')
+        
+        # Require notes for corrections or rejections
+        if new_status in ['docs_pendientes', 'rechazado'] and not notes:
+            msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
+            self.add_error('notes', msg)
+            
+        return cleaned_data
+
     def clean_new_status(self):
         new_status = self.cleaned_data.get('new_status')
         claim = getattr(self, 'claim', None)

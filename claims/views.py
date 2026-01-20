@@ -236,14 +236,42 @@ def claim_detail(request, pk):
         if doc.is_overdue():
             overdue_documents.append(doc)
 
+    # Calculate validation checklist for managers
+    validation_checklist = []
+    if request.user.has_role_permission('claims_update'):
+        required_types = ['initial_report', 'photos', 'police_report', 'invoice']
+        uploaded_types = [doc.document_type for doc in documents]
+        
+        for doc_type in required_types:
+            is_present = doc_type in uploaded_types
+            # get display name from model choices
+            display_name = dict(ClaimDocument.DOCUMENT_TYPE_CHOICES).get(doc_type, doc_type)
+            
+            validation_checklist.append({
+                'type': doc_type,
+                'name': display_name,
+                'is_present': is_present,
+                'status_icon': 'bi-check-circle-fill text-green-500' if is_present else 'bi-x-circle-fill text-red-500',
+                'status_text': _('Cargado') if is_present else _('Pendiente')
+            })
+
+    # Get latest status change note for feedback
+    latest_status_note = ''
+    if claim.status in ['documentation_pending', 'rejected']:
+        last_change = claim.timeline.filter(event_type='status_change').order_by('-created_at').first()
+        if last_change and last_change.notes:
+            latest_status_note = last_change.notes
+            
     context = {
         'claim': claim,
         'timeline': timeline,
         'documents': documents,
         'settlement': settlement,
         'overdue_documents': overdue_documents,
+        'validation_checklist': validation_checklist,
         'can_edit': request.user.has_role_permission('claims_write') or claim.reported_by == request.user,
-        'can_change_status': request.user.has_role_permission('claims_write'),
+        'can_change_status': request.user.has_role_permission('claims_update'),
+        'latest_status_note': latest_status_note,
     }
 
     return render(request, 'claims/claim_detail.html', context)
@@ -351,12 +379,24 @@ def claim_update_status(request, pk):
                 )
 
                 messages.success(request, _('Estado del siniestro actualizado exitosamente.'))
+                
+                # TDR Workflow: If status is 'liquidated', redirect to settlement creation
+                if new_status == 'liquidated' and not hasattr(claim, 'settlement'):
+                    return redirect('claims:claim_settlement_create', pk=claim.pk)
+                    
                 return redirect('claims:claim_detail', pk=claim.pk)
 
             except ValueError as e:
                 messages.error(request, str(e))
     else:
-        form = ClaimStatusChangeForm(claim=claim, user=request.user)
+        # Check for pre-selected status in GET parameters
+        initial_status = request.GET.get('new_status') or request.GET.get('initial')
+        
+        initial_data = {}
+        if initial_status:
+            initial_data['new_status'] = initial_status
+            
+        form = ClaimStatusChangeForm(claim=claim, user=request.user, initial=initial_data)
 
     return render(request, 'claims/claim_change_status.html', {
         'form': form,

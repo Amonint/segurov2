@@ -170,16 +170,17 @@ class Invoice(models.Model):
         """
         # 1. Prima base (se calcula basado en la póliza - por ahora usamos valor asegurado * 0.01)
         # En un sistema real, esto vendría de una tabla de tarifas
-        self.premium = self.policy.insured_value * Decimal('0.01')  # 1% del valor asegurado
+        self.premium = (self.policy.insured_value * Decimal('0.01')).quantize(Decimal('0.01'))  # 1% del valor asegurado
 
         # 2. Contribución Superintendencia (3.5% de prima)
-        self.superintendence_contribution = self.premium * Decimal('0.035')
+        self.superintendence_contribution = (self.premium * Decimal('0.035')).quantize(Decimal('0.01'))
 
         # 3. Contribución Seguro Campesino (0.5% de prima)
-        self.farm_insurance_contribution = self.premium * Decimal('0.005')
+        self.farm_insurance_contribution = (self.premium * Decimal('0.005')).quantize(Decimal('0.01'))
 
         # 4. Derechos de emisión (desde tabla configurable)
-        self.emission_rights = EmissionRights.get_emission_right(self.premium)
+        emission_rights_val = EmissionRights.objects.get_emission_right(self.premium)
+        self.emission_rights = emission_rights_val.quantize(Decimal('0.01'))
 
         # 5. Base imponible = prima + superintendence + farm_insurance + emission_rights
         self.tax_base = (
@@ -187,17 +188,17 @@ class Invoice(models.Model):
             self.superintendence_contribution +
             self.farm_insurance_contribution +
             self.emission_rights
-        )
+        ).quantize(Decimal('0.01'))
 
         # 6. IVA (15% sobre base imponible)
-        self.iva = self.tax_base * Decimal('0.15')
+        self.iva = (self.tax_base * Decimal('0.15')).quantize(Decimal('0.01'))
 
         # 7. Descuento pronto pago (5% automático si pago <= 20 días)
         days_to_due = (self.due_date - self.invoice_date).days
         if days_to_due <= 20:
-            self.early_payment_discount = self.tax_base * Decimal('0.05')
+            self.early_payment_discount = (self.tax_base * Decimal('0.05')).quantize(Decimal('0.01'))
         else:
-            self.early_payment_discount = 0
+            self.early_payment_discount = Decimal('0.00')
 
         # 8. Calcular retenciones de la póliza
         self.calculate_withholding_tax()
@@ -208,7 +209,7 @@ class Invoice(models.Model):
             self.iva -
             self.early_payment_discount -
             self.withholding_tax
-        )
+        ).quantize(Decimal('0.01'))
 
     def calculate_withholding_tax(self):
         """

@@ -163,13 +163,22 @@ class AssetCustodianChangeForm(forms.ModelForm):
         return custodian
 
 
+from claims.models import Claim
+
 class AssetClaimReportForm(forms.ModelForm):
     """
     Formulario simplificado para reportar siniestro desde un bien
     El bien ya está seleccionado, solo se necesita información del siniestro
     """
-    
+    initial_document = forms.FileField(
+        required=False,
+        label=_('Adjuntar Documento Inicial (PDF/Imagen)'),
+        help_text=_('Opcional: Cargue un reporte inicial, fotos o denuncia.')
+        # Widget attrs will be handled by default but can stay standard
+    )
+
     class Meta:
+        model = Claim
         fields = [
             'fecha_siniestro',
             'causa',
@@ -212,10 +221,6 @@ class AssetClaimReportForm(forms.ModelForm):
         }
     
     def __init__(self, *args, **kwargs):
-        # Import here to avoid circular import
-        from claims.models import Claim
-        self.Meta.model = Claim
-        
         self.asset = kwargs.pop('asset', None)
         super().__init__(*args, **kwargs)
         

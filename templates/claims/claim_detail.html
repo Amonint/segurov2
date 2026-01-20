@@ -15,17 +15,63 @@
             <p class="text-gray-600">Detalles y seguimiento del incidente</p>
         </div>
         <div class="flex gap-3">
-            <a href="{% url 'claims:claim_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+            <a href="{% url 'claims:claim_list' %}"
+                class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
                 <i class="bi bi-arrow-left mr-2"></i> Volver
             </a>
             {% if 'claims_change' in user_permissions %}
-            <button class="text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg flex items-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+            <button
+                class="text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg flex items-center"
+                style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);"
+                onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';"
+                onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
                 <i class="bi bi-pencil mr-2"></i> Editar
             </button>
             {% endif %}
         </div>
     </div>
 </div>
+
+{% if claim.status == 'docs_pendientes' and user == claim.reported_by %}
+<div class="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="bi bi-exclamation-triangle-fill text-amber-500 text-xl"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-bold text-amber-800">Acción Requerida</h3>
+            <p class="text-sm text-amber-700 mt-1">
+                Su siniestro requiere correcciones o documentación adicional. Por favor revise las notas del
+                administrador y suba los documentos faltantes.
+            </p>
+            {% if timeline.0.notes %}
+            <div class="mt-2 text-sm text-amber-800 font-mono bg-amber-100 p-2 rounded">
+                <strong>Nota del Administrador:</strong> {{ timeline.0.notes }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% elif claim.status == 'rechazado' and user == claim.reported_by %}
+<div class="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="bi bi-x-circle-fill text-red-500 text-xl"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-bold text-red-800">Siniestro Rechazado</h3>
+            <p class="text-sm text-red-700 mt-1">
+                Su siniestro ha sido rechazado.
+            </p>
+            {% if claim.rejection_reason %}
+            <div class="mt-2 text-sm text-red-800 font-mono bg-red-100 p-2 rounded">
+                <strong>Motivo:</strong> {{ claim.rejection_reason }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Main Content -->
@@ -55,8 +101,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- General Info -->
                     <div class="space-y-4">
-                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-red-200">Información General</h3>
-                        
+                        <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-red-200">Información
+                            General</h3>
+
                         <div class="bg-gray-50 p-4 rounded-xl">
                             <label class="text-gray-600 text-sm font-semibold">Número de Siniestro</label>
                             <p class="text-gray-900 font-bold text-lg mt-1">{{ claim.claim_number }}</p>
@@ -65,7 +112,9 @@
                         <div class="bg-gray-50 p-4 rounded-xl">
                             <label class="text-gray-600 text-sm font-semibold">Póliza Asociada</label>
                             {% if claim.policy %}
-                            <a href="{% url 'policies:policy_detail' claim.policy.pk %}" class="font-bold text-lg mt-1 block hover:opacity-80 transition-opacity" style="color: #4a7dbb;">
+                            <a href="{% url 'policies:policy_detail' claim.policy.pk %}"
+                                class="font-bold text-lg mt-1 block hover:opacity-80 transition-opacity"
+                                style="color: #4a7dbb;">
                                 {{ claim.policy.policy_number }}
                             </a>
                             {% else %}
@@ -95,7 +144,7 @@
                     <!-- Dates -->
                     <div class="space-y-4">
                         <h3 class="font-bold text-gray-900 text-lg mb-4 pb-2 border-b-2 border-blue-200">Cronología</h3>
-                        
+
                         <div class="bg-gray-50 p-4 rounded-xl">
                             <label class="text-gray-600 text-sm font-semibold flex items-center">
                                 <i class="bi bi-calendar-event mr-1"></i> Fecha del Incidente
@@ -124,7 +173,8 @@
                             <label class="text-blue-700 text-sm font-semibold flex items-center">
                                 <i class="bi bi-cash-stack mr-1"></i> Monto Aprobado
                             </label>
-                            <p class="text-blue-900 font-bold text-lg mt-1">${{ claim.approved_amount|floatformat:2 }}</p>
+                            <p class="text-blue-900 font-bold text-lg mt-1">${{ claim.approved_amount|floatformat:2 }}
+                            </p>
                         </div>
                         {% endif %}
                     </div>
@@ -177,13 +227,30 @@
                 {% endif %}
 
                 <!-- Rejection Reason -->
-                {% if claim.rejection_reason %}
+                {% if claim.status == 'rejected' and claim.rejection_reason %}
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h3 class="font-bold text-gray-900 text-lg mb-4">Motivo de Rechazo</h3>
                     <div class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-400 rounded-xl p-6">
                         <div class="flex items-start">
                             <i class="bi bi-exclamation-circle text-red-600 text-3xl mr-4 mt-1"></i>
                             <p class="text-red-800 font-semibold leading-relaxed">{{ claim.rejection_reason }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% elif latest_status_note %}
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">
+                        {% if claim.status == 'rejected' %}Motivo de Rechazo{% else %}Correcciones Solicitadas{% endif
+                        %}
+                    </h3>
+                    <div
+                        class="bg-gradient-to-br {% if claim.status == 'rejected' %}from-red-50 to-red-100 border-red-400{% else %}from-amber-50 to-amber-100 border-amber-400{% endif %} border-2 rounded-xl p-6">
+                        <div class="flex items-start">
+                            <i
+                                class="bi {% if claim.status == 'rejected' %}bi-exclamation-circle text-red-600{% else %}bi-info-circle text-amber-600{% endif %} text-3xl mr-4 mt-1"></i>
+                            <p
+                                class="{% if claim.status == 'rejected' %}text-red-800{% else %}text-amber-900{% endif %} font-semibold leading-relaxed">
+                                {{ latest_status_note }}</p>
                         </div>
                     </div>
                 </div>
@@ -206,7 +273,12 @@
                     <div class="flex items-start">
                         <div class="flex-shrink-0 mr-4">
                             <div class="flex items-center justify-center h-12 w-12 rounded-full text-white
-                                {% if event.event_type == 'created' %}{% elif event.event_type == 'status_changed' %}bg-purple-500{% elif event.event_type == 'assigned' %}bg-amber-500{% elif event.event_type == 'document_added' %}bg-green-500{% elif event.event_type == 'liquidated' %}bg-green-600{% elif event.event_type == 'paid' %}" style="{% if event.event_type == 'created' %}background-color: #4a7dbb;{% elif event.event_type == 'paid' %}background-color: #4a7dbb;{% else %}{% endif %}
+                                {% if event.event_type == 'created' %}bg-blue-600
+                                {% elif event.event_type == 'status_changed' %}bg-purple-500
+                                {% elif event.event_type == 'assigned' %}bg-amber-500
+                                {% elif event.event_type == 'document_added' %}bg-green-500
+                                {% elif event.event_type == 'liquidated' %}bg-green-600
+                                {% elif event.event_type == 'paid' %}bg-green-700
                                 {% elif event.event_type == 'rejected' %}bg-red-500
                                 {% else %}bg-gray-500{% endif %}"
                                 style="{% if event.event_type == 'created' or event.event_type == 'paid' %}background-color: #4a7dbb;{% endif %}">
@@ -227,7 +299,8 @@
                                 <h4 class="font-bold text-gray-900">{{ event.get_event_type_display }}</h4>
                                 <p class="text-gray-700 mt-2">{{ event.event_description }}</p>
                                 <div class="flex justify-between items-center mt-3 text-sm">
-                                    <span class="text-gray-500">{{ event.created_at|date:"d/m/Y H:i" }} • {{ event.created_by.get_full_name }}</span>
+                                    <span class="text-gray-500">{{ event.created_at|date:"d/m/Y H:i" }} • {{
+                                        event.created_by.get_full_name }}</span>
                                     {% if event.old_status and event.new_status %}
                                     <span class="bg-white px-3 py-1 rounded-full text-xs font-semibold">
                                         {{ event.get_old_status_display }} → {{ event.get_new_status_display }}
@@ -248,6 +321,52 @@
             </div>
         </div>
 
+        <!-- Validation Panel (Managers Only) -->
+        {% if validation_checklist %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-t-4 border-amber-500">
+            <div class="p-6 border-b border-gray-100 bg-amber-50 flex justify-between items-center">
+                <h2 class="text-amber-800 font-bold text-xl flex items-center">
+                    <i class="bi bi-clipboard-check mr-2"></i>
+                    Validación de Requisitos
+                </h2>
+                <span
+                    class="text-xs font-semibold uppercase tracking-wider text-amber-800 bg-amber-200 px-2 py-1 rounded">Uso
+                    Interno</span>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4">Verifique que la documentación obligatoria esté presente antes de
+                    cambiar el estado.</p>
+
+                <div class="space-y-3">
+                    {% for item in validation_checklist %}
+                    <div
+                        class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50">
+                        <div class="flex items-center">
+                            <i class="bi {{ item.status_icon }} text-xl mr-3"></i>
+                            <span class="font-medium text-gray-700">{{ item.name }}</span>
+                        </div>
+                        <span
+                            class="text-sm {% if item.is_present %}text-green-600 font-bold{% else %}text-gray-400{% endif %}">
+                            {{ item.status_text }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-3">
+                    <a href="{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_pendientes"
+                        class="flex-1 bg-amber-100 text-amber-800 hover:bg-amber-200 font-semibold py-2 px-4 rounded-lg text-center transition">
+                        <i class="bi bi-arrow-return-left mr-1"></i> Solicitar Corrección
+                    </a>
+                    <a href="{% url 'claims:claim_update_status' claim.pk %}?new_status=enviado_aseguradora"
+                        class="flex-1 bg-green-600 text-white hover:bg-green-700 font-semibold py-2 px-4 rounded-lg text-center transition shadow">
+                        <i class="bi bi-check-lg mr-1"></i> Validar y Enviar
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Documents -->
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div class="bg-gradient-to-r from-green-600 to-green-700 p-6 flex justify-between items-center">
@@ -255,10 +374,11 @@
                     <i class="bi bi-file-earmark-text mr-2"></i>
                     Documentos
                 </h2>
-                {% if 'claims_change' in user_permissions %}
-                <button class="bg-white text-green-600 font-semibold py-2 px-4 rounded-lg hover:bg-green-50 transition-all duration-300 flex items-center">
+                {% if can_change_status or can_edit %}
+                <a href="{% url 'claims:claim_document_upload' claim.pk %}"
+                    class="bg-white text-green-600 font-semibold py-2 px-4 rounded-lg hover:bg-green-50 transition-all duration-300 flex items-center">
                     <i class="bi bi-plus mr-2"></i> Agregar Documento
-                </button>
+                </a>
                 {% endif %}
             </div>
             <div class="p-6">
@@ -277,18 +397,23 @@
                                 </div>
                             </div>
                             {% if document.is_required %}
-                            <span class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-semibold">Requerido</span>
+                            <span
+                                class="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-semibold">Requerido</span>
                             {% endif %}
                         </div>
-                        <p class="text-gray-600 text-sm mb-3">{{ document.uploaded_by.get_full_name }} • {{ document.uploaded_at|date:"d/m/Y" }}</p>
+                        <p class="text-gray-600 text-sm mb-3">{{ document.uploaded_by.get_full_name }} • {{
+                            document.uploaded_at|date:"d/m/Y" }}</p>
                         <div class="flex gap-2">
-                            <a href="#" class="flex-1 py-2 px-3 rounded-lg hover:opacity-80 transition-all duration-300 flex items-center justify-center text-sm font-semibold text-white" style="background-color: #4a7dbb;">
+                            <a href="{{ document.file.url }}" target="_blank"
+                                class="flex-1 py-2 px-3 rounded-lg hover:opacity-80 transition-all duration-300 flex items-center justify-center text-sm font-semibold text-white"
+                                style="background-color: #4a7dbb;">
                                 <i class="bi bi-download mr-1"></i> Descargar
                             </a>
-                            {% if 'claims_change' in user_permissions %}
-                            <button class="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-all duration-300">
+                            {% if 'claims_write' in user_permissions or can_edit %}
+                            <a href="{% url 'claims:claim_document_delete' document.pk %}"
+                                class="bg-red-100 text-red-700 py-2 px-3 rounded-lg hover:bg-red-200 transition-all duration-300">
                                 <i class="bi bi-trash"></i>
-                            </button>
+                            </a>
                             {% endif %}
                         </div>
                     </div>
@@ -351,8 +476,8 @@
                             </span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-1000" 
-                                 style="width: {% if claim.status == 'reported' %}10%
+                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-1000"
+                                style="width: {% if claim.status == 'reported' %}10%
                                     {% elif claim.status == 'documentation_pending' %}25%
                                     {% elif claim.status == 'sent_to_insurer' %}40%
                                     {% elif claim.status == 'under_evaluation' %}60%
@@ -370,27 +495,31 @@
         </div>
 
         <!-- Quick Actions -->
-        {% if 'claims_change' in user_permissions %}
+        {% if can_change_status %}
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
             <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
                 <h3 class="text-white font-bold text-lg flex items-center">
                     <i class="bi bi-tools mr-2"></i>
-                    Acciones Rápidas
+                    Gestión del Siniestro
                 </h3>
             </div>
             <div class="p-6 space-y-3">
-                <button onclick="changeStatus('documentation_pending')" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-amber-200 hover:border-amber-400">
-                    <i class="bi bi-file-earmark mr-2"></i> Solicitar Documentación
-                </button>
-                <button onclick="changeStatus('sent_to_insurer')" class="w-full font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 text-white" style="background-color: #f0f4f9; color: #4a7dbb; border-color: #b8cae3;" onmouseover="this.style.backgroundColor='#dce5f0';" onmouseout="this.style.backgroundColor='#f0f4f9';">
-                    <i class="bi bi-send mr-2"></i> Enviar a Aseguradora
-                </button>
-                <button onclick="changeStatus('liquidated')" class="w-full bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-green-200 hover:border-green-400">
-                    <i class="bi bi-check-circle mr-2"></i> Liquidar
-                </button>
-                <button onclick="changeStatus('rejected')" class="w-full bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center border-2 border-red-200 hover:border-red-400">
-                    <i class="bi bi-x-circle mr-2"></i> Rechazar
-                </button>
+                <a href="{% url 'claims:claim_update_status' claim.pk %}"
+                    class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300">
+                    <i class="bi bi-arrow-repeat mr-2"></i> Cambiar Estado
+                </a>
+
+                <hr class="border-gray-100 my-2">
+
+                <a href="{% url 'claims:claim_update_status' claim.pk %}?initial=liquidated"
+                    class="block w-full text-center bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-green-200 hover:border-green-400">
+                    <i class="bi bi-check-circle mr-2"></i> Liquidar Siniestro
+                </a>
+
+                <a href="{% url 'claims:claim_update_status' claim.pk %}?initial=rejected"
+                    class="block w-full text-center bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-red-200 hover:border-red-400">
+                    <i class="bi bi-x-circle mr-2"></i> Rechazar Siniestro
+                </a>
             </div>
         </div>
         {% endif %}
@@ -405,11 +534,16 @@
                 <h3 class="text-lg font-bold text-gray-900">Finiquito</h3>
             </div>
             {% if not claim.settlement %}
-            <a href="{% url 'claims:claim_settlement_create' claim.pk %}" class="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-center">
+            <a href="{% url 'claims:claim_settlement_create' claim.pk %}"
+                class="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-center">
                 <i class="bi bi-file-earmark-check mr-2"></i> Crear Finiquito
             </a>
             {% else %}
-            <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}" class="block w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+            <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}"
+                class="block w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center"
+                style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);"
+                onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';"
+                onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
                 <i class="bi bi-eye mr-2"></i> Ver Finiquito
             </a>
             {% endif %}
@@ -422,19 +556,17 @@
 
 {% block extra_js %}
 <script>
-function changeStatus(newStatus) {
-    if (confirm('¿Está seguro de cambiar el estado del siniestro?')) {
-        showNotification('Funcionalidad en desarrollo: Cambiar estado del siniestro', 'info');
-    }
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.space-y-6 > div');
-    cards.forEach((card, index) => {
-        setTimeout(() => {
-            card.classList.add('fade-in');
-        }, index * 100);
+    // changeStatus function removed - using direct links now
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.space-y-6 > div');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.classList.add('fade-in');
+            }, index * 100);
+        });
     });
-});
 </script>
 {% endblock %}

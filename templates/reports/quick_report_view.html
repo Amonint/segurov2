@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+<<<<<<< HEAD
 {% load static %}
 
 {% block title %}Reporte Rapido - Resultados{% endblock %}
@@ -87,11 +88,129 @@
                         {% empty %}
                         <tr>
                             <td colspan="5" class="py-6 text-center text-gray-500">Sin polizas por vencer</td>
+=======
+{% load i18n humanize %}
+
+{% block title %}Resultados del Reporte | Sistema de Seguros{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header with Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Resultados del Reporte</h1>
+            <p class="text-gray-600">
+                Generado el {{ generated_at|date:"d/m/Y H:i" }} |
+                <span class="font-medium text-blue-600">
+                    {% if report_type == 'policies_summary' %}Resumen de Pólizas
+                    {% elif report_type == 'policies_expiring' %}Pólizas por Vencer
+                    {% elif report_type == 'claims_summary' %}Resumen de Siniestros
+                    {% elif report_type == 'financial_summary' %}Resumen Financiero
+                    {% elif report_type == 'performance_metrics' %}Métricas de Rendimiento
+                    {% else %}{{ report_type }}{% endif %}
+                </span>
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="window.print()"
+                class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 flex items-center shadow-sm">
+                <i class="bi bi-printer mr-2"></i>
+                Imprimir
+            </button>
+            <a href="{% url 'reports:quick_report' %}"
+                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center shadow-md">
+                <i class="bi bi-arrow-counterclockwise mr-2"></i>
+                Nuevo Reporte
+            </a>
+        </div>
+    </div>
+
+    <!-- Report Content -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+
+        <!-- Policies Summary -->
+        {% if report_type == 'policies_summary' %}
+        <div class="p-6">
+            <h2 class="text-lg font-semibold mb-6 border-b pb-2">Resumen General de Pólizas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <p class="text-sm text-blue-600 font-medium">Total Pólizas</p>
+                    <p class="text-3xl font-bold text-blue-800">{{ report_data.data.total_policies }}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-green-600 font-medium">Activas</p>
+                    <p class="text-3xl font-bold text-green-800">{{ report_data.data.active_policies }}</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-sm text-red-600 font-medium">Vencidas</p>
+                    <p class="text-3xl font-bold text-red-800">{{ report_data.data.expired_policies }}</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <p class="text-sm text-yellow-600 font-medium">Por Vencer (30 días)</p>
+                    <p class="text-3xl font-bold text-yellow-800">{{ report_data.data.expiring_30_days }}</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <p class="text-gray-500 font-medium mb-1">Valor Total Asegurado (Activas)</p>
+                    <p class="text-4xl font-bold text-gray-800">${{ report_data.data.total_insured_value|intcomma }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policies Expiring -->
+        {% elif report_type == 'policies_expiring' %}
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6 border-b pb-2">
+                <h2 class="text-lg font-semibold">Listado de Pólizas por Vencer</h2>
+                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-200">
+                    {{ report_data.data.total_count }} registros encontrados
+                </span>
+            </div>
+
+            {% if report_data.data.policies %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Póliza</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aseguradora</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Vencimiento</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Valor Asegurado</th>
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Responsable</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for policy in report_data.data.policies %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{{
+                                policy.policy_number }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                                policy.insurance_company__name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">{{
+                                policy.end_date|date:"d/m/Y" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">${{
+                                policy.insured_value|intcomma }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{
+                                policy.responsible_user__username }}</td>
+>>>>>>> Frontend_LuisMorales
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+<<<<<<< HEAD
             {% elif report_data.report_type == 'claims_summary' %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
@@ -229,3 +348,184 @@
     </div>
 </div>
 {% endblock %}
+=======
+            {% else %}
+            <div class="text-center py-10 text-gray-500">
+                <i class="bi bi-check-circle text-4xl text-green-500 mb-3 block"></i>
+                <p>No hay pólizas próximas a vencer en el período seleccionado.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Claims Summary -->
+        {% elif report_type == 'claims_summary' %}
+        <div class="p-6">
+            <h2 class="text-lg font-semibold mb-6 border-b pb-2">Resumen de Siniestros</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-gray-50 p-4 rounded-lg text-center">
+                    <p class="text-sm text-gray-500">Total Reportados</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ report_data.data.total_claims }}</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <p class="text-sm text-blue-600">Abiertos</p>
+                    <p class="text-2xl font-bold text-blue-800">{{ report_data.data.open_claims }}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <p class="text-sm text-green-600">Pagados</p>
+                    <p class="text-2xl font-bold text-green-800">{{ report_data.data.paid_claims }}</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <p class="text-sm text-purple-600">Total Pagado</p>
+                    <p class="text-2xl font-bold text-purple-800 font-mono">${{
+                        report_data.data.total_paid_amount|intcomma }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 mb-3">Por Estado</h3>
+                    <ul class="divide-y divide-gray-100 bg-gray-50 rounded-lg p-2">
+                        {% for status in report_data.data.claims_by_status %}
+                        <li class="flex justify-between py-2 px-3">
+                            <span class="capitalize">{{ status.status }}</span>
+                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{
+                                status.count }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="p-3 text-center text-gray-500 text-sm">No hay datos disponibles</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-md font-medium text-gray-700 mb-3">Top Causas</h3>
+                    <ul class="divide-y divide-gray-100 bg-gray-50 rounded-lg p-2">
+                        {% for cause in report_data.data.claims_by_cause %}
+                        <li class="flex justify-between py-2 px-3">
+                            <span class="truncate pr-4">{{ cause.incident_description|default:"Sin descripción"
+                                }}</span>
+                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{
+                                cause.count }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="p-3 text-center text-gray-500 text-sm">No hay datos disponibles</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        {% elif report_type == 'financial_summary' %}
+        <div class="p-6">
+            <h2 class="text-lg font-semibold mb-6 border-b pb-2">Resumen Financiero</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div>
+                    <div class="bg-blue-600 p-6 rounded-lg text-white shadow-lg">
+                        <p class="text-blue-100 text-sm font-medium mb-1">Ingresos Totales (Pagado)</p>
+                        <p class="text-3xl font-bold">${{ report_data.data.total_revenue|intcomma }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-orange-500 p-6 rounded-lg text-white shadow-lg">
+                        <p class="text-orange-100 text-sm font-medium mb-1">Pendiente de Cobro</p>
+                        <p class="text-3xl font-bold">${{ report_data.data.pending_amount|intcomma }}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="bg-emerald-600 p-6 rounded-lg text-white shadow-lg">
+                        <p class="text-emerald-100 text-sm font-medium mb-1">Ingresos Este Mes</p>
+                        <p class="text-3xl font-bold">${{ report_data.data.monthly_revenue|intcomma }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="p-4 border rounded-lg bg-gray-50">
+                    <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Total Facturas</p>
+                    <p class="text-2xl font-bold text-gray-700 mt-1">{{ report_data.data.total_invoices }}</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-green-50 border-green-100">
+                    <p class="text-xs text-green-600 uppercase font-bold tracking-wide">Pagadas</p>
+                    <p class="text-2xl font-bold text-green-700 mt-1">{{ report_data.data.paid_invoices }}</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-orange-50 border-orange-100">
+                    <p class="text-xs text-orange-600 uppercase font-bold tracking-wide">Pendientes</p>
+                    <p class="text-2xl font-bold text-orange-700 mt-1">{{ report_data.data.pending_invoices }}</p>
+                </div>
+                <div class="p-4 border rounded-lg bg-red-50 border-red-100">
+                    <p class="text-xs text-red-600 uppercase font-bold tracking-wide">Vencidas</p>
+                    <p class="text-2xl font-bold text-red-700 mt-1">{{ report_data.data.overdue_invoices }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        {% elif report_type == 'performance_metrics' %}
+        <div class="p-6">
+            <h2 class="text-lg font-semibold mb-6 border-b pb-2">Métricas de Rendimiento</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Resolution Time -->
+                <div
+                    class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                    <div
+                        class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-4 text-indigo-600">
+                        <i class="bi bi-clock-history text-3xl"></i>
+                    </div>
+                    <p class="text-4xl font-bold text-indigo-800">{{ report_data.data.avg_resolution_time_days }}</p>
+                    <p class="text-sm font-medium text-indigo-600 mt-1">Días Promedio</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Tiempo de resolución de siniestros</p>
+                </div>
+
+                <!-- Resolution Rate -->
+                <div
+                    class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <div
+                        class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-4 text-green-600">
+                        <i class="bi bi-check-all text-3xl"></i>
+                    </div>
+                    <p class="text-4xl font-bold text-green-800">{{ report_data.data.claims_resolution_rate_percent }}%
+                    </p>
+                    <p class="text-sm font-medium text-green-600 mt-1">Tasa de Resolución</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Siniestros resueltos vs totales</p>
+                </div>
+
+                <!-- Policy Utilization -->
+                <div
+                    class="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-sky-50 rounded-xl border border-blue-100">
+                    <div
+                        class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-md mb-4 text-blue-600">
+                        <i class="bi bi-shield-check text-3xl"></i>
+                    </div>
+                    <p class="text-4xl font-bold text-blue-800">{{ report_data.data.policy_utilization_percent }}%</p>
+                    <p class="text-sm font-medium text-blue-600 mt-1">Utilización de Pólizas</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Pólizas activas vs total histórico</p>
+                </div>
+            </div>
+
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 border rounded-lg flex justify-between items-center bg-gray-50">
+                    <span class="text-gray-600">Total Pólizas Activas</span>
+                    <span class="font-bold text-xl">{{ report_data.data.total_active_policies }}</span>
+                </div>
+                <div class="p-4 border rounded-lg flex justify-between items-center bg-gray-50">
+                    <span class="text-gray-600">Siniestros en Trámite</span>
+                    <span class="font-bold text-xl">{{ report_data.data.total_open_claims }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Default Fallback -->
+        <div class="p-6">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <pre
+                    class="whitespace-pre-wrap text-sm text-gray-700 bg-white p-4 rounded border border-gray-200 overflow-auto max-h-96">{{ report_data|pprint }}</pre>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+>>>>>>> Frontend_LuisMorales

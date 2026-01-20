@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+<<<<<<< HEAD
 {% load static %}
 {% load crispy_forms_tags %}
 
@@ -52,9 +53,104 @@
                 <button type="submit"
                     class="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg">
                     <i class="bi bi-check-circle mr-2"></i> {{ submit_text }}
+=======
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="mb-6">
+        <a href="{% url 'reports:report_list' %}" class="text-blue-600 hover:underline flex items-center">
+            <i class="bi bi-arrow-left mr-1"></i> {% trans "Volver a la lista" %}
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4 border-b border-blue-700">
+            <h1 class="text-xl font-bold text-white">{{ title|default:"Gestión de Reporte" }}</h1>
+        </div>
+
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-exclamation-circle text-red-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">{% trans "Error" %}</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            {{ form.non_field_errors }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="space-y-4">
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ field.label }}
+                        {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                    </label>
+
+                    <div class="mt-1 relative rounded-md shadow-sm">
+                        {% if field.field.widget.input_type == "checkbox" %}
+                        <div class="flex items-center h-5">
+                            {{ field }}
+                            <span class="ml-2 text-gray-600 text-sm">{{ field.help_text }}</span>
+                        </div>
+                        {% else %}
+                        {{ field }}
+                        {% endif %}
+                    </div>
+
+                    {% if field.errors %}
+                    <p class="mt-2 text-sm text-red-600">{{ field.errors.0 }}</p>
+                    {% endif %}
+
+                    {% if field.help_text and field.field.widget.input_type != "checkbox" %}
+                    <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-4 flex justify-end space-x-3 border-t border-gray-100 mt-6">
+                <a href="{% url 'reports:report_list' %}"
+                    class="bg-white py-2 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {% trans "Cancelar" %}
+                </a>
+                <button type="submit"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {{ submit_text|default:"Guardar Reporte" }}
+>>>>>>> Frontend_LuisMorales
                 </button>
             </div>
         </form>
     </div>
 </div>
+<<<<<<< HEAD
 {% endblock %}
+=======
+
+<script>
+    // Simple script to style default Django form widgets if they don't have classes
+    document.addEventListener('DOMContentLoaded', function () {
+        const inputs = document.querySelectorAll('input:not([type="checkbox"]):not([type="submit"]), select, textarea');
+        inputs.forEach(input => {
+            if (!input.classList.contains('form-control')) {
+                input.classList.add('block', 'w-full', 'rounded-lg', 'border-gray-300', 'shadow-sm', 'focus:ring-blue-500', 'focus:border-blue-500', 'sm:text-sm', 'py-2', 'px-3', 'border');
+            }
+        });
+
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(box => {
+            box.classList.add('focus:ring-blue-500', 'h-4', 'w-4', 'text-blue-600', 'border-gray-300', 'rounded');
+        });
+    });
+</script>
+{% endblock %}
+>>>>>>> Frontend_LuisMorales
