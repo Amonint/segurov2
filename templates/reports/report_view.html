@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6 flex justify-between items-center">
+        <a href="{% url 'reports:report_detail' report.pk %}" class="text-blue-600 hover:underline flex items-center">
+            <i class="bi bi-arrow-left mr-1"></i> {% trans "Volver al detalle" %}
+        </a>
+        <div class="text-sm text-gray-500">
+            Generado: {{ execution.executed_at|date:"d/m/Y H:i:s" }}
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-blue-600">
+        <h1 class="text-2xl font-bold text-gray-800">{{ report.name }}</h1>
+        <p class="text-gray-600 mt-1">
+            <span
+                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {{ report.get_report_type_display }}
+            </span>
+            <span class="ml-2 text-sm">Periodo: {{ report_data.filters.date_from|default:"Inicio" }} - {{
+                report_data.filters.date_to|default:"Fin" }}</span>
+        </p>
+    </div>
+
+    <!-- Dynamic Content based on Report Type -->
+    <div class="space-y-8">
+
+        <!-- Summary Cards -->
+        {% if report_data.summary %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for key, value in report_data.summary.items %}
+            <div class="bg-white rounded-xl shadow p-5 border border-gray-100">
+                <h3 class="text-gray-500 text-sm font-medium uppercase tracking-wider">{{ key|title }}</h3>
+                <div class="mt-2 text-3xl font-bold text-gray-800">
+                    {% if "Monto" in key or "Total" in key and "$" in value|stringformat:"s" %}
+                    {{ value }}
+                    {% else %}
+                    {{ value }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Main Data Table -->
+        {% if report_data.items %}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-700">Detalle de Registros</h3>
+                <span class="text-xs text-gray-500">{{ report_data.items|length }} registros encontrados</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-gray-600">
+                    <thead class="bg-gray-50 text-gray-500 uppercase font-medium border-b border-gray-200">
+                        <tr>
+                            {# Dynamically generate headers from the first item if possible, or manual mapping #}
+                            {% for key in report_data.headers %}
+                            <th class="px-6 py-3 whitespace-nowrap">{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for item in report_data.items %}
+                        <tr class="hover:bg-gray-50 transition">
+                            {# Iterate values in the same order as headers if possible #}
+                            {% for value in item.values %}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {{ value|default:"-" }}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-white rounded-xl shadow p-8 text-center">
+            <p class="text-gray-500 italic">No se encontraron resultados para los filtros seleccionados.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

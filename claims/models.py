@@ -320,8 +320,53 @@ class Claim(models.Model):
             event_description=f'Cambio de estado: {old_status} → {new_status}',
             old_status=old_status,
             new_status=new_status,
-            created_by=user
+            created_by=user,
+            notes=notes  # Assuming ClaimTimeline has a notes field, if not we might need to add it or append to description
         )
+
+        # --- TDR Notification Logic ---
+        from notifications.models import Notification
+        
+        # Determine notification recipient (usually the reporter/custodian)
+        recipient = self.reported_by
+        
+        if recipient and recipient != user: # Don't notify self
+            if new_status == 'docs_pendientes':
+                Notification.create_notification(
+                    user=recipient,
+                    notification_type='document_required',
+                    title=f'Corrección Requerida: Siniestro {self.claim_number}',
+                    message=f'Se requiere documentación adicional o correcciones para su siniestro. Nota: {notes or "Sin notas adicionales."}',
+                    priority='high',
+                    link=f'/claims/{self.pk}/'
+                )
+            elif new_status == 'rechazado':
+                Notification.create_notification(
+                    user=recipient,
+                    notification_type='alert',
+                    title=f'Siniestro Rechazado: {self.claim_number}',
+                    message=f'Su siniestro ha sido rechazado. Razón: {notes or "Contacte a administración."}',
+                    priority='urgent',
+                    link=f'/claims/{self.pk}/'
+                )
+            elif new_status == 'enviado_aseguradora':
+                 Notification.create_notification(
+                    user=recipient,
+                    notification_type='claim_update',
+                    title=f'Siniestro en Trámite: {self.claim_number}',
+                    message=f'Su siniestro ha sido validado y enviado a la aseguradora.',
+                    priority='normal',
+                    link=f'/claims/{self.pk}/'
+                )
+            elif new_status == 'pagado':
+                 Notification.create_notification(
+                    user=recipient,
+                    notification_type='claim_update',
+                    title=f'Siniestro Pagado: {self.claim_number}',
+                    message=f'El pago de su siniestro ha sido procesado.',
+                    priority='normal',
+                    link=f'/claims/{self.pk}/'
+                )
 
         return True
 
@@ -784,6 +829,11 @@ class ClaimTimeline(models.Model):
         _('Estado nuevo'),
         max_length=25,
         blank=True
+    )
+    notes = models.TextField(
+        _('Notas/Observaciones'),
+        blank=True,
+        help_text=_('Notas adicionales sobre el cambio de estado')
     )
     created_by = models.ForeignKey(
         UserProfile,

@@ -1,0 +1,56 @@
+﻿­ƒÜÇ Iniciando poblaci├│n final de base de datos...
+Limpiando datos de prueba anteriores...
+
+­ƒô£ Creando P├│lizas...
+  Ô£ô P├│liza POL-2026-AUTO-001 (Incendio y L├¡neas Aliadas)
+  Ô£ô P├│liza POL-2026-AUTO-002 (Equipo Electr├│nico)
+  Ô£ô P├│liza POL-2026-AUTO-003 (Robo y Asalto)
+  Ô£ô P├│liza POL-2026-AUTO-004 (Responsabilidad Civil)
+  Ô£ô P├│liza POL-2026-AUTO-005 (Veh├¡culos)
+Ô£ô 5 p├│lizas creadas exitosamente
+
+­ƒôª Asignando P├│lizas a Bienes existentes...
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Dell OptiPlex 7090
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a HP EliteBook 840
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Dell PowerEdge R750
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Cisco Catalyst 9300
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a HP LaserJet Pro
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Epson PowerLite L610U
+  Ô£ô Asignada p├│liza POL-2026-AUTO-001 a LG Dual Inverter
+  Ô£ô Asignada p├│liza POL-2026-AUTO-001 a Muebles Modernos Ejecutivo
+  Ô£ô Asignada p├│liza POL-2026-AUTO-001 a Ergon├│mica Pro Executive Plus
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Lenovo ThinkCentre
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Olympus CX43
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Dell Latitude 5420
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Canon imageRUNNER
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a Epson EB-X41
+  Ô£ô Asignada p├│liza POL-2026-AUTO-002 a HP ProDesk 600
+Ô£ô 15 bienes actualizados con p├│liza
+
+­ƒÜ¿ Creando Siniestros...
+  ÔÜá Error siniestro 1: {'claim_number': ['Ya existe Siniestro con este N├║mero de siniestro.']}
+  ÔÜá Error siniestro 2: {'claim_number': ['Ya existe Siniestro con este N├║mero de siniestro.']}
+  ÔÜá Error siniestro 3: {'claim_number': ['Ya existe Siniestro con este N├║mero de siniestro.']}
+  ÔÜá Error siniestro 4: {'claim_number': ['Ya existe Siniestro con este N├║mero de siniestro.']}
+  ÔÜá Error siniestro 5: {'claim_number': ['Ya existe Siniestro con este N├║mero de siniestro.']}
+Ô£ô 0 siniestros creados
+
+­ƒÆ░ Creando Facturas...
+  Ô£ô Factura INV-2026-AUTO-001 para P├│liza POL-2026-AUTO-001
+  Ô£ô Factura INV-2026-AUTO-002 para P├│liza POL-2026-AUTO-002
+  Ô£ô Factura INV-2026-AUTO-003 para P├│liza POL-2026-AUTO-003
+  Ô£ô Factura INV-2026-AUTO-004 para P├│liza POL-2026-AUTO-004
+  Ô£ô Factura INV-2026-AUTO-005 para P├│liza POL-2026-AUTO-005
+Ô£ô 5 facturas creadas
+
+======================================================================
+Ô£à ┬íBase de datos completa! Todo vinculado correctamente.
+======================================================================
+
+­ƒôè RESUMEN FINAL
+======================================================================
+  ­ƒôï P├│lizas: 6
+  ­ƒôª Bienes: 15 (Asegurados: 15)
+  ­ƒÜ¿ Siniestros: 5
+  ­ƒÆ░ Facturas: 5
+======================================================================

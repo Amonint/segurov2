@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{% trans "Dashboard de Reportes" %}</h1>
+            <p class="text-gray-600">{% trans "Visión general métricas y acceso a reportes" %}</p>
+        </div>
+        <div class="flex space-x-4">
+            <a href="{% url 'reports:report_create' %}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                <i class="bi bi-plus-lg mr-2"></i> {% trans "Crear Reporte Personalizado" %}
+            </a>
+            <a href="{% url 'reports:quick_report' %}"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow transition duration-300 flex items-center">
+                <i class="bi bi-lightning-charge mr-2"></i> {% trans "Reporte Rápido" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Policies -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium uppercase tracking-wider">Polizas Totales</h3>
+                    <div class="text-3xl font-bold text-gray-800 mt-2">{{ metrics.policies.total }}</div>
+                </div>
+                <div class="p-3 bg-blue-100 rounded-full text-blue-600">
+                    <i class="bi bi-file-earmark-text text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-gray-600">
+                <span class="text-green-600 font-medium flex items-center mr-2">
+                    <i class="bi bi-check-circle mr-1"></i> {{ metrics.policies.active }}
+                </span>
+                <span>Activas</span>
+            </div>
+        </div>
+
+        <!-- Claims -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium uppercase tracking-wider">Siniestros</h3>
+                    <div class="text-3xl font-bold text-gray-800 mt-2">{{ metrics.claims.total }}</div>
+                </div>
+                <div class="p-3 bg-red-100 rounded-full text-red-600">
+                    <i class="bi bi-exclamation-triangle text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-gray-600">
+                <span class="text-orange-600 font-medium flex items-center mr-2">
+                    <i class="bi bi-clock mr-1"></i> {{ metrics.claims.open }}
+                </span>
+                <span>Abiertos</span>
+            </div>
+        </div>
+
+        <!-- Revenue -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium uppercase tracking-wider">Recaudación</h3>
+                    <div class="text-3xl font-bold text-gray-800 mt-2">${{ metrics.financial.total_revenue|floatformat:2
+                        }}</div>
+                </div>
+                <div class="p-3 bg-green-100 rounded-full text-green-600">
+                    <i class="bi bi-currency-dollar text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-gray-600">
+                <span class="text-red-600 font-medium flex items-center mr-2">
+                    <i class="bi bi-arrow-down mr-1"></i> ${{ metrics.financial.pending_amount|floatformat:2 }}
+                </span>
+                <span>Pendiente</span>
+            </div>
+        </div>
+
+        <!-- Assets -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium uppercase tracking-wider">Activos</h3>
+                    <div class="text-3xl font-bold text-gray-800 mt-2">{{ metrics.assets.total }}</div>
+                </div>
+                <div class="p-3 bg-purple-100 rounded-full text-purple-600">
+                    <i class="bi bi-box-seam text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm text-gray-600">
+                <span class="text-purple-600 font-medium flex items-center mr-2">
+                    <i class="bi bi-shield-check mr-1"></i> {{ metrics.assets.insured }}
+                </span>
+                <span>Asegurados</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Reports List -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Actions -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 font-semibold text-gray-700">
+                    Reportes Comunes (Legacy)
+                </div>
+                <div class="p-4 space-y-2">
+                    <a href="{% url 'reports:policies_report' %}"
+                        class="block w-full text-left px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition flex items-center">
+                        <i class="bi bi-file-earmark-medical mr-3 text-blue-500"></i> Reporte de Pólizas
+                    </a>
+                    <a href="{% url 'reports:claims_report' %}"
+                        class="block w-full text-left px-4 py-3 rounded-lg hover:bg-red-50 text-gray-700 hover:text-red-700 transition flex items-center">
+                        <i class="bi bi-exclamation-circle mr-3 text-red-500"></i> Reporte de Siniestros
+                    </a>
+                    <a href="{% url 'reports:invoices_report' %}"
+                        class="block w-full text-left px-4 py-3 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-700 transition flex items-center">
+                        <i class="bi bi-cash-stack mr-3 text-green-500"></i> Reporte de Facturación
+                    </a>
+                    <a href="{% url 'reports:financial_report' %}"
+                        class="block w-full text-left px-4 py-3 rounded-lg hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition flex items-center">
+                        <i class="bi bi-graph-up mr-3 text-gray-500"></i> Resumen Financiero
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Recent Activity / Saved Reports Preview -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Mis Reportes Guardados</span>
+                    <a href="{% url 'reports:report_list' %}" class="text-sm text-blue-600 hover:underline">Ver
+                        todos</a>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    {# This would track recent executions or saved reports if available in context #}
+                    <div class="p-8 text-center text-gray-500">
+                        <i class="bi bi-folder2-open text-4xl mb-3 block"></i>
+                        <p>Accede a 'Ver todos' para gestionar tus reportes personalizados.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

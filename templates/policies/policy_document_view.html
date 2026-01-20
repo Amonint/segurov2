@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="h-screen flex flex-col">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center">
+            <a href="{% url 'policies:policy_documents' policy.pk %}" class="text-gray-500 hover:text-gray-700 mr-4">
+                <i class="bi bi-arrow-left text-xl"></i>
+            </a>
+            <div>
+                <h1 class="font-bold text-gray-800 text-lg">{{ document.document_name }}</h1>
+                <p class="text-xs text-gray-500">v{{ document.version }} • {{ document.uploaded_at|date:"d/m/Y H:i" }}
+                </p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'policies:policy_document_download' document.pk %}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-1.5 px-4 rounded-lg text-sm transition flex items-center">
+                <i class="bi bi-download mr-2"></i> Descargar
+            </a>
+        </div>
+    </div>
+
+    <!-- Viewer -->
+    <div class="flex-grow bg-gray-100 p-4 flex justify-center items-center">
+        {% if document.file.url|lower|slice:"-4:" == ".pdf" %}
+        <iframe src="{{ document.file.url }}" class="w-full h-full rounded shadow-lg bg-white" frameborder="0"></iframe>
+        {% elif document.file.url|lower|slice:"-4:" == ".jpg" or document.file.url|lower|slice:"-4:" == ".png" or
+        document.file.url|lower|slice:"-5:" == ".jpeg" %}
+        <img src="{{ document.file.url }}" alt="{{ document.document_name }}"
+            class="max-w-full max-h-full rounded shadow-lg">
+        {% else %}
+        <div class="text-center">
+            <i class="bi bi-file-earmark-text text-6xl text-gray-400 mb-4 block"></i>
+            <h3 class="text-lg font-medium text-gray-900">Vista previa no disponible</h3>
+            <p class="text-gray-500 mb-4">Este tipo de archivo no se puede previsualizar en el navegador.</p>
+            <a href="{% url 'policies:policy_document_download' document.pk %}"
+                class="text-blue-600 hover:underline">Descargar archivo</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

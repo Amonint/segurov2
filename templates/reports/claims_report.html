@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'reports:dashboard' %}" class="text-blue-600 hover:underline flex items-center">
+            <i class="bi bi-arrow-left mr-1"></i> {% trans "Volver al Dashboard" %}
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{% trans "Reporte de Siniestros" %}</h1>
+            <p class="text-gray-600">Periodo: {{ start_date|date:"d/m/Y" }} - {{ end_date|date:"d/m/Y" }}</p>
+        </div>
+        <div>
+            <a href="{% url 'reports:export_claims_report' %}"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center">
+                <i class="bi bi-file-earmark-spreadsheet mr-2"></i> {% trans "Exportar Excel" %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow p-6 border-l-4 border-red-500">
+            <h3 class="text-gray-500 text-sm font-medium uppercase">Total Siniestros</h3>
+            <div class="mt-2 text-3xl font-bold text-gray-800">{{ total_claims }}</div>
+        </div>
+        <div class="bg-white rounded-xl shadow p-6 border-l-4 border-orange-500">
+            <h3 class="text-gray-500 text-sm font-medium uppercase">Pérdida Estimada Total</h3>
+            <div class="mt-2 text-3xl font-bold text-gray-800">${{ total_estimated_loss|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <!-- Status Stats Table -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h3 class="font-bold text-gray-700">Desglose por Estado</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-gray-500 uppercase font-medium">
+                    <tr>
+                        <th class="px-6 py-3">Estado</th>
+                        <th class="px-6 py-3 text-right">Cantidad</th>
+                        <th class="px-6 py-3 text-right">Porcentaje</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for status in status_stats %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-800">
+                            {# Translate status code to label if possible, or capitalize #}
+                            {{ status.status|title }}
+                        </td>
+                        <td class="px-6 py-4 text-right">{{ status.count }}</td>
+                        <td class="px-6 py-4 text-right">
+                            {% widthratio status.count total_claims 100 %}%
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-gray-500 italic">No hay siniestros reportados
+                            en este periodo.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

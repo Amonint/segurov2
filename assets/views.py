@@ -359,7 +359,7 @@ def asset_report_claim(request, pk):
         return redirect('assets:asset_detail', pk=pk)
     
     if request.method == 'POST':
-        form = AssetClaimReportForm(request.POST, asset=asset)
+        form = AssetClaimReportForm(request.POST, request.FILES, asset=asset)
         if form.is_valid():
             claim = form.save(commit=False)
             claim.asset = asset
@@ -373,6 +373,18 @@ def asset_report_claim(request, pk):
                 claim.aseguradora_notificada = asset.insurance_policy.insurance_company
             
             claim.save()
+            
+            # Handle initial document upload
+            initial_document = form.cleaned_data.get('initial_document')
+            if initial_document:
+                from claims.models import ClaimDocument
+                ClaimDocument.objects.create(
+                    claim=claim,
+                    document_type='initial_report',
+                    file=initial_document,
+                    uploaded_by=request.user,
+                    description=f'Reporte inicial desde bien {asset.asset_code}'
+                )
             
             # Log the action
             try:

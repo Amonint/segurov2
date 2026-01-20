@@ -233,10 +233,10 @@ class Policy(models.Model):
         from companies.models import EmissionRights
         
         # 1. Contribución Superintendencia (3.5% de prima)
-        self.contrib_superintendencia = self.prima * Decimal('0.035')
+        self.contrib_superintendencia = (self.prima * Decimal('0.035')).quantize(Decimal('0.01'))
         
         # 2. Contribución Seguro Campesino (0.5% de prima)
-        self.contrib_seguro_campesino = self.prima * Decimal('0.005')
+        self.contrib_seguro_campesino = (self.prima * Decimal('0.005')).quantize(Decimal('0.01'))
         
         # 3. Derecho de emisión (según tabla configurable)
         self.derecho_emision = EmissionRights.objects.get_emission_right(self.prima)
@@ -250,7 +250,7 @@ class Policy(models.Model):
         )
         
         # 5. IVA (15% sobre base imponible)
-        self.iva = self.base_imponible * Decimal('0.15')
+        self.iva = (self.base_imponible * Decimal('0.15')).quantize(Decimal('0.01'))
         
         # 6. Total facturado = base imponible + IVA - retenciones
         self.total_facturado = self.base_imponible + self.iva - self.retencion

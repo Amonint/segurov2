@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'claims:claim_detail' claim.pk %}" class="text-blue-600 hover:underline flex items-center">
+            <i class="bi bi-arrow-left mr-1"></i> {% trans "Volver al siniestro" %}
+        </a>
+    </div>
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Documentación de Siniestro</h1>
+            <p class="text-gray-600 flex items-center mt-1">
+                <span class="font-medium mr-2">{{ claim.claim_number }}</span>
+                <span class="text-sm px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ claim.get_status_display
+                    }}</span>
+            </p>
+        </div>
+        <div>
+            <a href="{% url 'claims:claim_document_upload' claim.pk %}"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow transition flex items-center">
+                <i class="bi bi-upload mr-2"></i> Subir Documento
+            </a>
+        </div>
+    </div>
+
+    <!-- Documents List -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+            <h3 class="font-bold text-gray-700">Archivos Adjuntos</h3>
+            <span class="text-sm text-gray-500">{{ documents.count }} documentos</span>
+        </div>
+
+        {% if documents %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+            {% for doc in documents %}
+            <div class="border rounded-lg p-4 hover:shadow-lg transition group bg-white relative">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-gray-100 rounded-lg mr-3 group-hover:bg-blue-50 transition">
+                            {% if doc.document_type == 'invoice' %}
+                            <i class="bi bi-receipt text-2xl text-green-600"></i>
+                            {% elif doc.document_type == 'police_report' %}
+                            <i class="bi bi-file-earmark-text text-2xl text-blue-600"></i>
+                            {% elif doc.document_type == 'photo' %}
+                            <i class="bi bi-image text-2xl text-purple-600"></i>
+                            {% else %}
+                            <i class="bi bi-file-earmark text-2xl text-gray-600"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-gray-800 text-sm truncate w-40">{{ doc.document_name }}</h4>
+                            <p class="text-xs text-gray-500">{{ doc.get_document_type_display }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
+                    <span>{{ doc.uploaded_at|date:"d/m/Y" }}</span>
+                    <span>{{ doc.file.size|filesizeformat }}</span>
+                </div>
+
+                <!-- Actions Overlay -->
+                <div
+                    class="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-200 gap-2">
+                    <a href="{{ doc.file.url }}" target="_blank"
+                        class="p-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200" title="Ver/Descargar">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <a href="{% url 'claims:claim_document_delete' doc.pk %}"
+                        class="p-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="p-12 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
+                <i class="bi bi-folder2-open text-3xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">Sin documentos</h3>
+            <p class="mt-1 text-gray-500">No hay documentos adjuntos a este siniestro.</p>
+            <div class="mt-6">
+                <a href="{% url 'claims:claim_document_upload' claim.pk %}"
+                    class="text-blue-600 hover:text-blue-800 font-medium">Subir el primer documento</a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
