@@ -32,23 +32,29 @@
     </div>
 </div>
 
-{% if claim.status == 'docs_pendientes' and user == claim.reported_by %}
+{% if claim.status == 'requiere_cambios' and user == claim.reported_by %}
 <div class="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm">
     <div class="flex">
         <div class="flex-shrink-0">
             <i class="bi bi-exclamation-triangle-fill text-amber-500 text-xl"></i>
         </div>
         <div class="ml-3">
-            <h3 class="text-sm font-bold text-amber-800">Acción Requerida</h3>
+            <h3 class="text-sm font-bold text-amber-800">Se Requieren Cambios</h3>
             <p class="text-sm text-amber-700 mt-1">
-                Su siniestro requiere correcciones o documentación adicional. Por favor revise las notas del
-                administrador y suba los documentos faltantes.
+                Su siniestro requiere correcciones o documentación adicional. Por favor revise los comentarios y realice
+                los ajustes necesarios.
             </p>
-            {% if timeline.0.notes %}
+            {% if claim.validation_comments %}
             <div class="mt-2 text-sm text-amber-800 font-mono bg-amber-100 p-2 rounded">
-                <strong>Nota del Administrador:</strong> {{ timeline.0.notes }}
+                <strong>Comentarios del Validador:</strong> {{ claim.validation_comments }}
             </div>
             {% endif %}
+            <div class="mt-3">
+                <a href="{% url 'claims:claim_edit' claim.pk %}"
+                    class="inline-flex items-center px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition">
+                    <i class="bi bi-pencil mr-2"></i> Editar y Reenviar
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -71,6 +77,20 @@
         </div>
     </div>
 </div>
+{% elif claim.status == 'liquidado' and user == claim.reported_by %}
+<div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-r shadow-sm">
+    <div class="flex">
+        <div class="flex-shrink-0">
+            <i class="bi bi-check-circle-fill text-green-500 text-xl"></i>
+        </div>
+        <div class="ml-3">
+            <h3 class="text-sm font-bold text-green-800">¡Siniestro Aprobado!</h3>
+            <p class="text-sm text-green-700 mt-1">
+                Su siniestro ha sido aprobado y liquidado. Puede ver el finiquito a continuación.
+            </p>
+        </div>
+    </div>
+</div>
 {% endif %}
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -85,13 +105,12 @@
                         Información del Siniestro
                     </h2>
                     <span class="px-4 py-2 rounded-full text-sm font-bold text-white
-                        {% if claim.status == 'reported' %}bg-gray-500
-                        {% elif claim.status == 'documentation_pending' %}bg-amber-500
-                        {% elif claim.status == 'sent_to_insurer' %}bg-blue-500
-                        {% elif claim.status == 'under_evaluation' %}bg-purple-500
-                        {% elif claim.status == 'liquidated' %}bg-green-500
-                        {% elif claim.status == 'paid' %}bg-green-600
-                        {% elif claim.status == 'closed' %}bg-gray-700
+                        {% if claim.status == 'pendiente' %}bg-yellow-500
+                        {% elif claim.status == 'en_revision' %}bg-blue-500
+                        {% elif claim.status == 'requiere_cambios' %}bg-amber-500
+                        {% elif claim.status == 'aprobado' %}bg-teal-500
+                        {% elif claim.status == 'liquidado' %}bg-green-500
+                        {% elif claim.status == 'pagado' %}bg-green-600
                         {% else %}bg-red-700{% endif %}">
                         {{ claim.get_status_display }}
                     </span>
@@ -227,7 +246,7 @@
                 {% endif %}
 
                 <!-- Rejection Reason -->
-                {% if claim.status == 'rejected' and claim.rejection_reason %}
+                {% if claim.status == 'rechazado' and claim.rejection_reason %}
                 <div class="mt-6 pt-6 border-t border-gray-200">
                     <h3 class="font-bold text-gray-900 text-lg mb-4">Motivo de Rechazo</h3>
                     <div class="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-400 rounded-xl p-6">
@@ -239,17 +258,15 @@
                 </div>
                 {% elif latest_status_note %}
                 <div class="mt-6 pt-6 border-t border-gray-200">
-                    <h3 class="font-bold text-gray-900 text-lg mb-4">
-                        {% if claim.status == 'rejected' %}Motivo de Rechazo{% else %}Correcciones Solicitadas{% endif
-                        %}
-                    </h3>
+                    <h3 class="font-bold text-gray-900 text-lg mb-4">{% if claim.status == 'rechazado' %}Motivo de
+                        Rechazo{% else %}Correcciones Solicitadas{% endif %}</h3>
                     <div
-                        class="bg-gradient-to-br {% if claim.status == 'rejected' %}from-red-50 to-red-100 border-red-400{% else %}from-amber-50 to-amber-100 border-amber-400{% endif %} border-2 rounded-xl p-6">
+                        class="bg-gradient-to-br {% if claim.status == 'rechazado' %}from-red-50 to-red-100 border-red-400{% else %}from-amber-50 to-amber-100 border-amber-400{% endif %} border-2 rounded-xl p-6">
                         <div class="flex items-start">
                             <i
-                                class="bi {% if claim.status == 'rejected' %}bi-exclamation-circle text-red-600{% else %}bi-info-circle text-amber-600{% endif %} text-3xl mr-4 mt-1"></i>
+                                class="bi {% if claim.status == 'rechazado' %}bi-exclamation-circle text-red-600{% else %}bi-info-circle text-amber-600{% endif %} text-3xl mr-4 mt-1"></i>
                             <p
-                                class="{% if claim.status == 'rejected' %}text-red-800{% else %}text-amber-900{% endif %} font-semibold leading-relaxed">
+                                class="{% if claim.status == 'rechazado' %}text-red-800{% else %}text-amber-900{% endif %} font-semibold leading-relaxed">
                                 {{ latest_status_note }}</p>
                         </div>
                     </div>
@@ -273,25 +290,26 @@
                     <div class="flex items-start">
                         <div class="flex-shrink-0 mr-4">
                             <div class="flex items-center justify-center h-12 w-12 rounded-full text-white
-                                {% if event.event_type == 'created' %}bg-blue-600
-                                {% elif event.event_type == 'status_changed' %}bg-purple-500
-                                {% elif event.event_type == 'assigned' %}bg-amber-500
-                                {% elif event.event_type == 'document_added' %}bg-green-500
-                                {% elif event.event_type == 'liquidated' %}bg-green-600
-                                {% elif event.event_type == 'paid' %}bg-green-700
-                                {% elif event.event_type == 'rejected' %}bg-red-500
+                                {% if event.event_type == 'created' %}bg-green-600
+                                {% elif event.event_type == 'status_change' %}
+                                    {% if event.new_status == 'liquidado' %}bg-green-600
+                                    {% elif event.new_status == 'pagado' %}bg-green-700
+                                    {% elif event.new_status == 'rechazado' %}bg-red-500
+                                    {% else %}bg-gray-500{% endif %}
+                                {% elif event.event_type == 'document_uploaded' %}bg-blue-500
                                 {% else %}bg-gray-500{% endif %}"
-                                style="{% if event.event_type == 'created' or event.event_type == 'paid' %}background-color: #4a7dbb;{% endif %}">
+                                style="{% if event.event_type == 'created' or event.new_status == 'pagado' %}background-color: #4a7dbb;{% endif %}">
                                 <i class="bi
-                                    {% if event.event_type == 'created' %}bi-plus-circle
-                                    {% elif event.event_type == 'status_changed' %}bi-arrow-repeat
-                                    {% elif event.event_type == 'assigned' %}bi-person-check
-                                    {% elif event.event_type == 'document_added' %}bi-file-earmark-plus
-                                    {% elif event.event_type == 'liquidated' %}bi-check-circle
-                                    {% elif event.event_type == 'paid' %}bi-cash-coin
-                                    {% elif event.event_type == 'rejected' %}bi-x-circle
-                                    {% else %}bi-info-circle
-                                    {% endif %} text-white text-lg"></i>
+                                {% if event.event_type == 'created' %}bi-plus-circle
+                                {% elif event.event_type == 'status_change' %}
+                                    {% if event.new_status == 'liquidado' %}bi-check-circle-fill
+                                    {% elif event.new_status == 'rechazado' %}bi-x-circle-fill
+                                    {% elif event.new_status == 'pagado' %}bi-cash-coin
+                                    {% else %}bi-arrow-repeat{% endif %}
+                                {% elif event.event_type == 'document_uploaded' %}bi-file-earmark-plus
+                                {% elif event.event_type == 'comment' %}bi-chat-left-text
+                                {% else %}bi-info-circle
+                                {% endif %} text-white text-lg"></i>
                             </div>
                         </div>
                         <div class="flex-grow">
@@ -321,47 +339,84 @@
             </div>
         </div>
 
-        <!-- Validation Panel (Managers Only) -->
-        {% if validation_checklist %}
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-t-4 border-amber-500">
-            <div class="p-6 border-b border-gray-100 bg-amber-50 flex justify-between items-center">
-                <h2 class="text-amber-800 font-bold text-xl flex items-center">
+        <!-- Validation Panel (Admin/Manager Only) -->
+        {% if request.user.role in 'admin,insurance_manager' and claim.status in 'pendiente,en_revision' %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border-t-4 border-blue-500">
+            <div class="p-6 border-b border-gray-100 bg-blue-50 flex justify-between items-center">
+                <h2 class="text-blue-800 font-bold text-xl flex items-center">
                     <i class="bi bi-clipboard-check mr-2"></i>
-                    Validación de Requisitos
+                    Panel de Validación
                 </h2>
                 <span
-                    class="text-xs font-semibold uppercase tracking-wider text-amber-800 bg-amber-200 px-2 py-1 rounded">Uso
-                    Interno</span>
+                    class="text-xs font-semibold uppercase tracking-wider text-blue-800 bg-blue-200 px-2 py-1 rounded">
+                    Admin/Manager
+                </span>
             </div>
             <div class="p-6">
-                <p class="text-sm text-gray-600 mb-4">Verifique que la documentación obligatoria esté presente antes de
-                    cambiar el estado.</p>
-
-                <div class="space-y-3">
+                <!-- Checklist -->
+                {% if validation_checklist %}
+                <p class="text-sm text-gray-600 mb-4">Verifique la documentación antes de tomar una decisión:</p>
+                <div class="space-y-2 mb-6">
                     {% for item in validation_checklist %}
                     <div
-                        class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50">
+                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border {% if item.is_present %}border-green-200{% else %}border-amber-200{% endif %}">
                         <div class="flex items-center">
-                            <i class="bi {{ item.status_icon }} text-xl mr-3"></i>
+                            <i
+                                class="bi {% if item.is_present %}bi-check-circle-fill text-green-500{% else %}bi-circle text-amber-400{% endif %} mr-3"></i>
                             <span class="font-medium text-gray-700">{{ item.name }}</span>
                         </div>
                         <span
-                            class="text-sm {% if item.is_present %}text-green-600 font-bold{% else %}text-gray-400{% endif %}">
-                            {{ item.status_text }}
+                            class="text-xs font-bold {% if item.is_present %}text-green-700 bg-green-100{% else %}text-amber-700 bg-amber-100{% endif %} px-2 py-1 rounded-full">
+                            {% if item.is_present %}Cargado{% else %}Pendiente{% endif %}
                         </span>
                     </div>
                     {% endfor %}
                 </div>
+                {% endif %}
 
-                <div class="mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-3">
-                    <a href="{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_pendientes"
-                        class="flex-1 bg-amber-100 text-amber-800 hover:bg-amber-200 font-semibold py-2 px-4 rounded-lg text-center transition">
-                        <i class="bi bi-arrow-return-left mr-1"></i> Solicitar Corrección
-                    </a>
-                    <a href="{% url 'claims:claim_update_status' claim.pk %}?new_status=enviado_aseguradora"
-                        class="flex-1 bg-green-600 text-white hover:bg-green-700 font-semibold py-2 px-4 rounded-lg text-center transition shadow">
-                        <i class="bi bi-check-lg mr-1"></i> Validar y Enviar
-                    </a>
+                <!-- Action Buttons -->
+                <div class="space-y-4">
+                    <!-- Approve -->
+                    <form action="{% url 'claims:claim_approve' claim.pk %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="w-full bg-green-600 text-white hover:bg-green-700 font-semibold py-3 px-4 rounded-lg transition shadow flex items-center justify-center"
+                            onclick="return confirm('¿Aprobar este siniestro? Se generará el finiquito automáticamente.');">
+                            <i class="bi bi-check-circle-fill mr-2"></i> Aprobar y Generar Finiquito
+                        </button>
+                    </form>
+
+                    <!-- Request Changes -->
+                    <div class="border-t pt-4">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">Solicitar Correcciones:</p>
+                        <form action="{% url 'claims:claim_request_changes' claim.pk %}" method="POST"
+                            class="space-y-3">
+                            {% csrf_token %}
+                            <textarea name="comments" rows="3" required
+                                class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                placeholder="Describa los cambios o documentos faltantes..."></textarea>
+                            <button type="submit"
+                                class="w-full bg-amber-500 text-white hover:bg-amber-600 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center">
+                                <i class="bi bi-arrow-return-left mr-2"></i> Solicitar Cambios
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Reject -->
+                    <div class="border-t pt-4">
+                        <p class="text-sm font-semibold text-gray-700 mb-2">Rechazar Siniestro:</p>
+                        <form action="{% url 'claims:claim_reject' claim.pk %}" method="POST" class="space-y-3">
+                            {% csrf_token %}
+                            <textarea name="reason" rows="2" required
+                                class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                placeholder="Motivo del rechazo..."></textarea>
+                            <button type="submit"
+                                class="w-full bg-red-600 text-white hover:bg-red-700 font-semibold py-2 px-4 rounded-lg transition flex items-center justify-center"
+                                onclick="return confirm('¿Está seguro de rechazar este siniestro? Esta acción es definitiva.');">
+                                <i class="bi bi-x-circle mr-2"></i> Rechazar Definitivamente
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -456,100 +511,173 @@
             <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
                 <h3 class="text-white font-bold text-lg flex items-center">
                     <i class="bi bi-speedometer2 mr-2"></i>
-                    Progreso del Proceso
+                    Progreso de tu Solicitud
                 </h3>
             </div>
             <div class="p-6">
                 <div class="space-y-4">
-                    <div class="relative">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-gray-700 font-semibold text-sm">Estado Actual</span>
-                            <span class="text-purple-600 font-bold text-sm">
-                                {% if claim.status == 'reported' %}10%
-                                {% elif claim.status == 'documentation_pending' %}25%
-                                {% elif claim.status == 'sent_to_insurer' %}40%
-                                {% elif claim.status == 'under_evaluation' %}60%
-                                {% elif claim.status == 'liquidated' %}80%
-                                {% elif claim.status == 'paid' %}100%
-                                {% elif claim.status == 'closed' %}100%
-                                {% else %}50%{% endif %}
-                            </span>
+                    <!-- Progress Steps -->
+                    <div class="flex items-center justify-between text-sm">
+                        <div
+                            class="flex flex-col items-center {% if claim.status in 'pendiente,en_revision,requiere_cambios,aprobado,liquidado,pagado' %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <div
+                                class="w-8 h-8 rounded-full {% if claim.status in 'pendiente,en_revision,requiere_cambios,aprobado,liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center mb-1">
+                                <i class="bi bi-check text-white"></i>
+                            </div>
+                            <span class="text-xs">Enviado</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                            <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-3 rounded-full transition-all duration-1000"
-                                style="width: {% if claim.status == 'reported' %}10%
-                                    {% elif claim.status == 'documentation_pending' %}25%
-                                    {% elif claim.status == 'sent_to_insurer' %}40%
-                                    {% elif claim.status == 'under_evaluation' %}60%
-                                    {% elif claim.status == 'liquidated' %}80%
-                                    {% elif claim.status == 'paid' %}100%
-                                    {% elif claim.status == 'closed' %}100%
-                                    {% else %}50%{% endif %}"></div>
+                        <div
+                            class="flex-1 h-1 mx-2 {% if claim.status in 'en_revision,requiere_cambios,aprobado,liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                        </div>
+                        <div
+                            class="flex flex-col items-center {% if claim.status in 'en_revision,aprobado,liquidado,pagado' %}text-green-600{% elif claim.status == 'requiere_cambios' %}text-amber-600{% else %}text-gray-400{% endif %}">
+                            <div
+                                class="w-8 h-8 rounded-full {% if claim.status in 'en_revision,aprobado,liquidado,pagado' %}bg-green-500{% elif claim.status == 'requiere_cambios' %}bg-amber-500{% else %}bg-gray-300{% endif %} flex items-center justify-center mb-1">
+                                {% if claim.status == 'requiere_cambios' %}
+                                <i class="bi bi-exclamation text-white"></i>
+                                {% else %}
+                                <i
+                                    class="bi bi-{% if claim.status in 'en_revision,aprobado,liquidado,pagado' %}check{% else %}hourglass{% endif %} text-white"></i>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs">Revisión</span>
+                        </div>
+                        <div
+                            class="flex-1 h-1 mx-2 {% if claim.status in 'aprobado,liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                        </div>
+                        <div
+                            class="flex flex-col items-center {% if claim.status in 'aprobado,liquidado,pagado' %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <div
+                                class="w-8 h-8 rounded-full {% if claim.status in 'aprobado,liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center mb-1">
+                                <i
+                                    class="bi bi-{% if claim.status in 'aprobado,liquidado,pagado' %}check{% else %}clock{% endif %} text-white"></i>
+                            </div>
+                            <span class="text-xs">Aprobado</span>
+                        </div>
+                        <div
+                            class="flex-1 h-1 mx-2 {% if claim.status in 'liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %}">
+                        </div>
+                        <div
+                            class="flex flex-col items-center {% if claim.status in 'liquidado,pagado' %}text-green-600{% else %}text-gray-400{% endif %}">
+                            <div
+                                class="w-8 h-8 rounded-full {% if claim.status in 'liquidado,pagado' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center mb-1">
+                                <i
+                                    class="bi bi-{% if claim.status in 'liquidado,pagado' %}cash-coin{% else %}wallet{% endif %} text-white"></i>
+                            </div>
+                            <span class="text-xs">Finiquito</span>
                         </div>
                     </div>
-                    <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                        <p class="text-purple-900 font-semibold text-sm">{{ claim.get_status_display }}</p>
+
+                    <!-- Status Message -->
+                    <div class="mt-4 p-4 rounded-xl
+                        {% if claim.status == 'pendiente' %}bg-yellow-50 border border-yellow-200
+                        {% elif claim.status == 'en_revision' %}bg-blue-50 border border-blue-200
+                        {% elif claim.status == 'requiere_cambios' %}bg-amber-50 border border-amber-200
+                        {% elif claim.status == 'aprobado' %}bg-teal-50 border border-teal-200
+                        {% elif claim.status == 'liquidado' %}bg-green-50 border border-green-200
+                        {% elif claim.status == 'pagado' %}bg-green-50 border border-green-200
+                        {% elif claim.status == 'rechazado' %}bg-red-50 border border-red-200
+                        {% else %}bg-gray-50 border border-gray-200{% endif %}">
+                        <p class="font-semibold text-sm
+                            {% if claim.status == 'pendiente' %}text-yellow-800
+                            {% elif claim.status == 'en_revision' %}text-blue-800
+                            {% elif claim.status == 'requiere_cambios' %}text-amber-800
+                            {% elif claim.status == 'aprobado' %}text-teal-800
+                            {% elif claim.status == 'liquidado' %}text-green-800
+                            {% elif claim.status == 'pagado' %}text-green-800
+                            {% elif claim.status == 'rechazado' %}text-red-800
+                            {% else %}text-gray-800{% endif %}">
+                            {% if claim.status == 'pendiente' %}
+                            <i class="bi bi-hourglass-split mr-1"></i> Tu solicitud está en cola de validación
+                            {% elif claim.status == 'en_revision' %}
+                            <i class="bi bi-eye mr-1"></i> Un validador está revisando tu solicitud
+                            {% elif claim.status == 'requiere_cambios' %}
+                            <i class="bi bi-exclamation-triangle mr-1"></i> Se requieren cambios - revisa los
+                            comentarios
+                            {% elif claim.status == 'aprobado' %}
+                            <i class="bi bi-check-circle mr-1"></i> ¡Aprobado! Finiquito en proceso
+                            {% elif claim.status == 'liquidado' %}
+                            <i class="bi bi-cash-coin mr-1"></i> Finiquito listo - Ver detalles abajo
+                            {% elif claim.status == 'pagado' %}
+                            <i class="bi bi-check-all mr-1"></i> ¡Proceso completado!
+                            {% elif claim.status == 'rechazado' %}
+                            <i class="bi bi-x-circle mr-1"></i> Siniestro rechazado
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Quick Actions -->
-        {% if can_change_status %}
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
-                <h3 class="text-white font-bold text-lg flex items-center">
-                    <i class="bi bi-tools mr-2"></i>
-                    Gestión del Siniestro
-                </h3>
-            </div>
-            <div class="p-6 space-y-3">
-                <a href="{% url 'claims:claim_update_status' claim.pk %}"
-                    class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300">
-                    <i class="bi bi-arrow-repeat mr-2"></i> Cambiar Estado
-                </a>
-
-                <hr class="border-gray-100 my-2">
-
-                <a href="{% url 'claims:claim_update_status' claim.pk %}?initial=liquidated"
-                    class="block w-full text-center bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-green-200 hover:border-green-400">
-                    <i class="bi bi-check-circle mr-2"></i> Liquidar Siniestro
-                </a>
-
-                <a href="{% url 'claims:claim_update_status' claim.pk %}?initial=rejected"
-                    class="block w-full text-center bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-red-200 hover:border-red-400">
-                    <i class="bi bi-x-circle mr-2"></i> Rechazar Siniestro
-                </a>
-            </div>
+    <!-- Quick Actions -->
+    {% if can_change_status %}
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h3 class="text-white font-bold text-lg flex items-center">
+                <i class="bi bi-tools mr-2"></i>
+                Gestión del Siniestro
+            </h3>
         </div>
-        {% endif %}
+        <div class="p-6 space-y-3">
+            <a href="{% url 'claims:claim_update_status' claim.pk %}"
+                class="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-gray-200 hover:border-gray-300">
+                <i class="bi bi-arrow-repeat mr-2"></i> Cambiar Estado
+            </a>
 
-        <!-- Settlement -->
-        {% if 'claims_write' in user_permissions and claim.status == 'liquidated' %}
-        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg p-6 border border-green-200">
-            <div class="flex items-center mb-4">
-                <div class="bg-green-600 p-3 rounded-xl mr-3">
-                    <i class="bi bi-file-check text-white text-2xl"></i>
-                </div>
-                <h3 class="text-lg font-bold text-gray-900">Finiquito</h3>
-            </div>
-            {% if not claim.settlement %}
-            <a href="{% url 'claims:claim_settlement_create' claim.pk %}"
-                class="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-center">
-                <i class="bi bi-file-earmark-check mr-2"></i> Crear Finiquito
-            </a>
-            {% else %}
-            <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}"
-                class="block w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center"
-                style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);"
-                onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';"
-                onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
-                <i class="bi bi-eye mr-2"></i> Ver Finiquito
-            </a>
-            {% endif %}
+            <hr class="border-gray-100 my-2">
+
+            <form action="{% url 'claims:claim_update_status' claim.pk %}" method="POST" class="block">
+                {% csrf_token %}
+                <input type="hidden" name="new_status" value="liquidado">
+                <input type="hidden" name="notes" value="Siniestro aprobado y liquidado automáticamente.">
+                <button type="submit"
+                    class="w-full text-center bg-green-100 hover:bg-green-200 text-green-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-green-200 hover:border-green-400"
+                    onclick="return confirm('¿Está seguro de aprobar este siniestro? Se generará el finiquito automáticamente basado en la pérdida estimada.');">
+                    <i class="bi bi-check-circle-fill mr-1"></i> Liquidar Siniestro
+                </button>
+            </form>
+
+            <form action="{% url 'claims:claim_update_status' claim.pk %}" method="POST" class="block">
+                {% csrf_token %}
+                <input type="hidden" name="new_status" value="rechazado">
+                <button type="button"
+                    onclick="const reason = prompt('Por favor ingrese el motivo del rechazo:'); if(reason) { this.form.elements['notes'].value = reason; this.form.submit(); }"
+                    class="w-full text-center bg-red-100 hover:bg-red-200 text-red-700 font-semibold py-3 px-4 rounded-xl transition-all duration-300 border-2 border-red-200 hover:border-red-400">
+                    <i class="bi bi-x-circle-fill mr-2"></i> Rechazar Siniestro
+                </button>
+                <input type="hidden" name="notes" value="">
+            </form>
         </div>
+    </div>
+    {% endif %}
+
+    <!-- Settlement -->
+    {% if 'claims_write' in user_permissions and claim.status == 'liquidado' %}
+    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl shadow-lg p-6 border border-green-200">
+        <div class="flex items-center mb-4">
+            <div class="bg-green-600 p-3 rounded-xl mr-3">
+                <i class="bi bi-file-check text-white text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Finiquito</h3>
+        </div>
+        {% if not claim.settlement %}
+        <a href="{% url 'claims:claim_settlement_create' claim.pk %}"
+            class="block w-full bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-4 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 text-center">
+            <i class="bi bi-file-earmark-check mr-2"></i> Crear Finiquito
+        </a>
+        {% else %}
+        <a href="{% url 'claims:claim_settlement_detail' claim.settlement.pk %}"
+            class="block w-full text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 text-center"
+            style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);"
+            onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)';"
+            onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)';">
+            <i class="bi bi-eye mr-2"></i> Ver Finiquito
+        </a>
         {% endif %}
     </div>
+    {% endif %}
+</div>
 </div>
 
 {% endblock %}

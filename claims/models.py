@@ -12,16 +12,14 @@ class Claim(models.Model):
     Model for insurance claims with workflow management
     """
 
-    # Claim status choices (workflow states) - Enhanced for TDR
+    # Claim status choices - Flujo simplificado
     STATUS_CHOICES = [
-        ('reportado', _('Reportado')),
-        ('docs_pendientes', _('Documentación pendiente')),
-        ('docs_completos', _('Documentación completa')),
-        ('enviado_aseguradora', _('Enviado a aseguradora')),
-        ('en_revision', _('En revisión')),
+        ('pendiente', _('Pendiente de Validación')),
+        ('en_revision', _('En Revisión')),
+        ('requiere_cambios', _('Requiere Cambios')),
+        ('aprobado', _('Aprobado')),
         ('liquidado', _('Liquidado')),
         ('pagado', _('Pagado')),
-        ('cerrado', _('Cerrado')),
         ('rechazado', _('Rechazado')),
     ]
 
@@ -136,7 +134,7 @@ class Claim(models.Model):
         _('Estado'),
         max_length=25,
         choices=STATUS_CHOICES,
-        default='reportado'
+        default='pendiente'
     )
     
     # SLA Control dates - TDR Requirements
@@ -194,6 +192,28 @@ class Claim(models.Model):
     rejection_reason = models.TextField(
         _('Razón de rechazo'),
         blank=True
+    )
+    
+    # Campos de validación - Nuevo flujo
+    validation_comments = models.TextField(
+        _('Comentarios de Validación'),
+        blank=True,
+        help_text=_('Comentarios del validador sobre documentos o datos faltantes')
+    )
+    validated_by = models.ForeignKey(
+        UserProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('Validado por'),
+        related_name='validated_claims',
+        help_text=_('Usuario que validó el siniestro')
+    )
+    validation_date = models.DateTimeField(
+        _('Fecha de validación'),
+        null=True,
+        blank=True,
+        help_text=_('Fecha y hora de la última validación')
     )
 
     # Relations - Enhanced for TDR

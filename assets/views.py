@@ -347,6 +347,11 @@ def asset_report_claim(request, pk):
     
     asset = get_object_or_404(Asset, pk=pk)
     
+    # Check permissions - strict check for claims_create
+    if not request.user.has_role_permission('claims_create'):
+        messages.error(request, _('Solo los custodios pueden reportar siniestros.'))
+        return redirect('assets:asset_detail', pk=pk)
+    
     # Check permissions - requesters can only report claims for their own assets
     if request.user.role == 'requester' and asset.custodian != request.user:
         messages.error(request, _('No tienes permisos para reportar siniestros de este activo.'))
