@@ -6,9 +6,6 @@ variables:
   POSTGRES_DB: "seguros_db_test"
   POSTGRES_USER: "seguros_user"
   POSTGRES_PASSWORD: "seguros_pass"
-  SECRET_KEY: "test-secret-key-for-ci"
-  DEBUG: "True"
-  ALLOWED_HOSTS: "localhost,127.0.0.1"
 
 cache:
   paths:
@@ -63,6 +60,9 @@ test:
     DB_HOST: postgres
     DB_PORT: 5432
   script:
+    - export SECRET_KEY="test-secret-key-for-ci"
+    - export DEBUG="True"
+    - export ALLOWED_HOSTS="localhost,127.0.0.1"
     - pip install coverage
     - python manage.py makemigrations --check --dry-run
     - python manage.py migrate
