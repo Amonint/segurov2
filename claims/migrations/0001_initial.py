@@ -8,122 +8,641 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Claim',
+            name="Claim",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('claim_number', models.CharField(max_length=50, unique=True, verbose_name='Número de siniestro')),
-                ('fecha_siniestro', models.DateField(help_text='Fecha real en que ocurrió el siniestro', verbose_name='Fecha del siniestro')),
-                ('incident_date', models.DateField(help_text='Alias para fecha_siniestro (compatibilidad)', verbose_name='Fecha del incidente')),
-                ('fecha_notificacion', models.DateField(auto_now_add=True, help_text='Fecha en que se notifica el siniestro', verbose_name='Fecha de notificación')),
-                ('report_date', models.DateField(auto_now_add=True, help_text='Fecha en que se reporta el siniestro', verbose_name='Fecha de reporte')),
-                ('fecha_cierre', models.DateField(blank=True, help_text='Fecha en que se cierra el siniestro', null=True, verbose_name='Fecha de cierre')),
-                ('causa', models.TextField(help_text='Descripción detallada de la causa', verbose_name='Causa del siniestro')),
-                ('ubicacion_detallada', models.TextField(help_text='Ubicación específica donde ocurrió el siniestro', verbose_name='Ubicación detallada')),
-                ('incident_location', models.CharField(help_text='Alias para ubicacion_detallada (compatibilidad)', max_length=255, verbose_name='Ubicación del incidente')),
-                ('incident_description', models.TextField(help_text='Descripción general del incidente', verbose_name='Descripción del incidente')),
-                ('asset_type', models.CharField(max_length=100, verbose_name='Tipo de bien afectado')),
-                ('asset_description', models.CharField(max_length=255, verbose_name='Descripción del bien')),
-                ('asset_code', models.CharField(blank=True, max_length=50, verbose_name='Código del bien')),
-                ('estimated_loss', models.DecimalField(decimal_places=2, max_digits=15, validators=[django.core.validators.MinValueValidator(0)], verbose_name='Pérdida estimada')),
-                ('status', models.CharField(choices=[('reportado', 'Reportado'), ('docs_pendientes', 'Documentación pendiente'), ('docs_completos', 'Documentación completa'), ('enviado_aseguradora', 'Enviado a aseguradora'), ('en_revision', 'En revisión'), ('liquidado', 'Liquidado'), ('pagado', 'Pagado'), ('cerrado', 'Cerrado'), ('rechazado', 'Rechazado')], default='reportado', max_length=25, verbose_name='Estado')),
-                ('fecha_solicitud_documentos', models.DateField(blank=True, help_text='Fecha en que se solicitan documentos al reportante', null=True, verbose_name='Fecha solicitud documentos')),
-                ('fecha_docs_completos', models.DateField(blank=True, help_text='Fecha en que se completa la documentación', null=True, verbose_name='Fecha documentos completos')),
-                ('fecha_envio_aseguradora', models.DateField(blank=True, help_text='Fecha en que se envía a la aseguradora', null=True, verbose_name='Fecha envío aseguradora')),
-                ('fecha_respuesta_aseguradora', models.DateField(blank=True, help_text='Fecha en que responde la aseguradora', null=True, verbose_name='Fecha respuesta aseguradora')),
-                ('dias_limite_documentos', models.PositiveIntegerField(default=30, help_text='Días límite máximo para completar documentación', verbose_name='Días límite documentos')),
-                ('dias_limite_respuesta_aseguradora', models.PositiveIntegerField(default=8, help_text='Días hábiles para respuesta de aseguradora', verbose_name='Días hábiles respuesta aseguradora')),
-                ('approved_amount', models.DecimalField(blank=True, decimal_places=2, max_digits=15, null=True, validators=[django.core.validators.MinValueValidator(0)], verbose_name='Monto aprobado')),
-                ('payment_date', models.DateField(blank=True, null=True, verbose_name='Fecha de pago')),
-                ('rejection_reason', models.TextField(blank=True, verbose_name='Razón de rechazo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "claim_number",
+                    models.CharField(
+                        max_length=50, unique=True, verbose_name="Número de siniestro"
+                    ),
+                ),
+                (
+                    "fecha_siniestro",
+                    models.DateField(
+                        help_text="Fecha real en que ocurrió el siniestro",
+                        verbose_name="Fecha del siniestro",
+                    ),
+                ),
+                (
+                    "incident_date",
+                    models.DateField(
+                        help_text="Alias para fecha_siniestro (compatibilidad)",
+                        verbose_name="Fecha del incidente",
+                    ),
+                ),
+                (
+                    "fecha_notificacion",
+                    models.DateField(
+                        auto_now_add=True,
+                        help_text="Fecha en que se notifica el siniestro",
+                        verbose_name="Fecha de notificación",
+                    ),
+                ),
+                (
+                    "report_date",
+                    models.DateField(
+                        auto_now_add=True,
+                        help_text="Fecha en que se reporta el siniestro",
+                        verbose_name="Fecha de reporte",
+                    ),
+                ),
+                (
+                    "fecha_cierre",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se cierra el siniestro",
+                        null=True,
+                        verbose_name="Fecha de cierre",
+                    ),
+                ),
+                (
+                    "causa",
+                    models.TextField(
+                        help_text="Descripción detallada de la causa",
+                        verbose_name="Causa del siniestro",
+                    ),
+                ),
+                (
+                    "ubicacion_detallada",
+                    models.TextField(
+                        help_text="Ubicación específica donde ocurrió el siniestro",
+                        verbose_name="Ubicación detallada",
+                    ),
+                ),
+                (
+                    "incident_location",
+                    models.CharField(
+                        help_text="Alias para ubicacion_detallada (compatibilidad)",
+                        max_length=255,
+                        verbose_name="Ubicación del incidente",
+                    ),
+                ),
+                (
+                    "incident_description",
+                    models.TextField(
+                        help_text="Descripción general del incidente",
+                        verbose_name="Descripción del incidente",
+                    ),
+                ),
+                (
+                    "asset_type",
+                    models.CharField(
+                        max_length=100, verbose_name="Tipo de bien afectado"
+                    ),
+                ),
+                (
+                    "asset_description",
+                    models.CharField(
+                        max_length=255, verbose_name="Descripción del bien"
+                    ),
+                ),
+                (
+                    "asset_code",
+                    models.CharField(
+                        blank=True, max_length=50, verbose_name="Código del bien"
+                    ),
+                ),
+                (
+                    "estimated_loss",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=15,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                        verbose_name="Pérdida estimada",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("reportado", "Reportado"),
+                            ("docs_pendientes", "Documentación pendiente"),
+                            ("docs_completos", "Documentación completa"),
+                            ("enviado_aseguradora", "Enviado a aseguradora"),
+                            ("en_revision", "En revisión"),
+                            ("liquidado", "Liquidado"),
+                            ("pagado", "Pagado"),
+                            ("cerrado", "Cerrado"),
+                            ("rechazado", "Rechazado"),
+                        ],
+                        default="reportado",
+                        max_length=25,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "fecha_solicitud_documentos",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se solicitan documentos al reportante",
+                        null=True,
+                        verbose_name="Fecha solicitud documentos",
+                    ),
+                ),
+                (
+                    "fecha_docs_completos",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se completa la documentación",
+                        null=True,
+                        verbose_name="Fecha documentos completos",
+                    ),
+                ),
+                (
+                    "fecha_envio_aseguradora",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se envía a la aseguradora",
+                        null=True,
+                        verbose_name="Fecha envío aseguradora",
+                    ),
+                ),
+                (
+                    "fecha_respuesta_aseguradora",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que responde la aseguradora",
+                        null=True,
+                        verbose_name="Fecha respuesta aseguradora",
+                    ),
+                ),
+                (
+                    "dias_limite_documentos",
+                    models.PositiveIntegerField(
+                        default=30,
+                        help_text="Días límite máximo para completar documentación",
+                        verbose_name="Días límite documentos",
+                    ),
+                ),
+                (
+                    "dias_limite_respuesta_aseguradora",
+                    models.PositiveIntegerField(
+                        default=8,
+                        help_text="Días hábiles para respuesta de aseguradora",
+                        verbose_name="Días hábiles respuesta aseguradora",
+                    ),
+                ),
+                (
+                    "approved_amount",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        max_digits=15,
+                        null=True,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                        verbose_name="Monto aprobado",
+                    ),
+                ),
+                (
+                    "payment_date",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Fecha de pago"
+                    ),
+                ),
+                (
+                    "rejection_reason",
+                    models.TextField(blank=True, verbose_name="Razón de rechazo"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Siniestro',
-                'verbose_name_plural': 'Siniestros',
-                'ordering': ['-created_at'],
+                "verbose_name": "Siniestro",
+                "verbose_name_plural": "Siniestros",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ClaimDocument',
+            name="ClaimDocument",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('document_name', models.CharField(max_length=255, verbose_name='Nombre del documento')),
-                ('document_type', models.CharField(choices=[('initial_report', 'Reporte inicial'), ('photos', 'Fotos'), ('police_report', 'Reporte policial'), ('appraisal', 'Avalúo'), ('invoice', 'Factura'), ('settlement', 'Finiquito'), ('other', 'Otro')], max_length=20, verbose_name='Tipo de documento')),
-                ('version', models.PositiveIntegerField(default=1, verbose_name='Versión')),
-                ('is_latest_version', models.BooleanField(default=True, verbose_name='Es la versión más reciente')),
-                ('file', models.FileField(upload_to='claims/documents/%Y/%m/', verbose_name='Archivo')),
-                ('file_size', models.PositiveIntegerField(editable=False, verbose_name='Tamaño del archivo')),
-                ('mime_type', models.CharField(blank=True, max_length=100, verbose_name='Tipo MIME')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('tags', models.CharField(blank=True, help_text='Etiquetas separadas por comas', max_length=500, verbose_name='Etiquetas')),
-                ('is_required', models.BooleanField(default=False, verbose_name='¿Es requerido?')),
-                ('required_deadline', models.DateField(blank=True, help_text='Fecha límite para subir este documento requerido', null=True, verbose_name='Fecha límite')),
-                ('status', models.CharField(choices=[('active', 'Activo'), ('archived', 'Archivado'), ('deleted', 'Eliminado')], default='active', max_length=20, verbose_name='Estado')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de subida')),
-                ('last_modified', models.DateTimeField(auto_now=True, verbose_name='Última modificación')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "document_name",
+                    models.CharField(
+                        max_length=255, verbose_name="Nombre del documento"
+                    ),
+                ),
+                (
+                    "document_type",
+                    models.CharField(
+                        choices=[
+                            ("initial_report", "Reporte inicial"),
+                            ("photos", "Fotos"),
+                            ("police_report", "Reporte policial"),
+                            ("appraisal", "Avalúo"),
+                            ("invoice", "Factura"),
+                            ("settlement", "Finiquito"),
+                            ("other", "Otro"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de documento",
+                    ),
+                ),
+                (
+                    "version",
+                    models.PositiveIntegerField(default=1, verbose_name="Versión"),
+                ),
+                (
+                    "is_latest_version",
+                    models.BooleanField(
+                        default=True, verbose_name="Es la versión más reciente"
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to="claims/documents/%Y/%m/", verbose_name="Archivo"
+                    ),
+                ),
+                (
+                    "file_size",
+                    models.PositiveIntegerField(
+                        editable=False, verbose_name="Tamaño del archivo"
+                    ),
+                ),
+                (
+                    "mime_type",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Tipo MIME"
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "tags",
+                    models.CharField(
+                        blank=True,
+                        help_text="Etiquetas separadas por comas",
+                        max_length=500,
+                        verbose_name="Etiquetas",
+                    ),
+                ),
+                (
+                    "is_required",
+                    models.BooleanField(default=False, verbose_name="¿Es requerido?"),
+                ),
+                (
+                    "required_deadline",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha límite para subir este documento requerido",
+                        null=True,
+                        verbose_name="Fecha límite",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Activo"),
+                            ("archived", "Archivado"),
+                            ("deleted", "Eliminado"),
+                        ],
+                        default="active",
+                        max_length=20,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "uploaded_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de subida"
+                    ),
+                ),
+                (
+                    "last_modified",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Última modificación"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Documento de Siniestro',
-                'verbose_name_plural': 'Documentos de Siniestro',
-                'ordering': ['-uploaded_at'],
+                "verbose_name": "Documento de Siniestro",
+                "verbose_name_plural": "Documentos de Siniestro",
+                "ordering": ["-uploaded_at"],
             },
         ),
         migrations.CreateModel(
-            name='ClaimSettlement',
+            name="ClaimSettlement",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('settlement_number', models.CharField(blank=True, max_length=50, unique=True, verbose_name='Número de Finiquito')),
-                ('numero_reclamo', models.CharField(help_text='Número de reclamo asignado por la aseguradora', max_length=100, verbose_name='Número de reclamo aseguradora')),
-                ('claim_reference_number', models.CharField(blank=True, help_text='Número de referencia del reclamo en la aseguradora (alias)', max_length=100, verbose_name='Número de Reclamo')),
-                ('valor_total_reclamo', models.DecimalField(decimal_places=2, help_text='Monto total reclamado', max_digits=15, verbose_name='Valor total del reclamo')),
-                ('total_claim_amount', models.DecimalField(decimal_places=2, help_text='Monto total aprobado por la aseguradora (alias)', max_digits=12, verbose_name='Valor Total del Reclamo')),
-                ('deducible_aplicado', models.DecimalField(decimal_places=2, default=0, help_text='Monto del deducible aplicado según cobertura', max_digits=15, verbose_name='Deducible aplicado')),
-                ('deductible_amount', models.DecimalField(decimal_places=2, default=0, help_text='Monto del deducible aplicado (alias)', max_digits=12, verbose_name='Deducible Aplicado')),
-                ('depreciacion', models.DecimalField(decimal_places=2, default=0, help_text='Valor de depreciación aplicado al bien', max_digits=15, verbose_name='Depreciación')),
-                ('depreciation_amount', models.DecimalField(decimal_places=2, default=0, help_text='Valor de depreciación aplicado (alias)', max_digits=12, verbose_name='Depreciación')),
-                ('valor_a_pagar', models.DecimalField(decimal_places=2, help_text='Valor total - deducible - depreciación', max_digits=15, verbose_name='Valor final a pagar')),
-                ('final_payment_amount', models.DecimalField(decimal_places=2, help_text='Monto final que se pagará al asegurado (alias)', max_digits=12, verbose_name='Valor Final a Pagar')),
-                ('fecha_recepcion_finiquito', models.DateField(help_text='Fecha en que se recibe el finiquito de la aseguradora', verbose_name='Fecha recepción finiquito')),
-                ('settlement_date', models.DateField(auto_now_add=True, help_text='Fecha de creación del finiquito (alias)', verbose_name='Fecha de Finiquito')),
-                ('fecha_firma', models.DateField(blank=True, help_text='Fecha en que se firma el finiquito', null=True, verbose_name='Fecha de firma')),
-                ('fecha_limite_pago', models.DateField(blank=True, editable=False, help_text='Fecha límite para pago (72 horas desde firma)', null=True, verbose_name='Fecha límite pago (72h)')),
-                ('fecha_pago', models.DateField(blank=True, help_text='Fecha en que se realizó el pago', null=True, verbose_name='Fecha pago real')),
-                ('payment_date', models.DateField(blank=True, help_text='Fecha de pago (alias)', null=True, verbose_name='Fecha de Pago')),
-                ('payment_reference', models.CharField(blank=True, max_length=100, verbose_name='Referencia de Pago')),
-                ('notificado_gerencia_financiera', models.BooleanField(default=False, help_text='Si se notificó a gerencia sobre deducible a cobrar', verbose_name='Notificado a gerencia financiera')),
-                ('fecha_notificacion_gerencia', models.DateTimeField(blank=True, help_text='Fecha en que se notificó a gerencia financiera', null=True, verbose_name='Fecha notificación gerencia')),
-                ('status', models.CharField(choices=[('draft', 'Borrador'), ('pending_approval', 'Pendiente de Aprobación'), ('approved', 'Aprobado'), ('signed', 'Firmado'), ('paid', 'Pagado'), ('rejected', 'Rechazado')], default='draft', max_length=20, verbose_name='Estado')),
-                ('signed_date', models.DateField(blank=True, null=True, verbose_name='Fecha de Firma')),
-                ('settlement_document', models.FileField(blank=True, null=True, upload_to='settlements/', verbose_name='Documento de Finiquito')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizado')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "settlement_number",
+                    models.CharField(
+                        blank=True,
+                        max_length=50,
+                        unique=True,
+                        verbose_name="Número de Finiquito",
+                    ),
+                ),
+                (
+                    "numero_reclamo",
+                    models.CharField(
+                        help_text="Número de reclamo asignado por la aseguradora",
+                        max_length=100,
+                        verbose_name="Número de reclamo aseguradora",
+                    ),
+                ),
+                (
+                    "claim_reference_number",
+                    models.CharField(
+                        blank=True,
+                        help_text="Número de referencia del reclamo en la aseguradora (alias)",
+                        max_length=100,
+                        verbose_name="Número de Reclamo",
+                    ),
+                ),
+                (
+                    "valor_total_reclamo",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto total reclamado",
+                        max_digits=15,
+                        verbose_name="Valor total del reclamo",
+                    ),
+                ),
+                (
+                    "total_claim_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto total aprobado por la aseguradora (alias)",
+                        max_digits=12,
+                        verbose_name="Valor Total del Reclamo",
+                    ),
+                ),
+                (
+                    "deducible_aplicado",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Monto del deducible aplicado según cobertura",
+                        max_digits=15,
+                        verbose_name="Deducible aplicado",
+                    ),
+                ),
+                (
+                    "deductible_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Monto del deducible aplicado (alias)",
+                        max_digits=12,
+                        verbose_name="Deducible Aplicado",
+                    ),
+                ),
+                (
+                    "depreciacion",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Valor de depreciación aplicado al bien",
+                        max_digits=15,
+                        verbose_name="Depreciación",
+                    ),
+                ),
+                (
+                    "depreciation_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Valor de depreciación aplicado (alias)",
+                        max_digits=12,
+                        verbose_name="Depreciación",
+                    ),
+                ),
+                (
+                    "valor_a_pagar",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Valor total - deducible - depreciación",
+                        max_digits=15,
+                        verbose_name="Valor final a pagar",
+                    ),
+                ),
+                (
+                    "final_payment_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto final que se pagará al asegurado (alias)",
+                        max_digits=12,
+                        verbose_name="Valor Final a Pagar",
+                    ),
+                ),
+                (
+                    "fecha_recepcion_finiquito",
+                    models.DateField(
+                        help_text="Fecha en que se recibe el finiquito de la aseguradora",
+                        verbose_name="Fecha recepción finiquito",
+                    ),
+                ),
+                (
+                    "settlement_date",
+                    models.DateField(
+                        auto_now_add=True,
+                        help_text="Fecha de creación del finiquito (alias)",
+                        verbose_name="Fecha de Finiquito",
+                    ),
+                ),
+                (
+                    "fecha_firma",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se firma el finiquito",
+                        null=True,
+                        verbose_name="Fecha de firma",
+                    ),
+                ),
+                (
+                    "fecha_limite_pago",
+                    models.DateField(
+                        blank=True,
+                        editable=False,
+                        help_text="Fecha límite para pago (72 horas desde firma)",
+                        null=True,
+                        verbose_name="Fecha límite pago (72h)",
+                    ),
+                ),
+                (
+                    "fecha_pago",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha en que se realizó el pago",
+                        null=True,
+                        verbose_name="Fecha pago real",
+                    ),
+                ),
+                (
+                    "payment_date",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha de pago (alias)",
+                        null=True,
+                        verbose_name="Fecha de Pago",
+                    ),
+                ),
+                (
+                    "payment_reference",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Referencia de Pago"
+                    ),
+                ),
+                (
+                    "notificado_gerencia_financiera",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Si se notificó a gerencia sobre deducible a cobrar",
+                        verbose_name="Notificado a gerencia financiera",
+                    ),
+                ),
+                (
+                    "fecha_notificacion_gerencia",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Fecha en que se notificó a gerencia financiera",
+                        null=True,
+                        verbose_name="Fecha notificación gerencia",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Borrador"),
+                            ("pending_approval", "Pendiente de Aprobación"),
+                            ("approved", "Aprobado"),
+                            ("signed", "Firmado"),
+                            ("paid", "Pagado"),
+                            ("rejected", "Rechazado"),
+                        ],
+                        default="draft",
+                        max_length=20,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "signed_date",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Fecha de Firma"
+                    ),
+                ),
+                (
+                    "settlement_document",
+                    models.FileField(
+                        blank=True,
+                        null=True,
+                        upload_to="settlements/",
+                        verbose_name="Documento de Finiquito",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Actualizado"),
+                ),
             ],
             options={
-                'verbose_name': 'Finiquito',
-                'verbose_name_plural': 'Finiquitos',
-                'ordering': ['-created_at'],
+                "verbose_name": "Finiquito",
+                "verbose_name_plural": "Finiquitos",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='ClaimTimeline',
+            name="ClaimTimeline",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('event_type', models.CharField(choices=[('status_change', 'Cambio de estado'), ('document_uploaded', 'Documento subido'), ('comment', 'Comentario'), ('alert_sent', 'Alerta enviada'), ('payment_received', 'Pago recibido')], max_length=20, verbose_name='Tipo de evento')),
-                ('event_description', models.TextField(verbose_name='Descripción del evento')),
-                ('old_status', models.CharField(blank=True, max_length=25, verbose_name='Estado anterior')),
-                ('new_status', models.CharField(blank=True, max_length=25, verbose_name='Estado nuevo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "event_type",
+                    models.CharField(
+                        choices=[
+                            ("status_change", "Cambio de estado"),
+                            ("document_uploaded", "Documento subido"),
+                            ("comment", "Comentario"),
+                            ("alert_sent", "Alerta enviada"),
+                            ("payment_received", "Pago recibido"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de evento",
+                    ),
+                ),
+                (
+                    "event_description",
+                    models.TextField(verbose_name="Descripción del evento"),
+                ),
+                (
+                    "old_status",
+                    models.CharField(
+                        blank=True, max_length=25, verbose_name="Estado anterior"
+                    ),
+                ),
+                (
+                    "new_status",
+                    models.CharField(
+                        blank=True, max_length=25, verbose_name="Estado nuevo"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Entrada de Timeline',
-                'verbose_name_plural': 'Timeline de Siniestros',
-                'ordering': ['created_at'],
+                "verbose_name": "Entrada de Timeline",
+                "verbose_name_plural": "Timeline de Siniestros",
+                "ordering": ["created_at"],
             },
         ),
     ]

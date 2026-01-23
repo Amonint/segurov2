@@ -1,11 +1,14 @@
-from django.db import models
-from django.core.exceptions import ValidationError
-from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
 from decimal import Decimal
-from policies.models import Policy
+
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
 from accounts.models import UserProfile
 from companies.models import EmissionRights
+from policies.models import Policy
+
 
 class Invoice(models.Model):
     """
@@ -14,152 +17,130 @@ class Invoice(models.Model):
 
     # Payment status choices
     PAYMENT_STATUS_CHOICES = [
-        ('pending', _('Pendiente')),
-        ('paid', _('Pagada')),
-        ('overdue', _('Vencida')),
-        ('cancelled', _('Cancelada')),
+        ("pending", _("Pendiente")),
+        ("paid", _("Pagada")),
+        ("overdue", _("Vencida")),
+        ("cancelled", _("Cancelada")),
     ]
 
     # Invoice fields
     policy = models.ForeignKey(
         Policy,
         on_delete=models.PROTECT,
-        verbose_name=_('Póliza'),
-        related_name='invoices'
+        verbose_name=_("Póliza"),
+        related_name="invoices",
     )
     invoice_number = models.CharField(
-        _('Número de factura'),
-        max_length=50,
-        unique=True
+        _("Número de factura"), max_length=50, unique=True
     )
-    invoice_date = models.DateField(_('Fecha de factura'))
-    due_date = models.DateField(_('Fecha de vencimiento'))
+    invoice_date = models.DateField(_("Fecha de factura"))
+    due_date = models.DateField(_("Fecha de vencimiento"))
 
     # Calculated fields (automatically computed)
     premium = models.DecimalField(
-        _('Prima base'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
+        _("Prima base"), max_digits=15, decimal_places=2, editable=False
     )
     superintendence_contribution = models.DecimalField(
-        _('Contribución Superintendencia (3.5%)'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
-    )
-    farm_insurance_contribution = models.DecimalField(
-        _('Contribución Seguro Campesino (0.5%)'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
-    )
-    emission_rights = models.DecimalField(
-        _('Derechos de emisión'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
-    )
-    tax_base = models.DecimalField(
-        _('Base imponible'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
-    )
-    iva = models.DecimalField(
-        _('IVA (15%)'),
-        max_digits=15,
-        decimal_places=2,
-        editable=False
-    )
-    withholding_tax = models.DecimalField(
-        _('Retenciones'),
-        max_digits=15,
-        decimal_places=2,
-        default=0,
-        blank=True
-    )
-    early_payment_discount = models.DecimalField(
-        _('Descuento pronto pago (5%)'),
+        _("Contribución Superintendencia (3.5%)"),
         max_digits=15,
         decimal_places=2,
         editable=False,
-        default=0
     )
-    total_amount = models.DecimalField(
-        _('Total final'),
+    farm_insurance_contribution = models.DecimalField(
+        _("Contribución Seguro Campesino (0.5%)"),
         max_digits=15,
         decimal_places=2,
-        editable=False
+        editable=False,
+    )
+    emission_rights = models.DecimalField(
+        _("Derechos de emisión"), max_digits=15, decimal_places=2, editable=False
+    )
+    tax_base = models.DecimalField(
+        _("Base imponible"), max_digits=15, decimal_places=2, editable=False
+    )
+    iva = models.DecimalField(
+        _("IVA (15%)"), max_digits=15, decimal_places=2, editable=False
+    )
+    withholding_tax = models.DecimalField(
+        _("Retenciones"), max_digits=15, decimal_places=2, default=0, blank=True
+    )
+    early_payment_discount = models.DecimalField(
+        _("Descuento pronto pago (5%)"),
+        max_digits=15,
+        decimal_places=2,
+        editable=False,
+        default=0,
+    )
+    total_amount = models.DecimalField(
+        _("Total final"), max_digits=15, decimal_places=2, editable=False
     )
 
     # Payment information - Enhanced for TDR requirements
     PAYMENT_STATUS_CHOICES = [
-        ('pendiente', _('Pendiente')),
-        ('pagada', _('Pagada')),
-        ('pagada_pronto_pago', _('Pagada con descuento pronto pago')),
-        ('vencida', _('Vencida')),
-        ('cancelada', _('Cancelada')),
+        ("pendiente", _("Pendiente")),
+        ("pagada", _("Pagada")),
+        ("pagada_pronto_pago", _("Pagada con descuento pronto pago")),
+        ("vencida", _("Vencida")),
+        ("cancelada", _("Cancelada")),
     ]
     payment_status = models.CharField(
-        _('Estado de pago'),
+        _("Estado de pago"),
         max_length=25,
         choices=PAYMENT_STATUS_CHOICES,
-        default='pendiente'
+        default="pendiente",
     )
     payment_date = models.DateField(
-        _('Fecha de pago real'),
+        _("Fecha de pago real"),
         null=True,
         blank=True,
-        help_text=_('Fecha en que se realizó el pago')
+        help_text=_("Fecha en que se realizó el pago"),
     )
     fecha_vencimiento = models.DateField(
-        _('Fecha de vencimiento'),
-        help_text=_('Fecha límite para el pago')
+        _("Fecha de vencimiento"), help_text=_("Fecha límite para el pago")
     )
     documento_contable = models.CharField(
-        _('Documento contable'),
+        _("Documento contable"),
         max_length=100,
         blank=True,
-        help_text=_('Número de documento contable o comprobante')
+        help_text=_("Número de documento contable o comprobante"),
     )
-    
+
     # Early payment discount control (5% if paid within 20 days)
     descuento_pronto_pago_aplicado = models.BooleanField(
-        _('Descuento pronto pago aplicado'),
+        _("Descuento pronto pago aplicado"),
         default=False,
-        help_text=_('Si se aplicó el descuento del 5% por pronto pago')
+        help_text=_("Si se aplicó el descuento del 5% por pronto pago"),
     )
     descuento_pronto_pago_valor = models.DecimalField(
-        _('Valor descuento pronto pago'),
+        _("Valor descuento pronto pago"),
         max_digits=15,
         decimal_places=2,
         default=0,
-        help_text=_('Monto del descuento aplicado (5% sobre prima)')
+        help_text=_("Monto del descuento aplicado (5% sobre prima)"),
     )
     dias_desde_emision = models.PositiveIntegerField(
-        _('Días desde emisión'),
+        _("Días desde emisión"),
         editable=False,
         default=0,
-        help_text=_('Días transcurridos desde la emisión (calculado)')
+        help_text=_("Días transcurridos desde la emisión (calculado)"),
     )
 
     # Relations
     created_by = models.ForeignKey(
         UserProfile,
         on_delete=models.PROTECT,
-        verbose_name=_('Creado por'),
-        related_name='created_invoices'
+        verbose_name=_("Creado por"),
+        related_name="created_invoices",
     )
 
     # Timestamps
-    created_at = models.DateTimeField(_('Fecha de creación'), auto_now_add=True)
-    updated_at = models.DateTimeField(_('Fecha de actualización'), auto_now=True)
+    created_at = models.DateTimeField(_("Fecha de creación"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("Fecha de actualización"), auto_now=True)
 
     class Meta:
-        verbose_name = _('Factura')
-        verbose_name_plural = _('Facturas')
-        ordering = ['-created_at']
+        verbose_name = _("Factura")
+        verbose_name_plural = _("Facturas")
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"Factura {self.invoice_number} - {self.policy.policy_number}"
@@ -170,46 +151,54 @@ class Invoice(models.Model):
         """
         # 1. Prima base (se calcula basado en la póliza - por ahora usamos valor asegurado * 0.01)
         # En un sistema real, esto vendría de una tabla de tarifas
-        self.premium = (self.policy.insured_value * Decimal('0.01')).quantize(Decimal('0.01'))  # 1% del valor asegurado
+        self.premium = (self.policy.insured_value * Decimal("0.01")).quantize(
+            Decimal("0.01")
+        )  # 1% del valor asegurado
 
         # 2. Contribución Superintendencia (3.5% de prima)
-        self.superintendence_contribution = (self.premium * Decimal('0.035')).quantize(Decimal('0.01'))
+        self.superintendence_contribution = (self.premium * Decimal("0.035")).quantize(
+            Decimal("0.01")
+        )
 
         # 3. Contribución Seguro Campesino (0.5% de prima)
-        self.farm_insurance_contribution = (self.premium * Decimal('0.005')).quantize(Decimal('0.01'))
+        self.farm_insurance_contribution = (self.premium * Decimal("0.005")).quantize(
+            Decimal("0.01")
+        )
 
         # 4. Derechos de emisión (desde tabla configurable)
         emission_rights_val = EmissionRights.objects.get_emission_right(self.premium)
-        self.emission_rights = emission_rights_val.quantize(Decimal('0.01'))
+        self.emission_rights = emission_rights_val.quantize(Decimal("0.01"))
 
         # 5. Base imponible = prima + superintendence + farm_insurance + emission_rights
         self.tax_base = (
-            self.premium +
-            self.superintendence_contribution +
-            self.farm_insurance_contribution +
-            self.emission_rights
-        ).quantize(Decimal('0.01'))
+            self.premium
+            + self.superintendence_contribution
+            + self.farm_insurance_contribution
+            + self.emission_rights
+        ).quantize(Decimal("0.01"))
 
         # 6. IVA (15% sobre base imponible)
-        self.iva = (self.tax_base * Decimal('0.15')).quantize(Decimal('0.01'))
+        self.iva = (self.tax_base * Decimal("0.15")).quantize(Decimal("0.01"))
 
         # 7. Descuento pronto pago (5% automático si pago <= 20 días)
         days_to_due = (self.due_date - self.invoice_date).days
         if days_to_due <= 20:
-            self.early_payment_discount = (self.tax_base * Decimal('0.05')).quantize(Decimal('0.01'))
+            self.early_payment_discount = (self.tax_base * Decimal("0.05")).quantize(
+                Decimal("0.01")
+            )
         else:
-            self.early_payment_discount = Decimal('0.00')
+            self.early_payment_discount = Decimal("0.00")
 
         # 8. Calcular retenciones de la póliza
         self.calculate_withholding_tax()
 
         # 9. Total final = base imponible + IVA - descuentos - retenciones
         self.total_amount = (
-            self.tax_base +
-            self.iva -
-            self.early_payment_discount -
-            self.withholding_tax
-        ).quantize(Decimal('0.01'))
+            self.tax_base
+            + self.iva
+            - self.early_payment_discount
+            - self.withholding_tax
+        ).quantize(Decimal("0.01"))
 
     def calculate_withholding_tax(self):
         """
@@ -218,12 +207,9 @@ class Invoice(models.Model):
         from companies.models import PolicyRetention
 
         # Get active retentions for this policy
-        retentions = PolicyRetention.objects.filter(
-            policy=self.policy,
-            is_active=True
-        )
+        retentions = PolicyRetention.objects.filter(policy=self.policy, is_active=True)
 
-        total_withholding = Decimal('0.00')
+        total_withholding = Decimal("0.00")
 
         for retention in retentions:
             if retention.applies_to_premium:
@@ -234,10 +220,10 @@ class Invoice(models.Model):
             if retention.applies_to_total:
                 # Apply retention to total amount before tax
                 base_for_retention = (
-                    self.premium +
-                    self.superintendence_contribution +
-                    self.farm_insurance_contribution +
-                    self.emission_rights
+                    self.premium
+                    + self.superintendence_contribution
+                    + self.farm_insurance_contribution
+                    + self.emission_rights
                 )
                 amount = base_for_retention * (retention.effective_percentage / 100)
                 total_withholding += amount
@@ -251,36 +237,38 @@ class Invoice(models.Model):
         """
         if self.payment_date and self.invoice_date:
             dias = (self.payment_date - self.invoice_date).days
-            
+
             if dias <= 20 and not self.descuento_pronto_pago_aplicado:
                 # Aplicar 5% de descuento sobre la prima
-                self.descuento_pronto_pago_valor = self.premium * Decimal('0.05')
+                self.descuento_pronto_pago_valor = self.premium * Decimal("0.05")
                 self.descuento_pronto_pago_aplicado = True
-                self.payment_status = 'pagada_pronto_pago'
-                
+                self.payment_status = "pagada_pronto_pago"
+
                 # Recalcular total
                 self.total_amount = (
-                    self.tax_base +
-                    self.iva -
-                    self.descuento_pronto_pago_valor -
-                    self.withholding_tax
+                    self.tax_base
+                    + self.iva
+                    - self.descuento_pronto_pago_valor
+                    - self.withholding_tax
                 )
                 self.save()
                 return True
         return False
-    
+
     def calcular_dias_desde_emision(self):
         """Calcula los días transcurridos desde la emisión"""
         if self.invoice_date:
             from django.utils import timezone
+
             self.dias_desde_emision = (timezone.now().date() - self.invoice_date).days
-    
+
     def verificar_vencimiento(self):
         """Verifica si la factura está vencida y actualiza el estado"""
-        if self.fecha_vencimiento and self.payment_status == 'pendiente':
+        if self.fecha_vencimiento and self.payment_status == "pendiente":
             from django.utils import timezone
+
             if timezone.now().date() > self.fecha_vencimiento:
-                self.payment_status = 'vencida'
+                self.payment_status = "vencida"
                 self.save()
                 return True
         return False
@@ -293,11 +281,19 @@ class Invoice(models.Model):
 
         # Validate dates
         if self.due_date and self.invoice_date and self.due_date <= self.invoice_date:
-            raise ValidationError(_('La fecha de vencimiento debe ser posterior a la fecha de factura'))
+            raise ValidationError(
+                _("La fecha de vencimiento debe ser posterior a la fecha de factura")
+            )
 
         # Validate payment date
-        if self.payment_date and self.payment_status == 'paid' and self.payment_date < self.invoice_date:
-            raise ValidationError(_('La fecha de pago no puede ser anterior a la fecha de factura'))
+        if (
+            self.payment_date
+            and self.payment_status == "paid"
+            and self.payment_date < self.invoice_date
+        ):
+            raise ValidationError(
+                _("La fecha de pago no puede ser anterior a la fecha de factura")
+            )
 
     @staticmethod
     def generate_invoice_number():
@@ -305,20 +301,22 @@ class Invoice(models.Model):
         Generate unique invoice number
         """
         current_year = timezone.now().year
-        last_invoice = Invoice.objects.filter(
-            invoice_number__startswith=f'INV-{current_year}-'
-        ).order_by('-invoice_number').first()
+        last_invoice = (
+            Invoice.objects.filter(invoice_number__startswith=f"INV-{current_year}-")
+            .order_by("-invoice_number")
+            .first()
+        )
 
         if last_invoice:
             try:
-                seq_num = int(last_invoice.invoice_number.split('-')[-1])
+                seq_num = int(last_invoice.invoice_number.split("-")[-1])
                 new_seq_num = seq_num + 1
             except (ValueError, IndexError):
                 new_seq_num = 1
         else:
             new_seq_num = 1
 
-        return f'INV-{current_year}-{new_seq_num:06d}'
+        return f"INV-{current_year}-{new_seq_num:06d}"
 
     def save(self, *args, **kwargs):
         """

@@ -1,5 +1,7 @@
 from django.test import TestCase
+
 from policies.models import Policy
+
 
 class PolicyModelTest(TestCase):
 

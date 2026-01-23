@@ -8,29 +8,84 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Broker',
+            name="Broker",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True, verbose_name='Nombre')),
-                ('ruc', models.CharField(help_text='Registro Único de Contribuyentes', max_length=13, unique=True, verbose_name='RUC')),
-                ('address', models.TextField(blank=True, verbose_name='Dirección')),
-                ('phone', models.CharField(blank=True, max_length=20, verbose_name='Teléfono')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
-                ('contact_person', models.CharField(blank=True, max_length=255, verbose_name='Persona de contacto')),
-                ('commission_percentage', models.DecimalField(decimal_places=2, help_text='Porcentaje de comisión (0-100%)', max_digits=5, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(100)], verbose_name='Porcentaje de comisión')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, unique=True, verbose_name="Nombre"
+                    ),
+                ),
+                (
+                    "ruc",
+                    models.CharField(
+                        help_text="Registro Único de Contribuyentes",
+                        max_length=13,
+                        unique=True,
+                        verbose_name="RUC",
+                    ),
+                ),
+                ("address", models.TextField(blank=True, verbose_name="Dirección")),
+                (
+                    "phone",
+                    models.CharField(
+                        blank=True, max_length=20, verbose_name="Teléfono"
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(blank=True, max_length=254, verbose_name="Email"),
+                ),
+                (
+                    "contact_person",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="Persona de contacto"
+                    ),
+                ),
+                (
+                    "commission_percentage",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Porcentaje de comisión (0-100%)",
+                        max_digits=5,
+                        validators=[
+                            django.core.validators.MinValueValidator(0),
+                            django.core.validators.MaxValueValidator(100),
+                        ],
+                        verbose_name="Porcentaje de comisión",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Corredor',
-                'verbose_name_plural': 'Corredores',
-                'ordering': ['name'],
+                "verbose_name": "Corredor",
+                "verbose_name_plural": "Corredores",
+                "ordering": ["name"],
             },
         ),
     ]

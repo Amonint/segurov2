@@ -7,25 +7,25 @@ def update_claim_statuses(apps, schema_editor):
     """
     Migrate old English status codes to new Spanish codes
     """
-    Claim = apps.get_model('claims', 'Claim')
-    
+    Claim = apps.get_model("claims", "Claim")
+
     # Mapping from old status to new status
     status_mapping = {
-        'reported': 'pendiente',
-        'reportado': 'pendiente',
-        'documentation_pending': 'requiere_cambios',
-        'docs_pendientes': 'requiere_cambios',
-        'sent_to_insurer': 'en_revision',
-        'enviado_aseguradora': 'en_revision',
-        'under_evaluation': 'en_revision',
-        'en_evaluacion': 'en_revision',
-        'liquidated': 'liquidado',
-        'paid': 'pagado',
-        'rejected': 'rechazado',
-        'closed': 'pagado',
-        'cerrado': 'pagado',
+        "reported": "pendiente",
+        "reportado": "pendiente",
+        "documentation_pending": "requiere_cambios",
+        "docs_pendientes": "requiere_cambios",
+        "sent_to_insurer": "en_revision",
+        "enviado_aseguradora": "en_revision",
+        "under_evaluation": "en_revision",
+        "en_evaluacion": "en_revision",
+        "liquidated": "liquidado",
+        "paid": "pagado",
+        "rejected": "rechazado",
+        "closed": "pagado",
+        "cerrado": "pagado",
     }
-    
+
     # Update all claims with old statuses
     for old_status, new_status in status_mapping.items():
         Claim.objects.filter(status=old_status).update(status=new_status)
@@ -35,19 +35,19 @@ def reverse_update_claim_statuses(apps, schema_editor):
     """
     Reverse migration - convert back to old statuses
     """
-    Claim = apps.get_model('claims', 'Claim')
-    
+    Claim = apps.get_model("claims", "Claim")
+
     # Reverse mapping
     reverse_mapping = {
-        'pendiente': 'reported',
-        'requiere_cambios': 'documentation_pending',
-        'en_revision': 'sent_to_insurer',
-        'aprobado': 'under_evaluation',
-        'liquidado': 'liquidated',
-        'pagado': 'paid',
-        'rechazado': 'rejected',
+        "pendiente": "reported",
+        "requiere_cambios": "documentation_pending",
+        "en_revision": "sent_to_insurer",
+        "aprobado": "under_evaluation",
+        "liquidado": "liquidated",
+        "pagado": "paid",
+        "rechazado": "rejected",
     }
-    
+
     for new_status, old_status in reverse_mapping.items():
         Claim.objects.filter(status=new_status).update(status=old_status)
 
@@ -55,7 +55,7 @@ def reverse_update_claim_statuses(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('claims', '0004_add_validation_fields'),
+        ("claims", "0004_add_validation_fields"),
     ]
 
     operations = [

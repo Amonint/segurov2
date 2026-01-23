@@ -1,5 +1,7 @@
 from django.test import TestCase
+
 from claims.models import Claim
+
 
 class ClaimModelTest(TestCase):
 

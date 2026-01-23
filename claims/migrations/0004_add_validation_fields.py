@@ -8,34 +8,68 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('claims', '0003_claim_asset'),
+        ("claims", "0003_claim_asset"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='claim',
-            name='validated_by',
-            field=models.ForeignKey(blank=True, help_text='Usuario que validó el siniestro', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='validated_claims', to=settings.AUTH_USER_MODEL, verbose_name='Validado por'),
+            model_name="claim",
+            name="validated_by",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Usuario que validó el siniestro",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="validated_claims",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Validado por",
+            ),
         ),
         migrations.AddField(
-            model_name='claim',
-            name='validation_comments',
-            field=models.TextField(blank=True, help_text='Comentarios del validador sobre documentos o datos faltantes', verbose_name='Comentarios de Validación'),
+            model_name="claim",
+            name="validation_comments",
+            field=models.TextField(
+                blank=True,
+                help_text="Comentarios del validador sobre documentos o datos faltantes",
+                verbose_name="Comentarios de Validación",
+            ),
         ),
         migrations.AddField(
-            model_name='claim',
-            name='validation_date',
-            field=models.DateTimeField(blank=True, help_text='Fecha y hora de la última validación', null=True, verbose_name='Fecha de validación'),
+            model_name="claim",
+            name="validation_date",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="Fecha y hora de la última validación",
+                null=True,
+                verbose_name="Fecha de validación",
+            ),
         ),
         migrations.AddField(
-            model_name='claimtimeline',
-            name='notes',
-            field=models.TextField(blank=True, help_text='Notas adicionales sobre el cambio de estado', verbose_name='Notas/Observaciones'),
+            model_name="claimtimeline",
+            name="notes",
+            field=models.TextField(
+                blank=True,
+                help_text="Notas adicionales sobre el cambio de estado",
+                verbose_name="Notas/Observaciones",
+            ),
         ),
         migrations.AlterField(
-            model_name='claim',
-            name='status',
-            field=models.CharField(choices=[('pendiente', 'Pendiente de Validación'), ('en_revision', 'En Revisión'), ('requiere_cambios', 'Requiere Cambios'), ('aprobado', 'Aprobado'), ('liquidado', 'Liquidado'), ('pagado', 'Pagado'), ('rechazado', 'Rechazado')], default='reportado', max_length=25, verbose_name='Estado'),
+            model_name="claim",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pendiente", "Pendiente de Validación"),
+                    ("en_revision", "En Revisión"),
+                    ("requiere_cambios", "Requiere Cambios"),
+                    ("aprobado", "Aprobado"),
+                    ("liquidado", "Liquidado"),
+                    ("pagado", "Pagado"),
+                    ("rechazado", "Rechazado"),
+                ],
+                default="reportado",
+                max_length=25,
+                verbose_name="Estado",
+            ),
         ),
     ]

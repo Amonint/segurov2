@@ -1,9 +1,11 @@
-from django.utils.deprecation import MiddlewareMixin
-from django.contrib.auth.signals import user_logged_in, user_logged_out
-from django.db.models.signals import post_save, post_delete
-from django.dispatch import receiver
-from .models import AuditLog
 import json
+
+from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+from django.utils.deprecation import MiddlewareMixin
+
+from .models import AuditLog
 
 
 class AuditMiddleware(MiddlewareMixin):
@@ -22,6 +24,7 @@ class AuditMiddleware(MiddlewareMixin):
 
 # Signal handlers for automatic audit logging
 
+
 @receiver(user_logged_in)
 def log_user_login(sender, request, user, **kwargs):
     """
@@ -29,16 +32,16 @@ def log_user_login(sender, request, user, **kwargs):
     """
     # Get IP address and user agent from request
     ip_address = get_client_ip_from_request(request)
-    user_agent = request.META.get('HTTP_USER_AGENT')
+    user_agent = request.META.get("HTTP_USER_AGENT")
 
     AuditLog.log_action(
         user=user,
-        action_type='login',
-        entity_type='user',
+        action_type="login",
+        entity_type="user",
         entity_id=str(user.id),
-        description=f'Inicio de sesión del usuario {user.get_full_name()}',
+        description=f"Inicio de sesión del usuario {user.get_full_name()}",
         ip_address=ip_address,
-        user_agent=user_agent
+        user_agent=user_agent,
     )
 
 
@@ -49,16 +52,16 @@ def log_user_logout(sender, request, user, **kwargs):
     """
     # Get IP address and user agent from request
     ip_address = get_client_ip_from_request(request)
-    user_agent = request.META.get('HTTP_USER_AGENT')
+    user_agent = request.META.get("HTTP_USER_AGENT")
 
     AuditLog.log_action(
         user=user,
-        action_type='logout',
-        entity_type='user',
+        action_type="logout",
+        entity_type="user",
         entity_id=str(user.id),
-        description=f'Cierre de sesión del usuario {user.get_full_name()}',
+        description=f"Cierre de sesión del usuario {user.get_full_name()}",
         ip_address=ip_address,
-        user_agent=user_agent
+        user_agent=user_agent,
     )
 
 
@@ -66,11 +69,11 @@ def get_client_ip_from_request(request):
     """
     Get client IP address from request
     """
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        ip = x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
     return ip
 
 
@@ -79,16 +82,16 @@ def get_model_entity_type(model):
     Map Django model to entity type
     """
     model_mapping = {
-        'UserProfile': 'user',
-        'Policy': 'policy',
-        'Claim': 'claim',
-        'Invoice': 'invoice',
-        'Asset': 'asset',
-        'InsuranceCompany': 'insurance_company',
-        'Broker': 'broker',
-        'Notification': 'notification',
+        "UserProfile": "user",
+        "Policy": "policy",
+        "Claim": "claim",
+        "Invoice": "invoice",
+        "Asset": "asset",
+        "InsuranceCompany": "insurance_company",
+        "Broker": "broker",
+        "Notification": "notification",
     }
-    return model_mapping.get(model.__name__, 'unknown')
+    return model_mapping.get(model.__name__, "unknown")
 
 
 # Temporarily disable automatic model auditing to avoid issues during development

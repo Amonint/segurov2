@@ -1,7 +1,7 @@
-image: python:3.11
+image: python:3.12
 
 variables:
-  PYTHON_VERSION: "3.11"
+  PYTHON_VERSION: "3.12"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   POSTGRES_DB: "seguros_db_test"
   POSTGRES_USER: "seguros_user"

@@ -16,78 +16,280 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='InsuranceCompany',
+            name="InsuranceCompany",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True, verbose_name='Nombre')),
-                ('ruc', models.CharField(help_text='Registro Único de Contribuyentes', max_length=13, unique=True, verbose_name='RUC')),
-                ('address', models.TextField(blank=True, verbose_name='Dirección')),
-                ('phone', models.CharField(blank=True, max_length=20, verbose_name='Teléfono')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
-                ('contact_person', models.CharField(blank=True, max_length=255, verbose_name='Persona de contacto')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, unique=True, verbose_name="Nombre"
+                    ),
+                ),
+                (
+                    "ruc",
+                    models.CharField(
+                        help_text="Registro Único de Contribuyentes",
+                        max_length=13,
+                        unique=True,
+                        verbose_name="RUC",
+                    ),
+                ),
+                ("address", models.TextField(blank=True, verbose_name="Dirección")),
+                (
+                    "phone",
+                    models.CharField(
+                        blank=True, max_length=20, verbose_name="Teléfono"
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(blank=True, max_length=254, verbose_name="Email"),
+                ),
+                (
+                    "contact_person",
+                    models.CharField(
+                        blank=True, max_length=255, verbose_name="Persona de contacto"
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Compañía de Seguros',
-                'verbose_name_plural': 'Compañías de Seguros',
-                'ordering': ['name'],
+                "verbose_name": "Compañía de Seguros",
+                "verbose_name_plural": "Compañías de Seguros",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='RetentionType',
+            name="RetentionType",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Nombre')),
-                ('code', models.CharField(max_length=20, unique=True, verbose_name='Código')),
-                ('retention_type', models.CharField(choices=[('iva', 'IVA'), ('islr', 'Impuesto sobre la Renta'), ('fonacide', 'FONACIDE'), ('other', 'Otro')], default='other', max_length=20, verbose_name='Tipo de retención')),
-                ('percentage', models.DecimalField(decimal_places=2, help_text='Porcentaje de retención (ej: 12.00 para 12%)', max_digits=5, verbose_name='Porcentaje')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizado')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=100, unique=True, verbose_name="Nombre"
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(max_length=20, unique=True, verbose_name="Código"),
+                ),
+                (
+                    "retention_type",
+                    models.CharField(
+                        choices=[
+                            ("iva", "IVA"),
+                            ("islr", "Impuesto sobre la Renta"),
+                            ("fonacide", "FONACIDE"),
+                            ("other", "Otro"),
+                        ],
+                        default="other",
+                        max_length=20,
+                        verbose_name="Tipo de retención",
+                    ),
+                ),
+                (
+                    "percentage",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Porcentaje de retención (ej: 12.00 para 12%)",
+                        max_digits=5,
+                        verbose_name="Porcentaje",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Actualizado"),
+                ),
             ],
             options={
-                'verbose_name': 'Tipo de Retención',
-                'verbose_name_plural': 'Tipos de Retención',
-                'ordering': ['name'],
+                "verbose_name": "Tipo de Retención",
+                "verbose_name_plural": "Tipos de Retención",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='EmissionRights',
+            name="EmissionRights",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('min_amount', models.DecimalField(decimal_places=2, help_text='Monto mínimo del rango (incluyente)', max_digits=12, verbose_name='Monto mínimo')),
-                ('max_amount', models.DecimalField(decimal_places=2, help_text='Monto máximo del rango (incluyente)', max_digits=12, verbose_name='Monto máximo')),
-                ('emission_right', models.DecimalField(decimal_places=2, help_text='Valor del derecho de emisión para este rango', max_digits=10, verbose_name='Derecho de emisión')),
-                ('is_active', models.BooleanField(default=True, help_text='Si está activo para cálculos', verbose_name='Activo')),
-                ('valid_from', models.DateField(default=django.utils.timezone.now, help_text='Fecha desde la cual aplica esta configuración', verbose_name='Válido desde')),
-                ('valid_until', models.DateField(blank=True, help_text='Fecha hasta la cual aplica (opcional)', null=True, verbose_name='Válido hasta')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizado')),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='emission_rights_created', to=settings.AUTH_USER_MODEL, verbose_name='Creado por')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "min_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto mínimo del rango (incluyente)",
+                        max_digits=12,
+                        verbose_name="Monto mínimo",
+                    ),
+                ),
+                (
+                    "max_amount",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto máximo del rango (incluyente)",
+                        max_digits=12,
+                        verbose_name="Monto máximo",
+                    ),
+                ),
+                (
+                    "emission_right",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Valor del derecho de emisión para este rango",
+                        max_digits=10,
+                        verbose_name="Derecho de emisión",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Si está activo para cálculos",
+                        verbose_name="Activo",
+                    ),
+                ),
+                (
+                    "valid_from",
+                    models.DateField(
+                        default=django.utils.timezone.now,
+                        help_text="Fecha desde la cual aplica esta configuración",
+                        verbose_name="Válido desde",
+                    ),
+                ),
+                (
+                    "valid_until",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha hasta la cual aplica (opcional)",
+                        null=True,
+                        verbose_name="Válido hasta",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Actualizado"),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="emission_rights_created",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Creado por",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Derecho de Emisión',
-                'verbose_name_plural': 'Derechos de Emisión',
-                'ordering': ['min_amount', 'valid_from'],
+                "verbose_name": "Derecho de Emisión",
+                "verbose_name_plural": "Derechos de Emisión",
+                "ordering": ["min_amount", "valid_from"],
             },
         ),
         migrations.CreateModel(
-            name='PolicyRetention',
+            name="PolicyRetention",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('applies_to_premium', models.BooleanField(default=True, help_text='Si la retención se aplica sobre la prima', verbose_name='Aplica a prima')),
-                ('applies_to_total', models.BooleanField(default=False, help_text='Si la retención se aplica sobre el total de la factura', verbose_name='Aplica a total')),
-                ('custom_percentage', models.DecimalField(blank=True, decimal_places=2, help_text='Si es diferente al porcentaje estándar (opcional)', max_digits=5, null=True, verbose_name='Porcentaje personalizado')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Creado por')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "applies_to_premium",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Si la retención se aplica sobre la prima",
+                        verbose_name="Aplica a prima",
+                    ),
+                ),
+                (
+                    "applies_to_total",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Si la retención se aplica sobre el total de la factura",
+                        verbose_name="Aplica a total",
+                    ),
+                ),
+                (
+                    "custom_percentage",
+                    models.DecimalField(
+                        blank=True,
+                        decimal_places=2,
+                        help_text="Si es diferente al porcentaje estándar (opcional)",
+                        max_digits=5,
+                        null=True,
+                        verbose_name="Porcentaje personalizado",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Creado por",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Retención de Póliza',
-                'verbose_name_plural': 'Retenciones de Póliza',
+                "verbose_name": "Retención de Póliza",
+                "verbose_name_plural": "Retenciones de Póliza",
             },
         ),
     ]

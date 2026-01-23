@@ -10,20 +10,32 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('assets', '0001_initial'),
-        ('policies', '0001_initial'),
+        ("assets", "0001_initial"),
+        ("policies", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='asset',
-            name='insurance_policy',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='insured_assets', to='policies.policy', verbose_name='Póliza de seguro'),
+            model_name="asset",
+            name="insurance_policy",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="insured_assets",
+                to="policies.policy",
+                verbose_name="Póliza de seguro",
+            ),
         ),
         migrations.AddField(
-            model_name='asset',
-            name='responsible_user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='responsible_assets', to=settings.AUTH_USER_MODEL, verbose_name='Usuario responsable'),
+            model_name="asset",
+            name="responsible_user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="responsible_assets",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Usuario responsable",
+            ),
         ),
     ]

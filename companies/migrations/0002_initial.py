@@ -9,31 +9,46 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('companies', '0001_initial'),
-        ('policies', '0001_initial'),
+        ("companies", "0001_initial"),
+        ("policies", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='policyretention',
-            name='policy',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='retentions', to='policies.policy', verbose_name='Póliza'),
+            model_name="policyretention",
+            name="policy",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="retentions",
+                to="policies.policy",
+                verbose_name="Póliza",
+            ),
         ),
         migrations.AddField(
-            model_name='policyretention',
-            name='retention_type',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='companies.retentiontype', verbose_name='Tipo de retención'),
+            model_name="policyretention",
+            name="retention_type",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="companies.retentiontype",
+                verbose_name="Tipo de retención",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='emissionrights',
-            constraint=models.CheckConstraint(condition=models.Q(('max_amount__gt', models.F('min_amount'))), name='emission_rights_min_less_than_max'),
+            model_name="emissionrights",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("max_amount__gt", models.F("min_amount"))),
+                name="emission_rights_min_less_than_max",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='emissionrights',
-            constraint=models.CheckConstraint(condition=models.Q(('emission_right__gte', 0)), name='emission_rights_positive'),
+            model_name="emissionrights",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("emission_right__gte", 0)),
+                name="emission_rights_positive",
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='policyretention',
-            unique_together={('policy', 'retention_type')},
+            name="policyretention",
+            unique_together={("policy", "retention_type")},
         ),
     ]

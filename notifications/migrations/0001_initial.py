@@ -10,101 +10,434 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('claims', '0002_initial'),
-        ('invoices', '0001_initial'),
-        ('policies', '0001_initial'),
+        ("claims", "0002_initial"),
+        ("invoices", "0001_initial"),
+        ("policies", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Alert',
+            name="Alert",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, verbose_name='Nombre de la alerta')),
-                ('alert_type', models.CharField(choices=[('policy_expiring', 'Póliza por vencer'), ('policy_expired', 'Póliza vencida'), ('invoice_overdue', 'Factura vencida'), ('claim_overdue', 'Siniestro atrasado'), ('document_overdue', 'Documento vencido'), ('payment_due', 'Pago próximo'), ('maintenance_required', 'Mantenimiento requerido'), ('system_alert', 'Alerta del sistema')], max_length=20, verbose_name='Tipo de alerta')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('conditions', models.JSONField(default=dict, help_text='Condiciones JSON para activar la alerta', verbose_name='Condiciones')),
-                ('email_recipients', models.TextField(blank=True, help_text='Emails separados por comas', verbose_name='Emails adicionales')),
-                ('frequency', models.CharField(choices=[('daily', 'Diario'), ('weekly', 'Semanal'), ('monthly', 'Mensual'), ('realtime', 'Tiempo real')], default='daily', max_length=10, verbose_name='Frecuencia')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activa')),
-                ('last_run', models.DateTimeField(blank=True, null=True, verbose_name='Última ejecución')),
-                ('next_run', models.DateTimeField(blank=True, null=True, verbose_name='Próxima ejecución')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_alerts', to=settings.AUTH_USER_MODEL, verbose_name='Creado por')),
-                ('recipients', models.ManyToManyField(blank=True, related_name='alerts', to=settings.AUTH_USER_MODEL, verbose_name='Destinatarios')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, verbose_name="Nombre de la alerta"
+                    ),
+                ),
+                (
+                    "alert_type",
+                    models.CharField(
+                        choices=[
+                            ("policy_expiring", "Póliza por vencer"),
+                            ("policy_expired", "Póliza vencida"),
+                            ("invoice_overdue", "Factura vencida"),
+                            ("claim_overdue", "Siniestro atrasado"),
+                            ("document_overdue", "Documento vencido"),
+                            ("payment_due", "Pago próximo"),
+                            ("maintenance_required", "Mantenimiento requerido"),
+                            ("system_alert", "Alerta del sistema"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de alerta",
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "conditions",
+                    models.JSONField(
+                        default=dict,
+                        help_text="Condiciones JSON para activar la alerta",
+                        verbose_name="Condiciones",
+                    ),
+                ),
+                (
+                    "email_recipients",
+                    models.TextField(
+                        blank=True,
+                        help_text="Emails separados por comas",
+                        verbose_name="Emails adicionales",
+                    ),
+                ),
+                (
+                    "frequency",
+                    models.CharField(
+                        choices=[
+                            ("daily", "Diario"),
+                            ("weekly", "Semanal"),
+                            ("monthly", "Mensual"),
+                            ("realtime", "Tiempo real"),
+                        ],
+                        default="daily",
+                        max_length=10,
+                        verbose_name="Frecuencia",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activa")),
+                (
+                    "last_run",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Última ejecución"
+                    ),
+                ),
+                (
+                    "next_run",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Próxima ejecución"
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="created_alerts",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Creado por",
+                    ),
+                ),
+                (
+                    "recipients",
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name="alerts",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Destinatarios",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Alerta',
-                'verbose_name_plural': 'Alertas',
-                'ordering': ['-created_at'],
+                "verbose_name": "Alerta",
+                "verbose_name_plural": "Alertas",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='EmailTemplate',
+            name="EmailTemplate",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True, verbose_name='Nombre')),
-                ('template_type', models.CharField(choices=[('claim_reported', 'Siniestro Reportado'), ('claim_updated', 'Siniestro Actualizado'), ('claim_liquidated', 'Siniestro Liquidado'), ('claim_paid', 'Siniestro Pagado'), ('claim_rejected', 'Siniestro Rechazado'), ('policy_expiring', 'Póliza por Vencer'), ('payment_due', 'Pago Pendiente'), ('payment_overdue', 'Pago Vencido'), ('invoice_generated', 'Factura Generada'), ('settlement_signed', 'Finiquito Firmado'), ('broker_notification', 'Notificación a Broker'), ('insurer_notification', 'Notificación a Aseguradora')], max_length=30, verbose_name='Tipo de Plantilla')),
-                ('recipient_type', models.CharField(choices=[('user', 'Usuario del Sistema'), ('broker', 'Broker'), ('insurer', 'Aseguradora'), ('client', 'Cliente'), ('financial', 'Gerencia Financiera')], max_length=20, verbose_name='Tipo de Destinatario')),
-                ('subject', models.CharField(help_text='Asunto del email - puede incluir variables ej: {{claim_number}}', max_length=255, verbose_name='Asunto')),
-                ('body_html', models.TextField(help_text='Cuerpo del email en HTML - puede incluir variables', verbose_name='Cuerpo HTML')),
-                ('body_text', models.TextField(blank=True, help_text='Versión texto plano (opcional)', verbose_name='Cuerpo Texto Plano')),
-                ('is_active', models.BooleanField(default=True, verbose_name='Activo')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizado')),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Creado por')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=100, unique=True, verbose_name="Nombre"
+                    ),
+                ),
+                (
+                    "template_type",
+                    models.CharField(
+                        choices=[
+                            ("claim_reported", "Siniestro Reportado"),
+                            ("claim_updated", "Siniestro Actualizado"),
+                            ("claim_liquidated", "Siniestro Liquidado"),
+                            ("claim_paid", "Siniestro Pagado"),
+                            ("claim_rejected", "Siniestro Rechazado"),
+                            ("policy_expiring", "Póliza por Vencer"),
+                            ("payment_due", "Pago Pendiente"),
+                            ("payment_overdue", "Pago Vencido"),
+                            ("invoice_generated", "Factura Generada"),
+                            ("settlement_signed", "Finiquito Firmado"),
+                            ("broker_notification", "Notificación a Broker"),
+                            ("insurer_notification", "Notificación a Aseguradora"),
+                        ],
+                        max_length=30,
+                        verbose_name="Tipo de Plantilla",
+                    ),
+                ),
+                (
+                    "recipient_type",
+                    models.CharField(
+                        choices=[
+                            ("user", "Usuario del Sistema"),
+                            ("broker", "Broker"),
+                            ("insurer", "Aseguradora"),
+                            ("client", "Cliente"),
+                            ("financial", "Gerencia Financiera"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de Destinatario",
+                    ),
+                ),
+                (
+                    "subject",
+                    models.CharField(
+                        help_text="Asunto del email - puede incluir variables ej: {{claim_number}}",
+                        max_length=255,
+                        verbose_name="Asunto",
+                    ),
+                ),
+                (
+                    "body_html",
+                    models.TextField(
+                        help_text="Cuerpo del email en HTML - puede incluir variables",
+                        verbose_name="Cuerpo HTML",
+                    ),
+                ),
+                (
+                    "body_text",
+                    models.TextField(
+                        blank=True,
+                        help_text="Versión texto plano (opcional)",
+                        verbose_name="Cuerpo Texto Plano",
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True, verbose_name="Activo")),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Actualizado"),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Creado por",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Plantilla de Email',
-                'verbose_name_plural': 'Plantillas de Email',
-                'ordering': ['template_type', 'name'],
+                "verbose_name": "Plantilla de Email",
+                "verbose_name_plural": "Plantillas de Email",
+                "ordering": ["template_type", "name"],
             },
         ),
         migrations.CreateModel(
-            name='EmailLog',
+            name="EmailLog",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recipient_email', models.EmailField(max_length=254, verbose_name='Email del Destinatario')),
-                ('recipient_name', models.CharField(blank=True, max_length=255, verbose_name='Nombre del Destinatario')),
-                ('subject', models.CharField(max_length=255, verbose_name='Asunto')),
-                ('status', models.CharField(choices=[('sent', 'Enviado'), ('failed', 'Fallido'), ('pending', 'Pendiente'), ('simulated', 'Simulado')], default='pending', max_length=10, verbose_name='Estado')),
-                ('sent_at', models.DateTimeField(blank=True, null=True, verbose_name='Enviado')),
-                ('error_message', models.TextField(blank=True, verbose_name='Mensaje de Error')),
-                ('context_data', models.JSONField(default=dict, help_text='Variables utilizadas en la plantilla', verbose_name='Datos del Contexto')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creado')),
-                ('claim', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='claims.claim', verbose_name='Siniestro Relacionado')),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Creado por')),
-                ('invoice', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='invoices.invoice', verbose_name='Factura Relacionada')),
-                ('policy', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='policies.policy', verbose_name='Póliza Relacionada')),
-                ('template', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='email_logs', to='notifications.emailtemplate', verbose_name='Plantilla')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "recipient_email",
+                    models.EmailField(
+                        max_length=254, verbose_name="Email del Destinatario"
+                    ),
+                ),
+                (
+                    "recipient_name",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        verbose_name="Nombre del Destinatario",
+                    ),
+                ),
+                ("subject", models.CharField(max_length=255, verbose_name="Asunto")),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("sent", "Enviado"),
+                            ("failed", "Fallido"),
+                            ("pending", "Pendiente"),
+                            ("simulated", "Simulado"),
+                        ],
+                        default="pending",
+                        max_length=10,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "sent_at",
+                    models.DateTimeField(blank=True, null=True, verbose_name="Enviado"),
+                ),
+                (
+                    "error_message",
+                    models.TextField(blank=True, verbose_name="Mensaje de Error"),
+                ),
+                (
+                    "context_data",
+                    models.JSONField(
+                        default=dict,
+                        help_text="Variables utilizadas en la plantilla",
+                        verbose_name="Datos del Contexto",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creado"),
+                ),
+                (
+                    "claim",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="claims.claim",
+                        verbose_name="Siniestro Relacionado",
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Creado por",
+                    ),
+                ),
+                (
+                    "invoice",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="invoices.invoice",
+                        verbose_name="Factura Relacionada",
+                    ),
+                ),
+                (
+                    "policy",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="policies.policy",
+                        verbose_name="Póliza Relacionada",
+                    ),
+                ),
+                (
+                    "template",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="email_logs",
+                        to="notifications.emailtemplate",
+                        verbose_name="Plantilla",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Log de Email',
-                'verbose_name_plural': 'Logs de Email',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['status', 'created_at'], name='notificatio_status_6192b4_idx'), models.Index(fields=['recipient_email'], name='notificatio_recipie_25af1a_idx')],
+                "verbose_name": "Log de Email",
+                "verbose_name_plural": "Logs de Email",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["status", "created_at"],
+                        name="notificatio_status_6192b4_idx",
+                    ),
+                    models.Index(
+                        fields=["recipient_email"],
+                        name="notificatio_recipie_25af1a_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
-            name='Notification',
+            name="Notification",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('notification_type', models.CharField(choices=[('policy_expiring', 'Póliza por vencer'), ('payment_due', 'Pago pendiente'), ('claim_update', 'Actualización de siniestro'), ('document_required', 'Documento requerido'), ('alert', 'Alerta general')], max_length=20, verbose_name='Tipo de notificación')),
-                ('title', models.CharField(max_length=255, verbose_name='Título')),
-                ('message', models.TextField(verbose_name='Mensaje')),
-                ('link', models.URLField(blank=True, verbose_name='Enlace')),
-                ('is_read', models.BooleanField(default=False, verbose_name='¿Leída?')),
-                ('priority', models.CharField(choices=[('low', 'Baja'), ('normal', 'Normal'), ('high', 'Alta'), ('urgent', 'Urgente')], default='normal', max_length=10, verbose_name='Prioridad')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL, verbose_name='Usuario')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "notification_type",
+                    models.CharField(
+                        choices=[
+                            ("policy_expiring", "Póliza por vencer"),
+                            ("payment_due", "Pago pendiente"),
+                            ("claim_update", "Actualización de siniestro"),
+                            ("document_required", "Documento requerido"),
+                            ("alert", "Alerta general"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de notificación",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255, verbose_name="Título")),
+                ("message", models.TextField(verbose_name="Mensaje")),
+                ("link", models.URLField(blank=True, verbose_name="Enlace")),
+                ("is_read", models.BooleanField(default=False, verbose_name="¿Leída?")),
+                (
+                    "priority",
+                    models.CharField(
+                        choices=[
+                            ("low", "Baja"),
+                            ("normal", "Normal"),
+                            ("high", "Alta"),
+                            ("urgent", "Urgente"),
+                        ],
+                        default="normal",
+                        max_length=10,
+                        verbose_name="Prioridad",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="notifications",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Notificación',
-                'verbose_name_plural': 'Notificaciones',
-                'ordering': ['-created_at'],
-                'indexes': [models.Index(fields=['user', '-created_at'], name='notificatio_user_id_05b4bc_idx'), models.Index(fields=['is_read', 'priority'], name='notificatio_is_read_584b29_idx')],
+                "verbose_name": "Notificación",
+                "verbose_name_plural": "Notificaciones",
+                "ordering": ["-created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["user", "-created_at"],
+                        name="notificatio_user_id_05b4bc_idx",
+                    ),
+                    models.Index(
+                        fields=["is_read", "priority"],
+                        name="notificatio_is_read_584b29_idx",
+                    ),
+                ],
             },
         ),
     ]

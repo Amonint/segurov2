@@ -16,30 +16,133 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Asset',
+            name="Asset",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('asset_code', models.CharField(max_length=50, unique=True, verbose_name='Código del activo')),
-                ('name', models.CharField(max_length=255, verbose_name='Nombre del bien')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('brand', models.CharField(blank=True, max_length=100, verbose_name='Marca')),
-                ('model', models.CharField(blank=True, max_length=100, verbose_name='Modelo')),
-                ('serial_number', models.CharField(blank=True, max_length=100, verbose_name='Número de serie')),
-                ('asset_type', models.CharField(choices=[('vehiculo', 'Vehículo'), ('equipo_electronico', 'Equipo electrónico'), ('maquinaria', 'Maquinaria'), ('mobiliario', 'Mobiliario'), ('herramientas', 'Herramientas'), ('inventario', 'Inventario'), ('otros', 'Otros')], max_length=20, verbose_name='Tipo de activo')),
-                ('location', models.CharField(max_length=255, verbose_name='Ubicación física')),
-                ('acquisition_date', models.DateField(verbose_name='Fecha de adquisición')),
-                ('acquisition_cost', models.DecimalField(decimal_places=2, max_digits=15, validators=[django.core.validators.MinValueValidator(0)], verbose_name='Costo de adquisición')),
-                ('current_value', models.DecimalField(decimal_places=2, max_digits=15, validators=[django.core.validators.MinValueValidator(0)], verbose_name='Valor actual')),
-                ('condition_status', models.CharField(choices=[('excelente', 'Excelente'), ('bueno', 'Bueno'), ('regular', 'Regular'), ('malo', 'Malo'), ('fuera_de_servicio', 'Fuera de servicio')], default='bueno', max_length=20, verbose_name='Estado de condición')),
-                ('is_insured', models.BooleanField(default=False, verbose_name='¿Está asegurado?')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
-                ('custodian', models.ForeignKey(limit_choices_to={'role': 'requester'}, on_delete=django.db.models.deletion.PROTECT, related_name='custodied_assets', to=settings.AUTH_USER_MODEL, verbose_name='Custodio')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "asset_code",
+                    models.CharField(
+                        max_length=50, unique=True, verbose_name="Código del activo"
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=255, verbose_name="Nombre del bien"),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "brand",
+                    models.CharField(blank=True, max_length=100, verbose_name="Marca"),
+                ),
+                (
+                    "model",
+                    models.CharField(blank=True, max_length=100, verbose_name="Modelo"),
+                ),
+                (
+                    "serial_number",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Número de serie"
+                    ),
+                ),
+                (
+                    "asset_type",
+                    models.CharField(
+                        choices=[
+                            ("vehiculo", "Vehículo"),
+                            ("equipo_electronico", "Equipo electrónico"),
+                            ("maquinaria", "Maquinaria"),
+                            ("mobiliario", "Mobiliario"),
+                            ("herramientas", "Herramientas"),
+                            ("inventario", "Inventario"),
+                            ("otros", "Otros"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de activo",
+                    ),
+                ),
+                (
+                    "location",
+                    models.CharField(max_length=255, verbose_name="Ubicación física"),
+                ),
+                (
+                    "acquisition_date",
+                    models.DateField(verbose_name="Fecha de adquisición"),
+                ),
+                (
+                    "acquisition_cost",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=15,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                        verbose_name="Costo de adquisición",
+                    ),
+                ),
+                (
+                    "current_value",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=15,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                        verbose_name="Valor actual",
+                    ),
+                ),
+                (
+                    "condition_status",
+                    models.CharField(
+                        choices=[
+                            ("excelente", "Excelente"),
+                            ("bueno", "Bueno"),
+                            ("regular", "Regular"),
+                            ("malo", "Malo"),
+                            ("fuera_de_servicio", "Fuera de servicio"),
+                        ],
+                        default="bueno",
+                        max_length=20,
+                        verbose_name="Estado de condición",
+                    ),
+                ),
+                (
+                    "is_insured",
+                    models.BooleanField(default=False, verbose_name="¿Está asegurado?"),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
+                (
+                    "custodian",
+                    models.ForeignKey(
+                        limit_choices_to={"role": "requester"},
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="custodied_assets",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Custodio",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Activo/Bien',
-                'verbose_name_plural': 'Activos/Bienes',
-                'ordering': ['asset_code'],
+                "verbose_name": "Activo/Bien",
+                "verbose_name_plural": "Activos/Bienes",
+                "ordering": ["asset_code"],
             },
         ),
     ]

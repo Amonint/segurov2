@@ -1,14 +1,14 @@
 from django.test import TestCase
 from django.urls import reverse
+
 from accounts.models import UserProfile
+
 
 class PolicyViewsTest(TestCase):
 
     def setUp(self):
         self.user = UserProfile.objects.create_user(
-            username="gerente",
-            password="1234",
-            role="gerente_seguros"
+            username="gerente", password="1234", role="gerente_seguros"
         )
 
     def test_lista_polizas_requiere_login(self):

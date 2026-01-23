@@ -10,98 +10,492 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('brokers', '0001_initial'),
-        ('companies', '0001_initial'),
+        ("brokers", "0001_initial"),
+        ("companies", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Policy',
+            name="Policy",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('policy_number', models.CharField(max_length=50, unique=True, verbose_name='Número de póliza')),
-                ('group_type', models.CharField(choices=[('patrimoniales', 'Patrimoniales'), ('personas', 'Personas')], max_length=20, verbose_name='Tipo de grupo')),
-                ('subgroup', models.CharField(max_length=100, verbose_name='Subgrupo')),
-                ('branch', models.CharField(max_length=100, verbose_name='Rama')),
-                ('start_date', models.DateField(verbose_name='Fecha de inicio')),
-                ('end_date', models.DateField(verbose_name='Fecha de fin')),
-                ('issue_date', models.DateField(blank=True, null=True, verbose_name='Fecha de emisión')),
-                ('fecha_renovacion', models.DateField(blank=True, help_text='Fecha planificada para renovación de la póliza', null=True, verbose_name='Fecha de renovación')),
-                ('alerta_vencimiento_dias', models.PositiveIntegerField(default=30, help_text='Días antes del vencimiento para generar alerta', verbose_name='Días de alerta antes del vencimiento')),
-                ('objeto_asegurado', models.CharField(help_text='Descripción del objeto o bien asegurado', max_length=255, verbose_name='Objeto asegurado')),
-                ('prima', models.DecimalField(decimal_places=2, help_text='Prima base de la póliza', max_digits=15, verbose_name='Prima base')),
-                ('costo_servicio', models.DecimalField(decimal_places=2, default=0, help_text='Costo adicional de servicio', max_digits=15, verbose_name='Costo de servicio')),
-                ('insured_value', models.DecimalField(decimal_places=2, help_text='Valor total asegurado', max_digits=15, verbose_name='Valor asegurado')),
-                ('contrib_superintendencia', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Calculado automáticamente: 3.5% de la prima', max_digits=15, verbose_name='Contribución Superintendencia (3.5%)')),
-                ('contrib_seguro_campesino', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Calculado automáticamente: 0.5% de la prima', max_digits=15, verbose_name='Contribución Seguro Campesino (0.5%)')),
-                ('derecho_emision', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Calculado automáticamente según tabla de derechos', max_digits=15, verbose_name='Derecho de emisión')),
-                ('base_imponible', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Prima + contribuciones + derecho emisión', max_digits=15, verbose_name='Base imponible')),
-                ('iva', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Calculado automáticamente: 15% de base imponible', max_digits=15, verbose_name='IVA (15%)')),
-                ('total_facturado', models.DecimalField(decimal_places=2, default=0, editable=False, help_text='Base imponible + IVA - retenciones', max_digits=15, verbose_name='Total facturado')),
-                ('retencion', models.DecimalField(decimal_places=2, default=0, help_text='Retenciones aplicables', max_digits=15, verbose_name='Retención')),
-                ('modalidad_facturacion', models.CharField(choices=[('mensual', 'Mensual'), ('trimestral', 'Trimestral'), ('semestral', 'Semestral'), ('anual', 'Anual')], default='anual', help_text='Frecuencia de facturación de la póliza', max_length=20, verbose_name='Modalidad de facturación')),
-                ('coverage_description', models.TextField(blank=True, verbose_name='Descripción de cobertura')),
-                ('observations', models.TextField(blank=True, verbose_name='Observaciones')),
-                ('status', models.CharField(choices=[('active', 'Activa'), ('expired', 'Vencida'), ('cancelled', 'Cancelada'), ('renewed', 'Renovada')], default='active', max_length=20, verbose_name='Estado')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de creación')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Fecha de actualización')),
-                ('broker', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='policies', to='brokers.broker', verbose_name='Corredor')),
-                ('insurance_company', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='policies', to='companies.insurancecompany', verbose_name='Compañía de seguros')),
-                ('responsible_user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='responsible_policies', to=settings.AUTH_USER_MODEL, verbose_name='Usuario responsable')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "policy_number",
+                    models.CharField(
+                        max_length=50, unique=True, verbose_name="Número de póliza"
+                    ),
+                ),
+                (
+                    "group_type",
+                    models.CharField(
+                        choices=[
+                            ("patrimoniales", "Patrimoniales"),
+                            ("personas", "Personas"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de grupo",
+                    ),
+                ),
+                ("subgroup", models.CharField(max_length=100, verbose_name="Subgrupo")),
+                ("branch", models.CharField(max_length=100, verbose_name="Rama")),
+                ("start_date", models.DateField(verbose_name="Fecha de inicio")),
+                ("end_date", models.DateField(verbose_name="Fecha de fin")),
+                (
+                    "issue_date",
+                    models.DateField(
+                        blank=True, null=True, verbose_name="Fecha de emisión"
+                    ),
+                ),
+                (
+                    "fecha_renovacion",
+                    models.DateField(
+                        blank=True,
+                        help_text="Fecha planificada para renovación de la póliza",
+                        null=True,
+                        verbose_name="Fecha de renovación",
+                    ),
+                ),
+                (
+                    "alerta_vencimiento_dias",
+                    models.PositiveIntegerField(
+                        default=30,
+                        help_text="Días antes del vencimiento para generar alerta",
+                        verbose_name="Días de alerta antes del vencimiento",
+                    ),
+                ),
+                (
+                    "objeto_asegurado",
+                    models.CharField(
+                        help_text="Descripción del objeto o bien asegurado",
+                        max_length=255,
+                        verbose_name="Objeto asegurado",
+                    ),
+                ),
+                (
+                    "prima",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Prima base de la póliza",
+                        max_digits=15,
+                        verbose_name="Prima base",
+                    ),
+                ),
+                (
+                    "costo_servicio",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Costo adicional de servicio",
+                        max_digits=15,
+                        verbose_name="Costo de servicio",
+                    ),
+                ),
+                (
+                    "insured_value",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Valor total asegurado",
+                        max_digits=15,
+                        verbose_name="Valor asegurado",
+                    ),
+                ),
+                (
+                    "contrib_superintendencia",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Calculado automáticamente: 3.5% de la prima",
+                        max_digits=15,
+                        verbose_name="Contribución Superintendencia (3.5%)",
+                    ),
+                ),
+                (
+                    "contrib_seguro_campesino",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Calculado automáticamente: 0.5% de la prima",
+                        max_digits=15,
+                        verbose_name="Contribución Seguro Campesino (0.5%)",
+                    ),
+                ),
+                (
+                    "derecho_emision",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Calculado automáticamente según tabla de derechos",
+                        max_digits=15,
+                        verbose_name="Derecho de emisión",
+                    ),
+                ),
+                (
+                    "base_imponible",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Prima + contribuciones + derecho emisión",
+                        max_digits=15,
+                        verbose_name="Base imponible",
+                    ),
+                ),
+                (
+                    "iva",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Calculado automáticamente: 15% de base imponible",
+                        max_digits=15,
+                        verbose_name="IVA (15%)",
+                    ),
+                ),
+                (
+                    "total_facturado",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        editable=False,
+                        help_text="Base imponible + IVA - retenciones",
+                        max_digits=15,
+                        verbose_name="Total facturado",
+                    ),
+                ),
+                (
+                    "retencion",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Retenciones aplicables",
+                        max_digits=15,
+                        verbose_name="Retención",
+                    ),
+                ),
+                (
+                    "modalidad_facturacion",
+                    models.CharField(
+                        choices=[
+                            ("mensual", "Mensual"),
+                            ("trimestral", "Trimestral"),
+                            ("semestral", "Semestral"),
+                            ("anual", "Anual"),
+                        ],
+                        default="anual",
+                        help_text="Frecuencia de facturación de la póliza",
+                        max_length=20,
+                        verbose_name="Modalidad de facturación",
+                    ),
+                ),
+                (
+                    "coverage_description",
+                    models.TextField(
+                        blank=True, verbose_name="Descripción de cobertura"
+                    ),
+                ),
+                (
+                    "observations",
+                    models.TextField(blank=True, verbose_name="Observaciones"),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Activa"),
+                            ("expired", "Vencida"),
+                            ("cancelled", "Cancelada"),
+                            ("renewed", "Renovada"),
+                        ],
+                        default="active",
+                        max_length=20,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de creación"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Fecha de actualización"
+                    ),
+                ),
+                (
+                    "broker",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="policies",
+                        to="brokers.broker",
+                        verbose_name="Corredor",
+                    ),
+                ),
+                (
+                    "insurance_company",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="policies",
+                        to="companies.insurancecompany",
+                        verbose_name="Compañía de seguros",
+                    ),
+                ),
+                (
+                    "responsible_user",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="responsible_policies",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Usuario responsable",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Póliza',
-                'verbose_name_plural': 'Pólizas',
-                'ordering': ['-created_at'],
+                "verbose_name": "Póliza",
+                "verbose_name_plural": "Pólizas",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='Coverage',
+            name="Coverage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nombre', models.CharField(help_text='Ej: Daños materiales, Robo, Incendio, etc.', max_length=255, verbose_name='Nombre de la cobertura')),
-                ('descripcion', models.TextField(blank=True, help_text='Descripción detallada de la cobertura', verbose_name='Descripción')),
-                ('valor_asegurado', models.DecimalField(decimal_places=2, help_text='Monto máximo cubierto por esta cobertura', max_digits=15, verbose_name='Valor asegurado')),
-                ('deducible', models.DecimalField(decimal_places=2, default=0, help_text='Monto fijo de deducible', max_digits=15, verbose_name='Deducible (monto fijo)')),
-                ('porcentaje_deducible', models.DecimalField(decimal_places=2, default=0, help_text='Porcentaje de deducible sobre el valor del siniestro', max_digits=5, verbose_name='Deducible (%)')),
-                ('is_active', models.BooleanField(default=True, help_text='Si la cobertura está activa', verbose_name='Activa')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Creada')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Actualizada')),
-                ('policy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='coberturas', to='policies.policy', verbose_name='Póliza')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nombre",
+                    models.CharField(
+                        help_text="Ej: Daños materiales, Robo, Incendio, etc.",
+                        max_length=255,
+                        verbose_name="Nombre de la cobertura",
+                    ),
+                ),
+                (
+                    "descripcion",
+                    models.TextField(
+                        blank=True,
+                        help_text="Descripción detallada de la cobertura",
+                        verbose_name="Descripción",
+                    ),
+                ),
+                (
+                    "valor_asegurado",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Monto máximo cubierto por esta cobertura",
+                        max_digits=15,
+                        verbose_name="Valor asegurado",
+                    ),
+                ),
+                (
+                    "deducible",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Monto fijo de deducible",
+                        max_digits=15,
+                        verbose_name="Deducible (monto fijo)",
+                    ),
+                ),
+                (
+                    "porcentaje_deducible",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Porcentaje de deducible sobre el valor del siniestro",
+                        max_digits=5,
+                        verbose_name="Deducible (%)",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Si la cobertura está activa",
+                        verbose_name="Activa",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Creada"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Actualizada"),
+                ),
+                (
+                    "policy",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="coberturas",
+                        to="policies.policy",
+                        verbose_name="Póliza",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Cobertura',
-                'verbose_name_plural': 'Coberturas',
-                'ordering': ['policy', 'nombre'],
-                'unique_together': {('policy', 'nombre')},
+                "verbose_name": "Cobertura",
+                "verbose_name_plural": "Coberturas",
+                "ordering": ["policy", "nombre"],
+                "unique_together": {("policy", "nombre")},
             },
         ),
         migrations.CreateModel(
-            name='PolicyDocument',
+            name="PolicyDocument",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('document_name', models.CharField(max_length=255, verbose_name='Nombre del documento')),
-                ('document_type', models.CharField(choices=[('policy', 'Póliza'), ('endorsement', 'Endoso'), ('certificate', 'Certificado'), ('receipt', 'Recibo'), ('other', 'Otro')], max_length=20, verbose_name='Tipo de documento')),
-                ('version', models.PositiveIntegerField(default=1, verbose_name='Versión')),
-                ('is_latest_version', models.BooleanField(default=True, verbose_name='Es la versión más reciente')),
-                ('file', models.FileField(upload_to='policies/documents/%Y/%m/', verbose_name='Archivo')),
-                ('file_size', models.PositiveIntegerField(editable=False, verbose_name='Tamaño del archivo')),
-                ('mime_type', models.CharField(blank=True, max_length=100, verbose_name='Tipo MIME')),
-                ('description', models.TextField(blank=True, verbose_name='Descripción')),
-                ('tags', models.CharField(blank=True, help_text='Etiquetas separadas por comas', max_length=500, verbose_name='Etiquetas')),
-                ('status', models.CharField(choices=[('active', 'Activo'), ('archived', 'Archivado'), ('deleted', 'Eliminado')], default='active', max_length=20, verbose_name='Estado')),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True, verbose_name='Fecha de subida')),
-                ('last_modified', models.DateTimeField(auto_now=True, verbose_name='Última modificación')),
-                ('parent_document', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='versions', to='policies.policydocument', verbose_name='Documento padre')),
-                ('policy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='documents', to='policies.policy', verbose_name='Póliza')),
-                ('uploaded_by', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='uploaded_policy_documents', to=settings.AUTH_USER_MODEL, verbose_name='Subido por')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "document_name",
+                    models.CharField(
+                        max_length=255, verbose_name="Nombre del documento"
+                    ),
+                ),
+                (
+                    "document_type",
+                    models.CharField(
+                        choices=[
+                            ("policy", "Póliza"),
+                            ("endorsement", "Endoso"),
+                            ("certificate", "Certificado"),
+                            ("receipt", "Recibo"),
+                            ("other", "Otro"),
+                        ],
+                        max_length=20,
+                        verbose_name="Tipo de documento",
+                    ),
+                ),
+                (
+                    "version",
+                    models.PositiveIntegerField(default=1, verbose_name="Versión"),
+                ),
+                (
+                    "is_latest_version",
+                    models.BooleanField(
+                        default=True, verbose_name="Es la versión más reciente"
+                    ),
+                ),
+                (
+                    "file",
+                    models.FileField(
+                        upload_to="policies/documents/%Y/%m/", verbose_name="Archivo"
+                    ),
+                ),
+                (
+                    "file_size",
+                    models.PositiveIntegerField(
+                        editable=False, verbose_name="Tamaño del archivo"
+                    ),
+                ),
+                (
+                    "mime_type",
+                    models.CharField(
+                        blank=True, max_length=100, verbose_name="Tipo MIME"
+                    ),
+                ),
+                (
+                    "description",
+                    models.TextField(blank=True, verbose_name="Descripción"),
+                ),
+                (
+                    "tags",
+                    models.CharField(
+                        blank=True,
+                        help_text="Etiquetas separadas por comas",
+                        max_length=500,
+                        verbose_name="Etiquetas",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("active", "Activo"),
+                            ("archived", "Archivado"),
+                            ("deleted", "Eliminado"),
+                        ],
+                        default="active",
+                        max_length=20,
+                        verbose_name="Estado",
+                    ),
+                ),
+                (
+                    "uploaded_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Fecha de subida"
+                    ),
+                ),
+                (
+                    "last_modified",
+                    models.DateTimeField(
+                        auto_now=True, verbose_name="Última modificación"
+                    ),
+                ),
+                (
+                    "parent_document",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="versions",
+                        to="policies.policydocument",
+                        verbose_name="Documento padre",
+                    ),
+                ),
+                (
+                    "policy",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="documents",
+                        to="policies.policy",
+                        verbose_name="Póliza",
+                    ),
+                ),
+                (
+                    "uploaded_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="uploaded_policy_documents",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Subido por",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Documento de Póliza',
-                'verbose_name_plural': 'Documentos de Póliza',
-                'ordering': ['-uploaded_at'],
-                'unique_together': {('policy', 'document_name', 'version')},
+                "verbose_name": "Documento de Póliza",
+                "verbose_name_plural": "Documentos de Póliza",
+                "ordering": ["-uploaded_at"],
+                "unique_together": {("policy", "document_name", "version")},
             },
         ),
     ]

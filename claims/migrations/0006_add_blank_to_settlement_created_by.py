@@ -8,19 +8,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('claims', '0005_update_status_to_spanish'),
+        ("claims", "0005_update_status_to_spanish"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='claim',
-            name='status',
-            field=models.CharField(choices=[('pendiente', 'Pendiente de Validación'), ('en_revision', 'En Revisión'), ('requiere_cambios', 'Requiere Cambios'), ('aprobado', 'Aprobado'), ('liquidado', 'Liquidado'), ('pagado', 'Pagado'), ('rechazado', 'Rechazado')], default='pendiente', max_length=25, verbose_name='Estado'),
+            model_name="claim",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pendiente", "Pendiente de Validación"),
+                    ("en_revision", "En Revisión"),
+                    ("requiere_cambios", "Requiere Cambios"),
+                    ("aprobado", "Aprobado"),
+                    ("liquidado", "Liquidado"),
+                    ("pagado", "Pagado"),
+                    ("rechazado", "Rechazado"),
+                ],
+                default="pendiente",
+                max_length=25,
+                verbose_name="Estado",
+            ),
         ),
         migrations.AlterField(
-            model_name='claimsettlement',
-            name='created_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='settlements_created', to=settings.AUTH_USER_MODEL, verbose_name='Creado por'),
+            model_name="claimsettlement",
+            name="created_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="settlements_created",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Creado por",
+            ),
         ),
     ]

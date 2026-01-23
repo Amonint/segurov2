@@ -15,29 +15,40 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
 from django.shortcuts import redirect
+from django.urls import include, path
 from django.views.generic import TemplateView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", lambda request: redirect('accounts:dashboard') if request.user.is_authenticated else redirect('accounts:login'), name='home'),
-    path("color-palette/", TemplateView.as_view(template_name='color_palette.html'), name='color_palette'),
-
+    path(
+        "",
+        lambda request: (
+            redirect("accounts:dashboard")
+            if request.user.is_authenticated
+            else redirect("accounts:login")
+        ),
+        name="home",
+    ),
+    path(
+        "color-palette/",
+        TemplateView.as_view(template_name="color_palette.html"),
+        name="color_palette",
+    ),
     # App URLs
-    path("accounts/", include('accounts.urls')),
-    path("policies/", include('policies.urls')),
-    path("claims/", include('claims.urls')),
-    path("invoices/", include('invoices.urls')),
-    path("assets/", include('assets.urls')),
-    path("companies/", include('companies.urls')),
-    path("brokers/", include('brokers.urls')),
-    path("reports/", include('reports.urls')),
-    path("notifications/", include('notifications.urls')),
-    path("audit/", include('audit.urls')),
+    path("accounts/", include("accounts.urls")),
+    path("policies/", include("policies.urls")),
+    path("claims/", include("claims.urls")),
+    path("invoices/", include("invoices.urls")),
+    path("assets/", include("assets.urls")),
+    path("companies/", include("companies.urls")),
+    path("brokers/", include("brokers.urls")),
+    path("reports/", include("reports.urls")),
+    path("notifications/", include("notifications.urls")),
+    path("audit/", include("audit.urls")),
 ]
 
 # Serve media files in development

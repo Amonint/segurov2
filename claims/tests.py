@@ -1,5 +1,5 @@
-from decimal import Decimal
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -14,32 +14,27 @@ from policies.models import Policy
 class ClaimWorkflowTests(TestCase):
     def setUp(self):
         self.reporter = UserProfile.objects.create_user(
-            username='reporter',
-            password='testpass123',
-            role='requester'
+            username="reporter", password="testpass123", role="requester"
         )
         self.manager = UserProfile.objects.create_user(
-            username='manager',
-            password='testpass123',
-            role='insurance_manager'
+            username="manager", password="testpass123", role="insurance_manager"
         )
         self.company = InsuranceCompany.objects.create(
-            name='Aseguradora Test',
-            ruc='1234567890123'
+            name="Aseguradora Test", ruc="1234567890123"
         )
         today = timezone.now().date()
         self.policy = Policy.objects.create(
             insurance_company=self.company,
-            group_type='patrimoniales',
-            subgroup='General',
-            branch='Riesgos',
+            group_type="patrimoniales",
+            subgroup="General",
+            branch="Riesgos",
             start_date=today,
             end_date=today + timedelta(days=365),
-            insured_value=Decimal('10000.00'),
-            status='active',
-            objeto_asegurado='Equipo electrónico de oficina',
-            prima=Decimal('500.00'),
-            responsible_user=self.manager
+            insured_value=Decimal("10000.00"),
+            status="active",
+            objeto_asegurado="Equipo electrónico de oficina",
+            prima=Decimal("500.00"),
+            responsible_user=self.manager,
         )
 
     def create_claim(self):
@@ -49,31 +44,30 @@ class ClaimWorkflowTests(TestCase):
             fecha_siniestro=today,
             incident_date=today,
             report_date=today,
-            causa='Daño por agua en equipo electrónico',
-            ubicacion_detallada='Campus universitario, edificio principal',
-            incident_location='Campus',
-            incident_description='Daño por agua',
-            asset_type='equipo_electronico',
-            asset_description='Laptop',
-            estimated_loss=Decimal('500.00'),
+            causa="Daño por agua en equipo electrónico",
+            ubicacion_detallada="Campus universitario, edificio principal",
+            incident_location="Campus",
+            incident_description="Daño por agua",
+            asset_type="equipo_electronico",
+            asset_description="Laptop",
+            estimated_loss=Decimal("500.00"),
             reportante=self.reporter,
-            reported_by=self.reporter
+            reported_by=self.reporter,
         )
 
     def test_status_change_creates_timeline(self):
         claim = self.create_claim()
-        claim.change_status('docs_pendientes', self.manager)
+        claim.change_status("docs_pendientes", self.manager)
 
-        self.assertEqual(claim.status, 'docs_pendientes')
+        self.assertEqual(claim.status, "docs_pendientes")
         entry = ClaimTimeline.objects.filter(
-            claim=claim,
-            event_type='status_change'
+            claim=claim, event_type="status_change"
         ).first()
         self.assertIsNotNone(entry)
-        self.assertEqual(entry.old_status, 'reportado')
-        self.assertEqual(entry.new_status, 'docs_pendientes')
+        self.assertEqual(entry.old_status, "reportado")
+        self.assertEqual(entry.new_status, "docs_pendientes")
 
     def test_invalid_status_transition_raises(self):
         claim = self.create_claim()
         with self.assertRaises(ValidationError):
-            claim.change_status('pagado', self.manager)
+            claim.change_status("pagado", self.manager)

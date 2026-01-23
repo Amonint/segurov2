@@ -7,14 +7,22 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assets', '0002_initial'),
-        ('claims', '0002_initial'),
+        ("assets", "0002_initial"),
+        ("claims", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='claim',
-            name='asset',
-            field=models.ForeignKey(blank=True, help_text='Bien al que pertenece este siniestro', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='claims', to='assets.asset', verbose_name='Bien afectado'),
+            model_name="claim",
+            name="asset",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="Bien al que pertenece este siniestro",
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="claims",
+                to="assets.asset",
+                verbose_name="Bien afectado",
+            ),
         ),
     ]

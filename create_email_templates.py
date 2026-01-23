@@ -5,10 +5,11 @@ Ejecutar con: python manage.py shell < create_email_templates.py
 """
 
 import os
+
 import django
 
 # Configurar Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'seguros.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "seguros.settings")
 django.setup()
 
 from notifications.models import EmailTemplate
@@ -16,11 +17,11 @@ from notifications.models import EmailTemplate
 # Plantillas de email básicas
 templates = [
     {
-        'name': 'Notificación de Siniestro Reportado',
-        'template_type': 'claim_reported',
-        'recipient_type': 'broker',
-        'subject': 'Nuevo Siniestro Reportado - {{claim_number}}',
-        'body_html': '''
+        "name": "Notificación de Siniestro Reportado",
+        "template_type": "claim_reported",
+        "recipient_type": "broker",
+        "subject": "Nuevo Siniestro Reportado - {{claim_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #dc3545;">Nuevo Siniestro Reportado</h2>
             <p>Estimado broker,</p>
@@ -39,14 +40,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Confirmación de Reporte de Siniestro',
-        'template_type': 'claim_reported',
-        'recipient_type': 'user',
-        'subject': 'Confirmación de Reporte - Siniestro {{claim_number}}',
-        'body_html': '''
+        "name": "Confirmación de Reporte de Siniestro",
+        "template_type": "claim_reported",
+        "recipient_type": "user",
+        "subject": "Confirmación de Reporte - Siniestro {{claim_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #28a745;">Confirmación de Reporte de Siniestro</h2>
             <p>Estimado {{user_name}},</p>
@@ -61,14 +62,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Póliza por Vencer',
-        'template_type': 'policy_expiring',
-        'recipient_type': 'user',
-        'subject': 'Alerta: Póliza Próxima a Vencer',
-        'body_html': '''
+        "name": "Notificación de Póliza por Vencer",
+        "template_type": "policy_expiring",
+        "recipient_type": "user",
+        "subject": "Alerta: Póliza Próxima a Vencer",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #ffc107;">Alerta de Vencimiento</h2>
             <p>Estimado {{user_name}},</p>
@@ -83,14 +84,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Pago Pendiente',
-        'template_type': 'payment_due',
-        'recipient_type': 'user',
-        'subject': 'Recordatorio: Pago Pendiente - Factura {{invoice_number}}',
-        'body_html': '''
+        "name": "Notificación de Pago Pendiente",
+        "template_type": "payment_due",
+        "recipient_type": "user",
+        "subject": "Recordatorio: Pago Pendiente - Factura {{invoice_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #17a2b8;">Recordatorio de Pago</h2>
             <p>Estimado {{user_name}},</p>
@@ -106,14 +107,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Póliza Vencida',
-        'template_type': 'policy_expired',
-        'recipient_type': 'user',
-        'subject': 'Alerta: Póliza Vencida - {{policy_number}}',
-        'body_html': '''
+        "name": "Notificación de Póliza Vencida",
+        "template_type": "policy_expired",
+        "recipient_type": "user",
+        "subject": "Alerta: Póliza Vencida - {{policy_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #dc3545;">Póliza Vencida</h2>
             <p>Estimado/a,</p>
@@ -127,14 +128,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Factura Vencida',
-        'template_type': 'invoice_overdue',
-        'recipient_type': 'user',
-        'subject': 'Factura Vencida - {{invoice_number}}',
-        'body_html': '''
+        "name": "Notificación de Factura Vencida",
+        "template_type": "invoice_overdue",
+        "recipient_type": "user",
+        "subject": "Factura Vencida - {{invoice_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #dc3545;">Factura Vencida</h2>
             <p>Estimado/a,</p>
@@ -149,14 +150,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Siniestro Atrasado',
-        'template_type': 'claim_overdue',
-        'recipient_type': 'user',
-        'subject': 'Siniestro Atrasado - {{claim_number}}',
-        'body_html': '''
+        "name": "Notificación de Siniestro Atrasado",
+        "template_type": "claim_overdue",
+        "recipient_type": "user",
+        "subject": "Siniestro Atrasado - {{claim_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #ffc107;">Siniestro Atrasado</h2>
             <p>Estimado/a,</p>
@@ -171,14 +172,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Documento Vencido',
-        'template_type': 'document_overdue',
-        'recipient_type': 'user',
-        'subject': 'Documento Vencido - {{document_name}}',
-        'body_html': '''
+        "name": "Notificación de Documento Vencido",
+        "template_type": "document_overdue",
+        "recipient_type": "user",
+        "subject": "Documento Vencido - {{document_name}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #dc3545;">Documento Vencido</h2>
             <p>Estimado/a,</p>
@@ -193,14 +194,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Mantenimiento Requerido',
-        'template_type': 'maintenance_required',
-        'recipient_type': 'user',
-        'subject': 'Mantenimiento Requerido - {{asset_code}}',
-        'body_html': '''
+        "name": "Notificación de Mantenimiento Requerido",
+        "template_type": "maintenance_required",
+        "recipient_type": "user",
+        "subject": "Mantenimiento Requerido - {{asset_code}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #17a2b8;">Mantenimiento Requerido</h2>
             <p>Estimado/a,</p>
@@ -214,14 +215,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Alerta del Sistema',
-        'template_type': 'system_alert',
-        'recipient_type': 'user',
-        'subject': 'Alerta del Sistema - {{alert_name}}',
-        'body_html': '''
+        "name": "Alerta del Sistema",
+        "template_type": "system_alert",
+        "recipient_type": "user",
+        "subject": "Alerta del Sistema - {{alert_name}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #6c757d;">Alerta del Sistema</h2>
             <p>Estimado/a,</p>
@@ -230,14 +231,14 @@ templates = [
             <br>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Finiquito Firmado',
-        'template_type': 'settlement_signed',
-        'recipient_type': 'user',
-        'subject': 'Finiquito Firmado - {{settlement_number}}',
-        'body_html': '''
+        "name": "Notificación de Finiquito Firmado",
+        "template_type": "settlement_signed",
+        "recipient_type": "user",
+        "subject": "Finiquito Firmado - {{settlement_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #28a745;">Finiquito Firmado</h2>
             <p>Estimado {{user_name}},</p>
@@ -248,14 +249,14 @@ templates = [
             </div>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
+        """,
     },
     {
-        'name': 'Notificación de Pago Completado',
-        'template_type': 'payment_completed',
-        'recipient_type': 'user',
-        'subject': 'Pago Completado - {{settlement_number}}',
-        'body_html': '''
+        "name": "Notificación de Pago Completado",
+        "template_type": "payment_completed",
+        "recipient_type": "user",
+        "subject": "Pago Completado - {{settlement_number}}",
+        "body_html": """
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #28a745;">Pago Completado</h2>
             <p>Estimado {{user_name}},</p>
@@ -267,22 +268,17 @@ templates = [
             </div>
             <p>Atentamente,<br>Sistema de Gestión de Seguros UTPL</p>
         </div>
-        '''
-    }
+        """,
+    },
 ]
 
 for template_data in templates:
     template, created = EmailTemplate.objects.get_or_create(
-        name=template_data['name'],
-        defaults=template_data
+        name=template_data["name"], defaults=template_data
     )
     if created:
-        print(f'[OK] Creada plantilla: {template.name}')
+        print(f"[OK] Creada plantilla: {template.name}")
     else:
-        print(f'[SKIP] Ya existe: {template.name}')
+        print(f"[SKIP] Ya existe: {template.name}")
 
 print("\n[OK] Plantillas de email creadas exitosamente!")
-
-
-
-
