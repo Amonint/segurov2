@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Finiquitos de Siniestros - Sistema de Seguros UTPL{% endblock %}
@@ -63,8 +63,7 @@
                             {% endif %}
                         </td>
                         <td class="py-4 px-4">
-                            <strong class="text-green-600 text-lg">${{ settlement.final_payment_amount|floatformat:2
-                                }}</strong>
+                            <strong class="text-green-600 text-lg">${{ settlement.final_payment_amount|floatformat:2 }}</strong>
                         </td>
                         <td class="py-4 px-4">
                             <span class="px-3 py-1 rounded-full text-sm font-semibold
