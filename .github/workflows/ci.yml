@@ -97,6 +97,21 @@ jobs:
         pip install -r requirements.txt
         pip install coverage
 
+    - name: Wait for PostgreSQL
+      run: |
+        for i in {1..30}; do
+          if python -c "import psycopg2; psycopg2.connect(host='localhost', port=5432, user='seguros_user', password='seguros_pass', dbname='seguros_db_test')" 2>/dev/null; then
+            echo "PostgreSQL is ready"
+            break
+          fi
+          echo "Waiting for PostgreSQL... ($i/30)"
+          sleep 2
+        done
+        if [ $i -eq 30 ]; then
+          echo "PostgreSQL did not start in time"
+          exit 1
+        fi
+
     - name: Check migrations
       run: python manage.py makemigrations --check --dry-run
 
