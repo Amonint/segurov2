@@ -102,20 +102,13 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": config('DB_NAME', default='seguros_db'),
         "USER": config('DB_USER', default='postgres'),
-        "PASSWORD": config('DB_PASSWORD', default='luis05'),
+        "PASSWORD": config('DB_PASSWORD', default='Rubenmishu1'),
         "HOST": config('DB_HOST', default='localhost'),
         "PORT": config('DB_PORT', default='5432'),
     }
 }
 
-# Fallback to SQLite for development
-if DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+
 
 
 # Password validation
