@@ -29,6 +29,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# CSRF Trusted Origins for HTTPS (required for ngrok)
+CSRF_TRUSTED_ORIGINS = ['https://unmonarchic-rosalind-unaccordant.ngrok-free.dev']
+
 
 # Application definition
 
@@ -106,14 +109,13 @@ DATABASES = {
 }
 
 # Fallback to SQLite for development
-# Fallback to SQLite for development
-# if DEBUG:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": BASE_DIR / "db.sqlite3",
-#         }
-#     }
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
