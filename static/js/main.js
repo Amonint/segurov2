@@ -4,9 +4,9 @@
  */
 
 // ==================== Document Ready ====================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Sistema de Seguros UTPL - Cargado');
-    
+
     // Initialize all components
     initAnimations();
     initTooltips();
@@ -24,7 +24,7 @@ function initAnimations() {
         rootMargin: '0px 0px -50px 0px'
     };
 
-    const observer = new IntersectionObserver(function(entries) {
+    const observer = new IntersectionObserver(function (entries) {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('fade-in');
@@ -53,9 +53,9 @@ function showTooltip(e) {
     tooltip.textContent = e.target.getAttribute('data-tooltip');
     tooltip.style.position = 'absolute';
     tooltip.style.zIndex = '9999';
-    
+
     document.body.appendChild(tooltip);
-    
+
     const rect = e.target.getBoundingClientRect();
     tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
     tooltip.style.left = (rect.left + rect.width / 2 - tooltip.offsetWidth / 2) + 'px';
@@ -76,7 +76,7 @@ function initModals() {
     });
 
     // Close modals on ESC key
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeAllModals();
         }
@@ -98,9 +98,9 @@ function closeAllModals() {
 // ==================== Form Validation ====================
 function initFormValidation() {
     const forms = document.querySelectorAll('form[data-validate]');
-    
+
     forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             if (!validateForm(form)) {
                 e.preventDefault();
                 showFormErrors(form);
@@ -109,7 +109,7 @@ function initFormValidation() {
 
         // Real-time validation
         form.querySelectorAll('input, select, textarea').forEach(field => {
-            field.addEventListener('blur', function() {
+            field.addEventListener('blur', function () {
                 validateField(field);
             });
         });
@@ -119,13 +119,13 @@ function initFormValidation() {
 function validateForm(form) {
     let isValid = true;
     const fields = form.querySelectorAll('[required]');
-    
+
     fields.forEach(field => {
         if (!validateField(field)) {
             isValid = false;
         }
     });
-    
+
     return isValid;
 }
 
@@ -189,11 +189,11 @@ function showFormErrors(form) {
 function initDataTables() {
     // Add search functionality to tables
     const tables = document.querySelectorAll('.data-table');
-    
+
     tables.forEach(table => {
         const searchInput = table.previousElementSibling;
         if (searchInput && searchInput.classList.contains('table-search')) {
-            searchInput.addEventListener('input', function() {
+            searchInput.addEventListener('input', function () {
                 filterTable(table, this.value);
             });
         }
@@ -203,7 +203,7 @@ function initDataTables() {
 function filterTable(table, query) {
     const rows = table.querySelectorAll('tbody tr');
     const searchQuery = query.toLowerCase();
-    
+
     rows.forEach(row => {
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(searchQuery) ? '' : 'none';
@@ -214,7 +214,7 @@ function filterTable(table, query) {
 function initDeleteConfirmations() {
     const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
     deleteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
+        button.addEventListener('click', function (e) {
             const message = this.getAttribute('data-confirm-delete') || '¿Está seguro de que desea eliminar este elemento?';
             e.preventDefault();
             confirmAction(message, () => {
@@ -237,9 +237,9 @@ function showNotification(message, type = 'info') {
         warning: 'bg-amber-50 border-amber-500 text-amber-700',
         info: 'bg-blue-50 border-blue-500 text-blue-700'
     };
-    
+
     notification.className = `notification fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl z-50 transform translate-x-full transition-transform duration-300 border-l-4 ${colors[type] || colors.info}`;
-    
+
     const icon = getNotificationIcon(type);
     notification.innerHTML = `
         <div class="flex items-center space-x-3">
@@ -252,14 +252,14 @@ function showNotification(message, type = 'info') {
             </button>
         </div>
     `;
-    
+
     document.body.appendChild(notification);
-    
+
     // Animate in
     setTimeout(() => {
         notification.classList.remove('translate-x-full');
     }, 100);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         notification.classList.add('translate-x-full');
@@ -323,10 +323,10 @@ function confirmAction(message, callback) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(dialog);
     window.confirmCallback = callback;
-    
+
     // Animate in
     setTimeout(() => {
         dialog.querySelector('.bg-white').classList.remove('scale-95');
@@ -336,9 +336,9 @@ function confirmAction(message, callback) {
 
 // ==================== Copy to Clipboard ====================
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(function() {
+    navigator.clipboard.writeText(text).then(function () {
         showNotification('Copiado al portapapeles', 'success');
-    }).catch(function() {
+    }).catch(function () {
         showNotification('Error al copiar', 'error');
     });
 }
@@ -373,9 +373,9 @@ window.formatDate = formatDate;
 function submitFormAjax(form, successCallback) {
     const formData = new FormData(form);
     const url = form.action || window.location.href;
-    
+
     showLoading();
-    
+
     fetch(url, {
         method: 'POST',
         body: formData,
@@ -384,29 +384,24 @@ function submitFormAjax(form, successCallback) {
             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        if (data.success) {
-            showNotification(data.message || 'Operación exitosa', 'success');
-            if (successCallback) successCallback(data);
-        } else {
-            showNotification(data.message || 'Error en la operación', 'error');
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        showNotification('Error de conexión', 'error');
-        console.error('Error:', error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            if (data.success) {
+                showNotification(data.message || 'Operación exitosa', 'success');
+                if (successCallback) successCallback(data);
+            } else {
+                showNotification(data.message || 'Error en la operación', 'error');
+            }
+        })
+        .catch(error => {
+            hideLoading();
+            showNotification('Error de conexión', 'error');
+            console.error('Error:', error);
+        });
 }
 
-<<<<<<< HEAD
+
 window.submitFormAjax = submitFormAjax;
 
 console.log('✓ Sistema de Seguros UTPL - JavaScript cargado correctamente');
-=======
-
-
-
->>>>>>> upstream/main

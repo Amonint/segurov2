@@ -93,7 +93,6 @@
 </div>
 {% endif %}
 
-<<<<<<< HEAD
 <!-- Management Panel for Managers and Administrators -->
 {% if is_manager_or_admin %}
 <div class="mb-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl shadow-lg p-6 text-white">
@@ -184,10 +183,7 @@
 </div>
 {% endif %}
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-=======
 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
->>>>>>> Frontend_LuisMorales
     <!-- Main Content -->
     <div class="xl:col-span-2 space-y-6">
         <!-- Claim Information Card -->
@@ -785,54 +781,55 @@
 
     // Management Panel Actions
     function executeAction(action) {
-        const claimId = {{ claim.pk }};
-        let url, newStatus;
+        const claimId = {{ claim.pk }
+    };
+    let url, newStatus;
 
-        switch(action) {
-            case 'request_docs':
-                url = `{% url 'claims:claim_request_documents' claim.pk %}`;
-                window.location.href = url;
-                return;
+    switch (action) {
+        case 'request_docs':
+            url = `{% url 'claims:claim_request_documents' claim.pk %}`;
+            window.location.href = url;
+            return;
 
-            case 'approve_direct':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
-                window.location.href = url;
-                return;
+        case 'approve_direct':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
+            window.location.href = url;
+            return;
 
-            case 'reject':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=rechazado`;
-                window.location.href = url;
-                return;
+        case 'reject':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=rechazado`;
+            window.location.href = url;
+            return;
 
-            case 'docs_complete':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_completos`;
-                window.location.href = url;
-                return;
+        case 'docs_complete':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_completos`;
+            window.location.href = url;
+            return;
 
-            case 'request_more_docs':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_pendientes`;
-                window.location.href = url;
-                return;
+        case 'request_more_docs':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=docs_pendientes`;
+            window.location.href = url;
+            return;
 
-            case 'send_to_insurer':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=enviado_aseguradora`;
-                window.location.href = url;
-                return;
+        case 'send_to_insurer':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=enviado_aseguradora`;
+            window.location.href = url;
+            return;
 
-            case 'under_evaluation':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=en_revision`;
-                window.location.href = url;
-                return;
+        case 'under_evaluation':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=en_revision`;
+            window.location.href = url;
+            return;
 
-            case 'approve':
-                url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
-                window.location.href = url;
-                return;
+        case 'approve':
+            url = `{% url 'claims:claim_update_status' claim.pk %}?new_status=liquidado`;
+            window.location.href = url;
+            return;
 
-            default:
-                console.error('Unknown action:', action);
-                return;
-        }
+        default:
+            console.error('Unknown action:', action);
+            return;
+    }
     }
 
     document.addEventListener('DOMContentLoaded', function () {

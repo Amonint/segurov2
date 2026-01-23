@@ -280,6 +280,14 @@ def notification_mark_read(request, pk):
     return redirect('notifications:notification_list')
 
 
+@login_required
+def notification_mark_all_read(request):
+    """Mark all notifications as read"""
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, _('Todas las notificaciones marcadas como leídas.'))
+    return redirect('notifications:notification_list')
+
+
 # Alert Views
 @login_required
 @permission_required('notifications.alerts_read', raise_exception=True)

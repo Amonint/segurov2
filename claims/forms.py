@@ -163,21 +163,11 @@ class ClaimStatusChangeForm(forms.Form):
         cleaned_data = super().clean()
         new_status = cleaned_data.get('new_status')
         notes = cleaned_data.get('notes')
-<<<<<<< HEAD
         claim = getattr(self, 'claim', None)
 
-        # Require notes for corrections, rejections, or approvals
-        if new_status in ['docs_pendientes', 'rechazado', 'liquidado'] and not notes:
-            if new_status == 'liquidado':
-                msg = _('Es obligatorio indicar las razones de la aprobación del siniestro.')
-            else:
-                msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
-=======
-        
         # Require notes for corrections or rejections
         if new_status in ['requiere_cambios', 'rechazado'] and not notes:
             msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
->>>>>>> Frontend_LuisMorales
             self.add_error('notes', msg)
 
         # Validate required documents before approval

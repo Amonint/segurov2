@@ -9,6 +9,9 @@ from django.db.models import Count, Sum
 from .models import Report, ReportExecution
 from .forms import ReportForm, ReportFilterForm, QuickReportForm, ReportExecutionForm
 from audit.models import AuditLog
+from policies.models import Policy
+from claims.models import Claim
+from invoices.models import Invoice
 import json
 import time
 from datetime import datetime, timedelta
@@ -228,11 +231,11 @@ def report_execute(request, pk):
                         'execution': execution,
                     })
                 elif export_format == 'pdf':
-                    return generate_pdf_report(report, report_data)
+                    return generate_pdf_report(request, report, report_data)
                 elif export_format == 'excel':
-                    return generate_excel_report(report, report_data)
+                    return generate_excel_report(request, report, report_data)
                 elif export_format == 'csv':
-                    return generate_csv_report(report, report_data)
+                    return generate_csv_report(request, report, report_data)
 
             except Exception as e:
                 # Record failed execution
@@ -307,11 +310,11 @@ def quick_report(request):
                         'generated_at': timezone.now(),
                     })
                 elif export_format == 'pdf':
-                    return generate_pdf_report(temp_report, report_data)
+                    return generate_pdf_report(request, temp_report, report_data)
                 elif export_format == 'excel':
-                    return generate_excel_report(temp_report, report_data)
+                    return generate_excel_report(request, temp_report, report_data)
                 elif export_format == 'csv':
-                    return generate_csv_report(temp_report, report_data)
+                    return generate_csv_report(request, temp_report, report_data)
 
             except Exception as e:
                 messages.error(request, f'Error al generar el reporte: {str(e)}')
@@ -489,8 +492,10 @@ def financial_report(request):
         created_at__date__lte=end_date
     )
 
-    monthly_revenue = invoices.filter(payment_status='paid').extra(
-        select={'month': "strftime('%%Y-%%m', created_at)"}
+    from django.db.models.functions import TruncMonth
+
+    monthly_revenue = invoices.filter(payment_status='paid').annotate(
+        month=TruncMonth('created_at')
     ).values('month').annotate(
         total=Sum('total_amount')
     ).order_by('month')
@@ -509,21 +514,21 @@ def financial_report(request):
     return render(request, 'reports/financial_report.html', context)
 
 
-def generate_pdf_report(report, report_data):
+def generate_pdf_report(request, report, report_data):
     """Generate PDF report (placeholder)"""
     # This would require a PDF library like reportlab or weasyprint
     messages.info(request, _('Funcionalidad de PDF en desarrollo. Use HTML por ahora.'))
     return redirect('reports:report_list')
 
 
-def generate_excel_report(report, report_data):
+def generate_excel_report(request, report, report_data):
     """Generate Excel report (placeholder)"""
     # This would require openpyxl or similar
     messages.info(request, _('Funcionalidad de Excel en desarrollo. Use HTML por ahora.'))
     return redirect('reports:report_list')
 
 
-def generate_csv_report(report, report_data):
+def generate_csv_report(request, report, report_data):
     """Generate CSV report (placeholder)"""
     # This would create a CSV file
     messages.info(request, _('Funcionalidad de CSV en desarrollo. Use HTML por ahora.'))

@@ -299,17 +299,6 @@ class Claim(models.Model):
         """
         # Define valid status transitions - Flujo simplificado en español
         transitions = {
-<<<<<<< HEAD
-            'reportado': ['docs_pendientes', 'enviado_aseguradora', 'rechazado'],
-            'docs_pendientes': ['docs_completos', 'enviado_aseguradora', 'rechazado'],
-            'docs_completos': ['enviado_aseguradora', 'rechazado'],
-            'enviado_aseguradora': ['en_revision', 'rechazado'],
-            'en_revision': ['liquidado', 'rechazado'],
-            'liquidado': ['pagado', 'rechazado'],
-            'pagado': ['cerrado'],
-            'rechazado': [],  # Cannot change from rejected
-            'cerrado': []  # Cannot change from closed
-=======
             'pendiente': ['en_revision', 'requiere_cambios', 'aprobado', 'rechazado'],
             'en_revision': ['requiere_cambios', 'aprobado', 'rechazado'],
             'requiere_cambios': ['pendiente', 'en_revision'],
@@ -317,7 +306,6 @@ class Claim(models.Model):
             'liquidado': ['pagado'],
             'pagado': [],  # Estado final
             'rechazado': []  # Estado final
->>>>>>> Frontend_LuisMorales
         }
 
         if new_status not in transitions.get(self.status, []):
@@ -325,19 +313,11 @@ class Claim(models.Model):
 
         # Role-based permissions for status changes - Enhanced for manager/admin approval
         role_permissions = {
-<<<<<<< HEAD
-            'requester': ['reportado'],  # Can only report
-            'insurance_manager': ['docs_pendientes', 'docs_completos', 'enviado_aseguradora',
-                                'en_revision', 'liquidado', 'pagado', 'cerrado', 'rechazado'],
-            'admin': ['docs_pendientes', 'docs_completos', 'enviado_aseguradora',
-                     'en_revision', 'liquidado', 'pagado', 'cerrado', 'rechazado']
-=======
             'requester': ['pendiente'],  # Can only stay in pending
             'insurance_manager': ['pendiente', 'en_revision', 'requiere_cambios', 
                                 'aprobado', 'liquidado', 'pagado', 'rechazado'],
             'admin': ['pendiente', 'en_revision', 'requiere_cambios', 
                      'aprobado', 'liquidado', 'pagado', 'rechazado']
->>>>>>> Frontend_LuisMorales
         }
 
         return new_status in role_permissions.get(user.role, [])
