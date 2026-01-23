@@ -262,7 +262,7 @@ def claim_detail(request, pk):
 
     # Get latest status change note for feedback
     latest_status_note = ''
-    if claim.status in ['documentation_pending', 'rejected']:
+    if claim.status in ['docs_pendientes', 'rechazado']:
         last_change = claim.timeline.filter(event_type='status_change').order_by('-created_at').first()
         if last_change and last_change.notes:
             latest_status_note = last_change.notes
@@ -380,6 +380,24 @@ def claim_edit(request, pk):
                 'assigned_to': updated_claim.assigned_to.username if updated_claim.assigned_to else None
             }
 
+            # Flujo de Reenvío: Si el siniestro requería cambios, resetear a 'pendiente' para nueva validación
+            if claim.status == 'requiere_cambios':
+                updated_claim.status = 'pendiente'
+                updated_claim.validation_comments = ''  # Limpiar comentarios previos
+                updated_claim.save(update_fields=['status', 'validation_comments'])
+                
+                # Registrar en timeline
+                ClaimTimeline.objects.create(
+                    claim=updated_claim,
+                    event_type='status_change',
+                    event_description=_('Siniestro reenviado para validación por el custodio'),
+                    old_status='requiere_cambios',
+                    new_status='pendiente',
+                    created_by=request.user
+                )
+                
+                messages.info(request, _('El siniestro ha sido reenviado para validación.'))
+
             # Log the action
             AuditLog.log_action(
                 user=request.user,
@@ -433,9 +451,48 @@ def claim_update_status(request, pk):
 
                 messages.success(request, _('Estado del siniestro actualizado exitosamente.'))
                 
-                # TDR Workflow: If status is 'liquidated', redirect to settlement creation
-                if new_status == 'liquidated' and not hasattr(claim, 'settlement'):
-                    return redirect('claims:claim_settlement_create', pk=claim.pk)
+                # TDR Workflow: If status is 'liquidated', AUTO-GENERATE settlement
+                if new_status == 'liquidado' and not hasattr(claim, 'settlement'):
+                    try:
+                        # 1. Calculate Deductible
+                        deductible = 0
+                        if claim.cobertura_aplicada:
+                            deductible = claim.cobertura_aplicada.calcular_deducible(claim.estimated_loss)
+                        
+                        # 2. Calculate Final Amount
+                        settlement_amount = claim.estimated_loss - deductible
+                        if settlement_amount < 0:
+                            settlement_amount = 0
+
+                        # 3. Create Settlement
+                        settlement = ClaimSettlement.objects.create(
+                            claim=claim,
+                            settlement_number=f"SET-{claim.claim_number}", # Auto-number
+                            numero_reclamo=claim.claim_number,
+                            claim_reference_number=claim.claim_number, # Alias
+                            
+                            valor_total_reclamo=claim.estimated_loss,
+                            total_claim_amount=claim.estimated_loss, # Alias
+                            
+                            deducible_aplicado=deductible,
+                            deductible_amount=deductible, # Alias
+                            
+                            valor_a_pagar=settlement_amount,
+                            final_payment_amount=settlement_amount, # Alias
+                            
+                            depreciacion=0, # Default
+                            depreciation_amount=0, # Alias
+                            
+                            fecha_recepcion_finiquito=timezone.now().date(),
+                            status='draft',
+                            created_by=request.user # Audit
+                        )
+                        messages.success(request, _('Finiquito generado automáticamente.'))
+                        return redirect('claims:claim_settlement_detail', pk=settlement.pk)
+                    except Exception as e:
+                        messages.error(request, f"Error generando finiquito automático: {str(e)}")
+                        # Fallback to create view if auto fails
+                        return redirect('claims:claim_settlement_create', claim_pk=claim.pk)
                     
                 return redirect('claims:claim_detail', pk=claim.pk)
 
@@ -455,6 +512,191 @@ def claim_update_status(request, pk):
         'form': form,
         'claim': claim,
     })
+
+
+@login_required
+@role_permission_required('claims_update')
+def claim_approve(request, pk):
+    """Aprobar siniestro y generar finiquito automáticamente"""
+    claim = get_object_or_404(Claim, pk=pk)
+    
+    if request.method != 'POST':
+        messages.error(request, _('Método no permitido.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    # Validar estado actual
+    if claim.status not in ['pendiente', 'en_revision']:
+        messages.error(request, _('Solo se pueden aprobar siniestros en estado pendiente o en revisión.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    old_status = claim.status
+    
+    try:
+        # Actualizar campos de validación
+        claim.status = 'aprobado'
+        claim.validated_by = request.user
+        claim.validation_date = timezone.now()
+        claim.validation_comments = ''  # Limpiar comentarios previos
+        claim.save()
+        
+        # Registrar en timeline
+        ClaimTimeline.objects.create(
+            claim=claim,
+            event_type='status_change',
+            event_description=_('Siniestro aprobado para liquidación'),
+            old_status=old_status,
+            new_status='aprobado',
+            created_by=request.user
+        )
+        
+        # Log the action
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            entity_type='claim',
+            entity_id=str(claim.id),
+            description=f'Siniestro aprobado: {claim.claim_number}'
+        )
+        
+        # AUTO-GENERATE Settlement
+        try:
+            deductible = 0
+            if claim.cobertura_aplicada:
+                deductible = claim.cobertura_aplicada.calcular_deducible(claim.estimated_loss)
+            
+            settlement_amount = claim.estimated_loss - deductible
+            if settlement_amount < 0:
+                settlement_amount = 0
+            
+            settlement = ClaimSettlement.objects.create(
+                claim=claim,
+                settlement_number=f"SET-{claim.claim_number}",
+                numero_reclamo=claim.claim_number,
+                claim_reference_number=claim.claim_number,
+                valor_total_reclamo=claim.estimated_loss,
+                total_claim_amount=claim.estimated_loss,
+                deducible_aplicado=deductible,
+                deductible_amount=deductible,
+                valor_a_pagar=settlement_amount,
+                final_payment_amount=settlement_amount,
+                depreciacion=0,
+                depreciation_amount=0,
+                fecha_recepcion_finiquito=timezone.now().date(),
+                status='draft',
+                created_by=request.user
+            )
+            
+            # Cambiar status a liquidado
+            claim.status = 'liquidado'
+            claim.save()
+            
+            messages.success(request, _('Siniestro aprobado y finiquito generado automáticamente.'))
+            return redirect('claims:claim_settlement_detail', pk=settlement.pk)
+            
+        except Exception as e:
+            messages.warning(request, f"Siniestro aprobado, pero error generando finiquito: {str(e)}")
+            return redirect('claims:claim_settlement_create', claim_pk=claim.pk)
+            
+    except Exception as e:
+        messages.error(request, f"Error aprobando siniestro: {str(e)}")
+        return redirect('claims:claim_detail', pk=pk)
+
+
+@login_required
+@role_permission_required('claims_update')
+def claim_request_changes(request, pk):
+    """Solicitar cambios al custodio"""
+    claim = get_object_or_404(Claim, pk=pk)
+    
+    if request.method != 'POST':
+        messages.error(request, _('Método no permitido.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    comments = request.POST.get('comments', '').strip()
+    if not comments:
+        messages.error(request, _('Debe proporcionar comentarios sobre los cambios requeridos.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    old_status = claim.status
+    
+    try:
+        # Actualizar campos de validación
+        claim.status = 'requiere_cambios'
+        claim.validated_by = request.user
+        claim.validation_date = timezone.now()
+        claim.validation_comments = comments
+        claim.save()
+        
+        # Registrar en timeline
+        ClaimTimeline.objects.create(
+            claim=claim,
+            event_type='status_change',
+            event_description=f'Se solicitaron cambios: {comments}',
+            old_status=old_status,
+            new_status='requiere_cambios',
+            notes=comments,
+            created_by=request.user
+        )
+        
+        # Log the action
+        AuditLog.log_action(
+            user=request.user,
+            action_type='update',
+            entity_type='claim',
+            entity_id=str(claim.id),
+            description=f'Cambios solicitados en siniestro: {claim.claim_number}',
+            new_values={'comments': comments}
+        )
+        
+        messages.success(request, _('Solicitud de cambios enviada al custodio.'))
+        
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+    
+    return redirect('claims:claim_detail', pk=pk)
+
+
+@login_required
+@role_permission_required('claims_update')
+def claim_reject(request, pk):
+    """Rechazar siniestro definitivamente"""
+    claim = get_object_or_404(Claim, pk=pk)
+    
+    if request.method != 'POST':
+        messages.error(request, _('Método no permitido.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    reason = request.POST.get('reason', '').strip()
+    if not reason:
+        messages.error(request, _('Debe proporcionar el motivo del rechazo.'))
+        return redirect('claims:claim_detail', pk=pk)
+    
+    old_status = claim.status
+    
+    try:
+        claim.status = 'rechazado'
+        claim.rejection_reason = reason
+        claim.validated_by = request.user
+        claim.validation_date = timezone.now()
+        claim.save()
+        
+        # Registrar en timeline
+        ClaimTimeline.objects.create(
+            claim=claim,
+            event_type='status_change',
+            event_description=f'Siniestro rechazado: {reason}',
+            old_status=old_status,
+            new_status='rechazado',
+            notes=reason,
+            created_by=request.user
+        )
+        
+        messages.success(request, _('Siniestro rechazado.'))
+        
+    except Exception as e:
+        messages.error(request, f"Error: {str(e)}")
+    
+    return redirect('claims:claim_detail', pk=pk)
 
 
 @login_required

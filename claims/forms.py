@@ -118,14 +118,15 @@ class ClaimStatusChangeForm(forms.Form):
             current_status = claim.status
 
             # Define status transitions based on workflow
+            # Nuevo flujo simplificado en español
             transitions = {
-                'reported': ['documentation_pending'],
-                'documentation_pending': ['sent_to_insurer', 'under_evaluation'],
-                'sent_to_insurer': ['under_evaluation'],
-                'under_evaluation': ['liquidated', 'rejected'],
-                'liquidated': ['paid'],
-                'paid': ['closed'],
-                'rejected': ['closed'],
+                'pendiente': ['en_revision', 'requiere_cambios', 'aprobado', 'rechazado'],
+                'en_revision': ['requiere_cambios', 'aprobado', 'rechazado'],
+                'requiere_cambios': ['pendiente', 'en_revision'],  # Custodio reenvía
+                'aprobado': ['liquidado', 'rechazado'],
+                'liquidado': ['pagado'],
+                'pagado': [],  # Estado final
+                'rechazado': [],  # Estado final
             }
 
             if current_status in transitions:
@@ -162,6 +163,7 @@ class ClaimStatusChangeForm(forms.Form):
         cleaned_data = super().clean()
         new_status = cleaned_data.get('new_status')
         notes = cleaned_data.get('notes')
+<<<<<<< HEAD
         claim = getattr(self, 'claim', None)
 
         # Require notes for corrections, rejections, or approvals
@@ -170,6 +172,12 @@ class ClaimStatusChangeForm(forms.Form):
                 msg = _('Es obligatorio indicar las razones de la aprobación del siniestro.')
             else:
                 msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
+=======
+        
+        # Require notes for corrections or rejections
+        if new_status in ['requiere_cambios', 'rechazado'] and not notes:
+            msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
+>>>>>>> Frontend_LuisMorales
             self.add_error('notes', msg)
 
         # Validate required documents before approval
