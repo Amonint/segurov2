@@ -118,14 +118,15 @@ class ClaimStatusChangeForm(forms.Form):
             current_status = claim.status
 
             # Define status transitions based on workflow
+            # Nuevo flujo simplificado en español
             transitions = {
-                'reported': ['documentation_pending'],
-                'documentation_pending': ['sent_to_insurer', 'under_evaluation'],
-                'sent_to_insurer': ['under_evaluation'],
-                'under_evaluation': ['liquidated', 'rejected'],
-                'liquidated': ['paid'],
-                'paid': ['closed'],
-                'rejected': ['closed'],
+                'pendiente': ['en_revision', 'requiere_cambios', 'aprobado', 'rechazado'],
+                'en_revision': ['requiere_cambios', 'aprobado', 'rechazado'],
+                'requiere_cambios': ['pendiente', 'en_revision'],  # Custodio reenvía
+                'aprobado': ['liquidado', 'rechazado'],
+                'liquidado': ['pagado'],
+                'pagado': [],  # Estado final
+                'rechazado': [],  # Estado final
             }
 
             if current_status in transitions:
@@ -164,7 +165,7 @@ class ClaimStatusChangeForm(forms.Form):
         notes = cleaned_data.get('notes')
         
         # Require notes for corrections or rejections
-        if new_status in ['docs_pendientes', 'rechazado'] and not notes:
+        if new_status in ['requiere_cambios', 'rechazado'] and not notes:
             msg = _('Es obligatorio indicar la razón o las correcciones necesarias para este estado.')
             self.add_error('notes', msg)
             

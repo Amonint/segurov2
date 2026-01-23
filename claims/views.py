@@ -428,7 +428,7 @@ def claim_update_status(request, pk):
                             depreciation_amount=0, # Alias
                             
                             fecha_recepcion_finiquito=timezone.now().date(),
-                            status='borrador',
+                            status='draft',
                             created_by=request.user # Audit
                         )
                         messages.success(request, _('Finiquito generado automáticamente.'))
@@ -436,7 +436,7 @@ def claim_update_status(request, pk):
                     except Exception as e:
                         messages.error(request, f"Error generando finiquito automático: {str(e)}")
                         # Fallback to create view if auto fails
-                        return redirect('claims:claim_settlement_create', pk=claim.pk)
+                        return redirect('claims:claim_settlement_create', claim_pk=claim.pk)
                     
                 return redirect('claims:claim_detail', pk=claim.pk)
 
@@ -526,7 +526,7 @@ def claim_approve(request, pk):
                 depreciacion=0,
                 depreciation_amount=0,
                 fecha_recepcion_finiquito=timezone.now().date(),
-                status='borrador',
+                status='draft',
                 created_by=request.user
             )
             

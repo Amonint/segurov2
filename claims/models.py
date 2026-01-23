@@ -296,16 +296,15 @@ class Claim(models.Model):
         """
         Check if user can change claim status based on role and current status
         """
-        # Define valid status transitions
+        # Define valid status transitions - Flujo simplificado en español
         transitions = {
-            'reported': ['documentation_pending', 'sent_to_insurer', 'rejected'],
-            'documentation_pending': ['sent_to_insurer', 'rejected'],
-            'sent_to_insurer': ['under_evaluation', 'rejected'],
-            'under_evaluation': ['liquidated', 'rejected'],
-            'liquidated': ['paid', 'rejected'],
-            'paid': ['closed'],
-            'rejected': [],  # Cannot change from rejected
-            'closed': []  # Cannot change from closed
+            'pendiente': ['en_revision', 'requiere_cambios', 'aprobado', 'rechazado'],
+            'en_revision': ['requiere_cambios', 'aprobado', 'rechazado'],
+            'requiere_cambios': ['pendiente', 'en_revision'],
+            'aprobado': ['liquidado', 'rechazado'],
+            'liquidado': ['pagado'],
+            'pagado': [],  # Estado final
+            'rechazado': []  # Estado final
         }
 
         if new_status not in transitions.get(self.status, []):
@@ -313,11 +312,11 @@ class Claim(models.Model):
 
         # Role-based permissions for status changes (SIMPLIFIED TO 3 ROLES)
         role_permissions = {
-            'requester': ['reported'],  # Can only report
-            'insurance_manager': ['reported', 'documentation_pending', 'sent_to_insurer',
-                                'under_evaluation', 'liquidated', 'paid', 'closed', 'rejected'],
-            'admin': ['reported', 'documentation_pending', 'sent_to_insurer',
-                     'under_evaluation', 'liquidated', 'paid', 'closed', 'rejected']
+            'requester': ['pendiente'],  # Can only stay in pending
+            'insurance_manager': ['pendiente', 'en_revision', 'requiere_cambios', 
+                                'aprobado', 'liquidado', 'pagado', 'rechazado'],
+            'admin': ['pendiente', 'en_revision', 'requiere_cambios', 
+                     'aprobado', 'liquidado', 'pagado', 'rechazado']
         }
 
         return new_status in role_permissions.get(user.role, [])
@@ -351,7 +350,7 @@ class Claim(models.Model):
         recipient = self.reported_by
         
         if recipient and recipient != user: # Don't notify self
-            if new_status == 'docs_pendientes':
+            if new_status == 'requiere_cambios':
                 Notification.create_notification(
                     user=recipient,
                     notification_type='document_required',
@@ -369,12 +368,12 @@ class Claim(models.Model):
                     priority='urgent',
                     link=f'/claims/{self.pk}/'
                 )
-            elif new_status == 'enviado_aseguradora':
+            elif new_status == 'aprobado':
                  Notification.create_notification(
                     user=recipient,
                     notification_type='claim_update',
-                    title=f'Siniestro en Trámite: {self.claim_number}',
-                    message=f'Su siniestro ha sido validado y enviado a la aseguradora.',
+                    title=f'Siniestro Aprobado: {self.claim_number}',
+                    message=f'Su siniestro ha sido aprobado. Finiquito en proceso.',
                     priority='normal',
                     link=f'/claims/{self.pk}/'
                 )
@@ -413,10 +412,10 @@ class Claim(models.Model):
 
         # Define overdue thresholds
         overdue_thresholds = {
-            'docs_pendientes': 8,  # 8 days to gather documentation
-            'enviado_aseguradora': 30,       # 30 days for insurer evaluation
+            'requiere_cambios': 8,  # 8 days to gather documentation
             'en_revision': 30,      # 30 days for evaluation
-            'liquidado': 2             # 2 days to pay after liquidation
+            'aprobado': 5,          # 5 days to generate settlement
+            'liquidado': 2          # 2 days to pay after liquidation
         }
 
         threshold = overdue_thresholds.get(self.status, 999)
@@ -1057,6 +1056,7 @@ class ClaimSettlement(models.Model):
         'accounts.UserProfile',
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         verbose_name=_('Creado por'),
         related_name='settlements_created'
     )
