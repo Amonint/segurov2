@@ -50,65 +50,81 @@ jobs:
         echo "Checking import sorting with isort..."
         isort --check-only --diff . || true
 
-  test:
-    runs-on: ubuntu-24.04
-    env:
-      DB_NAME: seguros_db_test
-      DB_USER: seguros_user
-      DB_PASSWORD: seguros_pass
-      DB_HOST: postgres
-      DB_PORT: 5432
-      SECRET_KEY: "test-secret-key-for-ci"
-      DEBUG: "True"
-      ALLOWED_HOSTS: "localhost,127.0.0.1"
+test:
+  runs-on: ubuntu-24.04
 
-    steps:
-    - uses: actions/checkout@v6
+  services:
+    postgres:
+      image: postgres:16
+      env:
+        POSTGRES_DB: seguros_db_test
+        POSTGRES_USER: seguros_user
+        POSTGRES_PASSWORD: seguros_pass
+      ports:
+        - 5432:5432
+      options: >-
+        --health-cmd="pg_isready -U seguros_user -d seguros_db_test"
+        --health-interval=10s
+        --health-timeout=5s
+        --health-retries=5
 
-    - name: Set up Python
-      uses: actions/setup-python@v6
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+  env:
+    DB_NAME: seguros_db_test
+    DB_USER: seguros_user
+    DB_PASSWORD: seguros_pass
+    DB_HOST: localhost
+    DB_PORT: 5432
+    SECRET_KEY: "test-secret-key-for-ci"
+    DEBUG: "True"
+    ALLOWED_HOSTS: "localhost,127.0.0.1"
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+  steps:
+  - uses: actions/checkout@v6
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install coverage
+  - name: Set up Python
+    uses: actions/setup-python@v6
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Check migrations
-      run: python manage.py makemigrations --check --dry-run
+  - name: Cache pip dependencies
+    uses: actions/cache@v4
+    with:
+      path: ~/.cache/pip
+      key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      restore-keys: |
+        ${{ runner.os }}-pip-
 
-    - name: Run migrations
-      run: python manage.py migrate
+  - name: Install dependencies
+    run: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install coverage
 
-    - name: Collect static files
-      run: python manage.py collectstatic --noinput
+  - name: Check migrations
+    run: python manage.py makemigrations --check --dry-run
 
-    - name: Run Django system checks
-      run: python manage.py check --deploy
+  - name: Run migrations
+    run: python manage.py migrate
 
-    - name: Run tests with coverage
-      run: |
-        coverage run --source='.' manage.py test
-        coverage report
-        coverage xml
+  - name: Collect static files
+    run: python manage.py collectstatic --noinput
 
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+  - name: Run Django system checks
+    run: python manage.py check --deploy
+
+  - name: Run tests with coverage
+    run: |
+      coverage run --source='.' manage.py test
+      coverage report
+      coverage xml
+
+  - name: Upload coverage reports
+    uses: codecov/codecov-action@v4
+    with:
+      file: ./coverage.xml
+      flags: unittests
+      name: codecov-umbrella
+      fail_ci_if_error: false
 
   security:
     runs-on: ubuntu-24.04
