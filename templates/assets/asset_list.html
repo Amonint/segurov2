@@ -14,11 +14,20 @@
             </h1>
             <p class="text-gray-600">Administra y monitorea todos los activos asegurados</p>
         </div>
-        {% if perms.assets.assets_create %}
-        <a href="{% url 'assets:asset_create' %}" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center">
-            <i class="bi bi-plus-circle mr-2"></i> Registrar Nuevo Bien
-        </a>
-        {% endif %}
+        <div class="flex gap-3">
+            {% if request.user.role == 'requester' %}
+            <!-- Button for requesters to create their own assets -->
+            <a href="{% url 'assets:asset_create_client' %}" class="bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center" title="Registrar un nuevo bien bajo tu custodia">
+                <i class="bi bi-plus-circle mr-2"></i> Mi Bien
+            </a>
+            {% endif %}
+            {% if perms.assets.assets_create %}
+            <!-- Button for admin/managers to create assets for others -->
+            <a href="{% url 'assets:asset_create' %}" class="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center">
+                <i class="bi bi-plus-circle mr-2"></i> Registrar Nuevo Bien
+            </a>
+            {% endif %}
+        </div>
     </div>
 </div>
 
