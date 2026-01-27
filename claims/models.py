@@ -271,11 +271,11 @@ class Claim(models.Model):
             )
 
         # Validate rejection reason for rejected claims
-        if self.status == "rejected" and not self.rejection_reason:
+        if self.status == "rechazado" and not self.rejection_reason:
             raise ValidationError(_("Debe proporcionar una razón de rechazo"))
 
         # Validate payment date for paid claims
-        if self.status == "paid" and not self.payment_date:
+        if self.status == "pagado" and not self.payment_date:
             raise ValidationError(
                 _("Debe proporcionar una fecha de pago para siniestros pagados")
             )
@@ -336,6 +336,11 @@ class Claim(models.Model):
 
         old_status = self.status
         self.status = new_status
+        
+        # Set payment_date when status changes to paid
+        if new_status == "pagado" and not self.payment_date:
+            self.payment_date = timezone.now().date()
+        
         self.save()
 
         # Create timeline entry
@@ -1451,3 +1456,59 @@ class ClaimSettlement(models.Model):
             overdue_date = self.signed_date + timedelta(days=3)
             return timezone.now().date() > overdue_date
         return False
+
+
+class ClaimTimeline(models.Model):
+    """
+    Timeline for claim status changes and events
+    """
+
+    # Event type choices
+    EVENT_TYPE_CHOICES = [
+        ("status_change", _("Cambio de estado")),
+        ("document_uploaded", _("Documento subido")),
+        ("comment", _("Comentario")),
+        ("alert_sent", _("Alerta enviada")),
+        ("payment_received", _("Pago recibido")),
+    ]
+
+    claim = models.ForeignKey(
+        Claim,
+        on_delete=models.CASCADE,
+        verbose_name=_("Siniestro"),
+        related_name="timeline",
+    )
+    event_type = models.CharField(
+        _("Tipo de evento"), max_length=20, choices=EVENT_TYPE_CHOICES
+    )
+    event_description = models.TextField(_("Descripción del evento"))
+    old_status = models.CharField(
+        _("Estado anterior"), max_length=25, blank=True
+    )
+    new_status = models.CharField(
+        _("Estado nuevo"), max_length=25, blank=True
+    )
+    created_by = models.ForeignKey(
+        UserProfile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Creado por"),
+        related_name="timeline_entries",
+    )
+    notes = models.TextField(
+        _("Notas/Observaciones"),
+        blank=True,
+        help_text=_("Notas adicionales sobre el cambio de estado"),
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(_("Fecha de creación"), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _("Entrada de Timeline")
+        verbose_name_plural = _("Timeline de Siniestros")
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.event_type} - {self.claim.claim_number} ({self.created_at.date()})"

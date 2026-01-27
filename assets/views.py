@@ -412,7 +412,7 @@ def asset_report_claim(request, pk):
             claim.asset = asset
             claim.reportante = request.user
             claim.reported_by = request.user
-            claim.status = "reportado"
+            claim.status = "pendiente"
 
             # Auto-fill broker and insurance company for notifications
             if asset.insurance_policy:

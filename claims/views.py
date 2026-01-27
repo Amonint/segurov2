@@ -586,7 +586,7 @@ def claim_update_status(request, pk):
                             depreciacion=0,  # Default
                             depreciation_amount=0,  # Alias
                             fecha_recepcion_finiquito=timezone.now().date(),
-                            status="draft",
+                            status="pending_approval",
                             created_by=request.user,  # Audit
                         )
                         messages.success(
@@ -703,7 +703,7 @@ def claim_approve(request, pk):
                 depreciacion=0,
                 depreciation_amount=0,
                 fecha_recepcion_finiquito=timezone.now().date(),
-                status="draft",
+                status="pending_approval",
                 created_by=request.user,
             )
 

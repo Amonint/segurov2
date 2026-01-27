@@ -20,7 +20,7 @@
                 class="bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg hover:bg-gray-200 transition-all flex items-center text-sm">
                 <i class="bi bi-arrow-left mr-1"></i> Volver al Siniestro
             </a>
-            {% if settlement.status == 'draft' and 'claims_write' in user.get_role_permissions %}
+            {% if settlement.status == 'pending_approval' and 'claims_write' in user.get_role_permissions %}
             <a href="{% url 'claims:claim_settlement_edit' settlement.pk %}"
                 class="text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg flex items-center"
                 style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
@@ -32,14 +32,14 @@
 </div>
 
 <!-- Status Alert -->
-{% if settlement.status == 'draft' %}
+{% if settlement.status == 'pending_approval' %}
 <div class="mb-6 bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r shadow-sm">
     <div class="flex">
         <div class="flex-shrink-0">
             <i class="bi bi-pencil-square text-amber-500 text-xl"></i>
         </div>
         <div class="ml-3">
-            <h3 class="text-sm font-bold text-amber-800">Finiquito en Borrador</h3>
+            <h3 class="text-sm font-bold text-amber-800">Finiquito Pendiente de Aprobación</h3>
             <p class="text-sm text-amber-700 mt-1">
                 Este finiquito está pendiente de aprobación. Revise los datos y apruébelo cuando esté listo.
             </p>
@@ -362,7 +362,7 @@
                 </h3>
             </div>
             <div class="p-6 space-y-3">
-                {% if settlement.status == 'draft' %}
+                {% if settlement.status == 'pending_approval' %}
                 <form method="post" action="{% url 'claims:claim_settlement_approve' settlement.pk %}">
                     {% csrf_token %}
                     <button type="submit"
