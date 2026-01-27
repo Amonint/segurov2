@@ -395,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show success notification if asset was saved
     {% if messages %}
     {% for message in messages %}
-    showNotification('{{ message }}', '{{ message.tags }}');
+    showNotification('{{ message|escapejs }}', '{{ message.tags }}');
     {% endfor %}
     {% endif %}
 });
