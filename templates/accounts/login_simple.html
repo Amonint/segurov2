@@ -4,47 +4,411 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - Sistema de Seguros UTPL</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 50%, #1f3d5f 100%);
+            min-height: 100vh;
+            animation: bgShift 15s ease infinite;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 50%, #1f3d5f 100%); }
+            50% { background: linear-gradient(135deg, #3a6da3 0%, #1f4d7f 50%, #0d1f2d 100%); }
+        }
+
+        .login-card {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 25px 50px -12px rgba(30, 61, 95, 0.35),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+            animation: slideIn 0.6s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(20px, -20px); }
+        }
+
+        .input-field {
+            background: #f8fafb;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .input-field:focus {
+            background: #ffffff;
+            border-color: #4a7dbb;
+            box-shadow: 0 0 0 4px rgba(74, 125, 187, 0.1);
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: white;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .submit-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #3a6da3 0%, #1f4d7f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(74, 125, 187, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 90px;
+            height: 90px;
+            box-shadow: 0 15px 35px rgba(74, 125, 187, 0.25),
+                        inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .brand-text {
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            animation: shakeIn 0.5s ease-out;
+        }
+
+        @keyframes shakeIn {
+            0% { transform: translateX(-10px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .checkbox-custom {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .checkbox-custom:checked {
+            background: linear-gradient(135deg, #4a7dbb 0%, #2e5a8f 100%);
+            border-color: #2e5a8f;
+        }
+
+        .checkbox-custom:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .link-hover {
+            position: relative;
+            text-decoration: none;
+        }
+
+        .link-hover::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, #4a7dbb, #2e5a8f);
+            transition: width 0.3s ease;
+        }
+
+        .link-hover:hover::after {
+            width: 100%;
+        }
+
+        .footer-link {
+            color: #4a7dbb;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .footer-link:hover {
+            color: #2e5a8f;
+        }
+
+        .input-icon-btn {
+            transition: all 0.2s ease;
+        }
+
+        .input-icon-btn:hover {
+            color: #4a7dbb;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+        }
+
+        .bottom-decoration {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: radial-gradient(circle at center, rgba(74, 125, 187, 0.1), transparent);
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container">
-        <div class="row justify-content-center mt-5">
-            <div class="col-md-6 col-lg-4">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h4 class="mb-0">
-                            <i class="bi bi-shield-check"></i> Sistema de Seguros UTPL
-                        </h4>
-                    </div>
-                    <div class="card-body">
-                        <form method="post">
-                            {% csrf_token %}
+<body class="flex items-center justify-center p-4">
+    <!-- Background decoration -->
+    <div class="bottom-decoration"></div>
 
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Usuario</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
+    <!-- Login Container -->
+    <div class="w-full max-w-md">
+        <!-- Logo and Brand -->
+        <div class="text-center mb-12 animate-fade-in">
+            <div class="logo-icon mx-auto mb-8">
+                <i class="bi bi-shield-check text-5xl text-white"></i>
+            </div>
+            <h1 class="text-5xl font-bold brand-text mb-3">Seguros</h1>
+            <p class="text-blue-100 text-base font-medium">Universidad Técnica Particular de Loja</p>
+        </div>
 
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
+        <!-- Login Card -->
+        <div class="login-card rounded-3xl overflow-hidden">
+            <!-- Card Header -->
+            <div class="card-header p-8 text-center relative z-10">
+                <h2 class="text-3xl font-bold text-white relative z-20">Bienvenido</h2>
+                <p class="text-blue-100 text-sm mt-2 relative z-20">Inicia sesión con tus credenciales</p>
+            </div>
 
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-                                </button>
-                            </div>
-                        </form>
+            <!-- Card Body -->
+            <div class="p-8">
+                <!-- Error Messages -->
+                {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for message in messages %}
+                    <div class="error-message">
+                        <div class="flex items-start gap-3">
+                            <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-0.5 text-lg"></i>
+                            <div class="font-medium">{{ message }}</div>
+                        </div>
                     </div>
-                    <div class="card-footer text-center text-muted">
-                        <small>Universidad Técnica Particular de Loja</small>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Login Form -->
+                <form method="post" class="space-y-6" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Username Field -->
+                    <div class="group">
+                        <label for="username" class="block text-gray-800 font-semibold mb-3 text-sm tracking-wide">
+                            Usuario
+                        </label>
+                        <div class="relative">
+                            <input type="text" 
+                                   id="username" 
+                                   name="username" 
+                                   required
+                                   autocomplete="username"
+                                   class="input-field w-full px-4 py-3 rounded-lg"
+                                   placeholder="usuario@utpl.edu.ec">
+                            <i class="bi bi-person absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
                     </div>
+
+                    <!-- Password Field -->
+                    <div class="group">
+                        <label for="password" class="block text-gray-800 font-semibold mb-3 text-sm tracking-wide">
+                            Contraseña
+                        </label>
+                        <div class="relative">
+                            <input type="password" 
+                                   id="password" 
+                                   name="password" 
+                                   required
+                                   autocomplete="current-password"
+                                   class="input-field w-full px-4 py-3 rounded-lg pr-12"
+                                   placeholder="Ingresa tu contraseña">
+                            <button type="button" 
+                                    onclick="togglePassword()"
+                                    class="input-icon-btn absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="bi bi-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Options Row -->
+                    <div class="flex items-center justify-between pt-2">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="remember" class="checkbox-custom" />
+                            <span class="text-gray-700 font-medium text-sm group-hover:text-gray-900 transition">Recordarme</span>
+                        </label>
+                        <a href="#" class="link-hover text-sm text-blue-600 font-medium">¿Olvidaste tu contraseña?</a>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="submit-btn w-full py-3 px-6 rounded-lg mt-8 relative z-10 text-base">
+                        <span class="relative z-20 flex items-center justify-center gap-2">
+                            <i class="bi bi-box-arrow-in-right"></i>
+                            Iniciar Sesión
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="divider my-8"></div>
+
+                <!-- Footer Info -->
+                <div class="text-center space-y-2">
+                    <p class="text-gray-600 text-xs">
+                        ¿Necesitas ayuda? <a href="#" class="footer-link">Contacta soporte</a>
+                    </p>
+                    <p class="text-gray-400 text-xs font-medium">
+                        © 2024 UTPL - Sistema de Seguros
+                    </p>
                 </div>
             </div>
         </div>
+
+        <!-- Bottom Message -->
+        <div class="mt-8 text-center">
+            <p class="text-white/60 text-xs tracking-wide">
+                Plataforma segura de gestión de seguros
+            </p>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        }
+
+        // Auto-focus on username field
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.focus();
+            }
+        });
+
+        // Smooth enter key handling
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.form) {
+                    this.form.submit();
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 

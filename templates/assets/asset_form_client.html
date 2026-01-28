@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Nuevo Bien - Sistema de Seguros UTPL{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 flex items-center">
+                <i class="bi bi-plus-circle mr-3" style="color: #4a7dbb;"></i>
+                Registrar Nuevo Bien
+            </h1>
+            <p class="text-gray-600">Completa el formulario para registrar un nuevo activo bajo tu custodia</p>
+        </div>
+        <a href="{% url 'assets:asset_list' %}" class="bg-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center">
+            <i class="bi bi-arrow-left mr-2"></i> Volver
+        </a>
+    </div>
+</div>
+
+<form method="post" class="space-y-8">
+    {% csrf_token %}
+
+    <!-- Basic Information Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-info-circle mr-2"></i>
+                Información Básica del Bien
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Name -->
+                <div class="md:col-span-1">
+                    <label for="{{ form.name.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-pencil-square mr-2" style="color: #4a7dbb;"></i>
+                        {{ form.name.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="text" 
+                           name="name" 
+                           id="{{ form.name.id_for_label }}"
+                           value="{{ form.name.value|default:'' }}"
+                           placeholder="Nombre del bien (ej: Computadora Dell, Vehículo Toyota)"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all outline-none" style="border-color: #dce5f0;" onfocus="this.style.borderColor='#4a7dbb'; this.style.boxShadow='0 0 0 3px rgba(74, 125, 187, 0.1)';" onblur="this.style.borderColor='#dce5f0'; this.style.boxShadow='none';">
+                    {% if form.name.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Asset Type -->
+                <div>
+                    <label for="{{ form.asset_type.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-boxes mr-2 text-blue-600"></i>
+                        {{ form.asset_type.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <select name="asset_type" id="{{ form.asset_type.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer" style="border-color: #dce5f0;">
+                        <option value="">Selecciona un tipo...</option>
+                        <option value="vehiculo" {% if form.asset_type.value == 'vehiculo' %}selected{% endif %}>🚗 Vehículo</option>
+                        <option value="equipo_electronico" {% if form.asset_type.value == 'equipo_electronico' %}selected{% endif %}>💻 Equipo Electrónico</option>
+                        <option value="maquinaria" {% if form.asset_type.value == 'maquinaria' %}selected{% endif %}>⚙️ Maquinaria</option>
+                        <option value="mobiliario" {% if form.asset_type.value == 'mobiliario' %}selected{% endif %}>🪑 Mobiliario</option>
+                        <option value="herramientas" {% if form.asset_type.value == 'herramientas' %}selected{% endif %}>🔧 Herramientas</option>
+                        <option value="inventario" {% if form.asset_type.value == 'inventario' %}selected{% endif %}>📦 Inventario</option>
+                        <option value="otros" {% if form.asset_type.value == 'otros' %}selected{% endif %}>📋 Otros</option>
+                    </select>
+                    {% if form.asset_type.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.asset_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Location -->
+                <div class="md:col-span-2">
+                    <label for="{{ form.location.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-geo-alt mr-2" style="color: #4a7dbb;"></i>
+                        {{ form.location.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="text" 
+                           name="location" 
+                           id="{{ form.location.id_for_label }}"
+                           value="{{ form.location.value|default:'' }}"
+                           placeholder="Ubicación física del bien (ej: Oficina 201, Almacén Principal)"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl transition-all outline-none" style="border-color: #dce5f0;" onfocus="this.style.borderColor='#4a7dbb'; this.style.boxShadow='0 0 0 3px rgba(74, 125, 187, 0.1)';" onblur="this.style.borderColor='#dce5f0'; this.style.boxShadow='none';">
+                    {% if form.location.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.location.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Condition Status -->
+                <div>
+                    <label for="{{ form.condition_status.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-check-circle mr-2 text-blue-600"></i>
+                        {{ form.condition_status.label }}
+                    </label>
+                    <select name="condition_status" id="{{ form.condition_status.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none bg-white cursor-pointer" style="border-color: #dce5f0;">
+                        <option value="">Selecciona un estado...</option>
+                        <option value="excelente" {% if form.condition_status.value == 'excelente' %}selected{% endif %}>✨ Excelente</option>
+                        <option value="bueno" {% if form.condition_status.value == 'bueno' %}selected{% endif %}>👍 Bueno</option>
+                        <option value="regular" {% if form.condition_status.value == 'regular' %}selected{% endif %}>⚠️ Regular</option>
+                        <option value="malo" {% if form.condition_status.value == 'malo' %}selected{% endif %}>❌ Malo</option>
+                        <option value="fuera_de_servicio" {% if form.condition_status.value == 'fuera_de_servicio' %}selected{% endif %}>🚫 Fuera de servicio</option>
+                    </select>
+                    {% if form.condition_status.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.condition_status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mt-6">
+                <label for="{{ form.description.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                    <i class="bi bi-file-text mr-2 text-blue-600"></i>
+                    {{ form.description.label }}
+                </label>
+                <textarea name="description" 
+                          id="{{ form.description.id_for_label }}"
+                          rows="3"
+                          placeholder="Describe el bien en detalle (características especiales, daños previos, etc.)..."
+                          class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all outline-none" style="border-color: #dce5f0;">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                <p class="text-red-600 text-sm mt-2">{{ form.description.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Specifications Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-purple-600 to-purple-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-gear mr-2"></i>
+                Especificaciones Técnicas (Opcional)
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Brand -->
+                <div>
+                    <label for="{{ form.brand.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-tag mr-2 text-purple-600"></i>
+                        {{ form.brand.label }}
+                    </label>
+                    <input type="text" 
+                           name="brand" 
+                           id="{{ form.brand.id_for_label }}"
+                           value="{{ form.brand.value|default:'' }}"
+                           placeholder="Ej: Dell, Toyota, Samsung"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none" style="border-color: #e9ecef;">
+                </div>
+
+                <!-- Model -->
+                <div>
+                    <label for="{{ form.model.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-diagram-3 mr-2 text-purple-600"></i>
+                        {{ form.model.label }}
+                    </label>
+                    <input type="text" 
+                           name="model" 
+                           id="{{ form.model.id_for_label }}"
+                           value="{{ form.model.value|default:'' }}"
+                           placeholder="Ej: XPS 13, Corolla 2023"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none" style="border-color: #e9ecef;">
+                </div>
+
+                <!-- Serial Number -->
+                <div>
+                    <label for="{{ form.serial_number.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-barcode mr-2 text-purple-600"></i>
+                        {{ form.serial_number.label }}
+                    </label>
+                    <input type="text" 
+                           name="serial_number" 
+                           id="{{ form.serial_number.id_for_label }}"
+                           value="{{ form.serial_number.value|default:'' }}"
+                           placeholder="Número de serie o placa"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring focus:ring-purple-200 transition-all outline-none" style="border-color: #e9ecef;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Information Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 p-6">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-cash-stack mr-2"></i>
+                Información Financiera
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Acquisition Date -->
+                <div>
+                    <label for="{{ form.acquisition_date.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-calendar-event mr-2 text-green-600"></i>
+                        {{ form.acquisition_date.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="date" 
+                           name="acquisition_date" 
+                           id="{{ form.acquisition_date.id_for_label }}"
+                           value="{{ form.acquisition_date.value|default:'' }}"
+                           class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none" style="border-color: #dce5f0;">
+                    {% if form.acquisition_date.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.acquisition_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Acquisition Cost -->
+                <div>
+                    <label for="{{ form.acquisition_cost.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-cash-coin mr-2 text-green-600"></i>
+                        {{ form.acquisition_cost.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-gray-500 font-bold">$</span>
+                        <input type="number" 
+                               name="acquisition_cost" 
+                               id="{{ form.acquisition_cost.id_for_label }}"
+                               value="{{ form.acquisition_cost.value|default:'' }}"
+                               placeholder="0.00"
+                               step="0.01"
+                               class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none" style="border-color: #dce5f0;">
+                    </div>
+                    {% if form.acquisition_cost.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.acquisition_cost.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Current Value -->
+                <div>
+                    <label for="{{ form.current_value.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                        <i class="bi bi-graph-up mr-2 text-green-600"></i>
+                        {{ form.current_value.label }}
+                        <span class="text-red-500 ml-1">*</span>
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-3 text-gray-500 font-bold">$</span>
+                        <input type="number" 
+                               name="current_value" 
+                               id="{{ form.current_value.id_for_label }}"
+                               value="{{ form.current_value.value|default:'' }}"
+                               placeholder="0.00"
+                               step="0.01"
+                               class="w-full pl-8 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring focus:ring-green-200 transition-all outline-none" style="border-color: #dce5f0;">
+                    </div>
+                    {% if form.current_value.errors %}
+                    <p class="text-red-600 text-sm mt-2">{{ form.current_value.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Insurance Info -->
+            <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                <p class="text-sm text-gray-700">
+                    <i class="bi bi-info-circle text-blue-600 mr-2"></i>
+                    <strong>Nota importante:</strong> El valor actual debe ser menor o igual al costo de adquisición.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insurance Section -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r p-6" style="background: linear-gradient(to right, #f59e0b 0%, #d97706 100%);">
+            <h2 class="text-white font-bold text-xl flex items-center">
+                <i class="bi bi-shield-check mr-2"></i>
+                Información de Seguro (Opcional)
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="mb-6">
+                <label class="flex items-center cursor-pointer">
+                    <input type="checkbox" 
+                           name="is_insured" 
+                           id="{{ form.is_insured.id_for_label }}"
+                           onchange="toggleInsurancePolicy()"
+                           {% if form.is_insured.value %}checked{% endif %}
+                           class="w-5 h-5 rounded focus:ring-2 focus:ring-orange-200 cursor-pointer" style="accent-color: #f59e0b;">
+                    <span class="ml-3 text-gray-700 font-semibold flex items-center">
+                        <i class="bi bi-shield-check mr-2" style="color: #f59e0b;"></i>
+                        {{ form.is_insured.label }}
+                    </span>
+                </label>
+                {% if form.is_insured.help_text %}
+                <p class="text-sm text-gray-600 ml-8 mt-1">{{ form.is_insured.help_text|safe }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Insurance Policy -->
+            <div id="insurance-policy-section" style="{% if not form.is_insured.value %}display: none;{% endif %}">
+                <label for="{{ form.insurance_policy.id_for_label }}" class="block text-gray-700 font-semibold mb-2 flex items-center">
+                    <i class="bi bi-file-earmark-check mr-2" style="color: #f59e0b;"></i>
+                    {{ form.insurance_policy.label }}
+                </label>
+                <select name="insurance_policy" id="{{ form.insurance_policy.id_for_label }}" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring focus:ring-orange-200 transition-all outline-none bg-white cursor-pointer" style="border-color: #fed7aa;">
+                    <option value="">Selecciona una póliza de seguro...</option>
+                    {% for policy in form.insurance_policy.field.queryset %}
+                    <option value="{{ policy.id }}" {% if form.insurance_policy.value == policy.id|stringformat:'s' %}selected{% endif %}>{{ policy.policy_number }} - {{ policy.responsible_user.get_full_name }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.insurance_policy.errors %}
+                <p class="text-red-600 text-sm mt-2">{{ form.insurance_policy.errors.0 }}</p>
+                {% endif %}
+                {% if form.insurance_policy.help_text %}
+                <p class="text-sm text-gray-600 mt-2">{{ form.insurance_policy.help_text|safe }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+    <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-6">
+        <h3 class="text-red-700 font-bold mb-2 flex items-center">
+            <i class="bi bi-exclamation-triangle mr-2"></i>
+            Errores en el Formulario
+        </h3>
+        <ul class="space-y-1">
+            {% for error in form.non_field_errors %}
+            <li class="text-red-600">{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Info Box -->
+    <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+        <h3 class="text-blue-700 font-bold mb-3 flex items-center">
+            <i class="bi bi-lightbulb mr-2"></i>
+            ¿Cómo funciona?
+        </h3>
+        <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start">
+                <i class="bi bi-check-circle text-green-600 mr-2 mt-0.5"></i>
+                <span>Se te asignará automáticamente como custodio del bien</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check-circle text-green-600 mr-2 mt-0.5"></i>
+                <span>Se generará un código único para identificar tu activo</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check-circle text-green-600 mr-2 mt-0.5"></i>
+                <span>Podrás reportar siniestros relacionados a este bien</span>
+            </li>
+            <li class="flex items-start">
+                <i class="bi bi-check-circle text-green-600 mr-2 mt-0.5"></i>
+                <span>Los campos marcados con * son obligatorios</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="flex gap-4 pb-8">
+        <button type="submit" class="flex-1 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center" style="background: linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%);" onmouseover="this.style.background='linear-gradient(to right, #2e5a8f 0%, #1f3d5f 100%)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.background='linear-gradient(to right, #4a7dbb 0%, #2e5a8f 100%)'; this.style.transform='translateY(0)';">
+            <i class="bi bi-check-circle mr-2"></i>
+            Registrar Bien
+        </button>
+        <a href="{% url 'assets:asset_list' %}" class="flex-1 bg-gray-200 text-gray-700 font-bold py-4 px-6 rounded-xl hover:bg-gray-300 transition-all duration-300 flex items-center justify-center">
+            <i class="bi bi-x-circle mr-2"></i>
+            Cancelar
+        </a>
+    </div>
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleInsurancePolicy() {
+    const checkbox = document.getElementById('{{ form.is_insured.id_for_label }}');
+    const policySection = document.getElementById('insurance-policy-section');
+    if (checkbox.checked) {
+        policySection.style.display = 'block';
+    } else {
+        policySection.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission with loading
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            showLoading();
+        });
+    }
+
+    // Show success notification if asset was saved
+    {% if messages %}
+    {% for message in messages %}
+    showNotification('{{ message|escapejs }}', '{{ message.tags }}');
+    {% endfor %}
+    {% endif %}
+});
+</script>
+{% endblock %}

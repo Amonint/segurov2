@@ -52,11 +52,25 @@ jobs:
 
   test:
     runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: seguros_db_test
+          POSTGRES_USER: seguros_user
+          POSTGRES_PASSWORD: seguros_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U seguros_user -d seguros_db_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     env:
       DB_NAME: seguros_db_test
       DB_USER: seguros_user
       DB_PASSWORD: seguros_pass
-      DB_HOST: postgres
+      DB_HOST: localhost
       DB_PORT: 5432
       SECRET_KEY: "test-secret-key-for-ci"
       DEBUG: "True"

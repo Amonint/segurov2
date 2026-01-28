@@ -6,10 +6,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+import uuid
 from audit.models import AuditLog
 
 from .forms import (
     AssetClaimReportForm,
+    AssetClientForm,
     AssetCustodianChangeForm,
     AssetForm,
     AssetSearchForm,
@@ -185,6 +187,90 @@ def asset_create(request):
             "form": form,
             "title": _("Crear Nuevo Activo"),
             "submit_text": _("Crear Activo"),
+        },
+    )
+
+
+@login_required
+def asset_create_client(request):
+    """Create new asset for requesters (clients) - simplified version"""
+    # Only allow requesters to use this view
+    if request.user.role != "requester":
+        messages.error(
+            request, _("Solo los custodios de bienes pueden crear activos por este método.")
+        )
+        return redirect("assets:asset_list")
+
+    if request.method == "POST":
+        form = AssetClientForm(request.POST, user=request.user)
+        if form.is_valid():
+            asset = form.save(commit=False)
+
+            # Auto-generate asset code
+            # Format: USER_INITIALS-TIMESTAMP (e.g., JD-20240127-001)
+            user_initials = (
+                request.user.first_name[0] + request.user.last_name[0]
+            ).upper() if request.user.first_name and request.user.last_name else request.user.username[:2].upper()
+            timestamp = timezone.now().strftime("%Y%m%d")
+            random_suffix = str(uuid.uuid4().int)[:3]
+            asset_code = f"{user_initials}-{timestamp}-{random_suffix}"
+
+            # Ensure unique asset code
+            counter = 1
+            original_code = asset_code
+            while Asset.objects.filter(asset_code=asset_code).exists():
+                asset_code = f"{original_code}-{counter}"
+                counter += 1
+
+            asset.asset_code = asset_code
+            # Set the logged-in user as custodian and responsible user
+            asset.custodian = request.user
+            asset.responsible_user = request.user
+
+            asset.save()
+
+            # Log the action
+            try:
+                AuditLog.log_action(
+                    user=request.user,
+                    action_type="create",
+                    entity_type="asset",
+                    entity_id=str(asset.id),
+                    description=f"Activo creado por custodio: {asset.asset_code} - {asset.name}",
+                    new_values={
+                        "asset_code": asset.asset_code,
+                        "name": asset.name,
+                        "asset_type": asset.asset_type,
+                        "acquisition_cost": str(asset.acquisition_cost),
+                        "is_insured": asset.is_insured,
+                        "custodian": request.user.get_full_name(),
+                    },
+                )
+            except Exception:
+                # Silently fail audit log if there's an error
+                pass
+
+            messages.success(
+                request,
+                _(f"Bien registrado exitosamente con código {asset.asset_code}."),
+            )
+            return redirect("assets:asset_detail", pk=asset.pk)
+        else:
+            # Form has validation errors
+            messages.error(
+                request, _("Por favor corrija los errores en el formulario.")
+            )
+    else:
+        form = AssetClientForm(user=request.user)
+
+    return render(
+        request,
+        "assets/asset_form_client.html",
+        {
+            "form": form,
+            "title": _("Registrar Nuevo Bien"),
+            "submit_text": _("Registrar Bien"),
+            "is_client_form": True,
         },
     )
 
@@ -412,7 +498,7 @@ def asset_report_claim(request, pk):
             claim.asset = asset
             claim.reportante = request.user
             claim.reported_by = request.user
-            claim.status = "reportado"
+            claim.status = "pendiente"
 
             # Auto-fill broker and insurance company for notifications
             if asset.insurance_policy:

@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("claims", "0004_claimtimeline_notes"),
         ("claims", "0006_add_blank_to_settlement_created_by"),
     ]
 

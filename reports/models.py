@@ -178,13 +178,35 @@ class Report(models.Model):
                 or 0
             )
 
+            # Map status codes to human-readable labels using Claim.STATUS_CHOICES
+            status_label_map = {k: v for k, v in Claim.STATUS_CHOICES}
+            claims_by_status_list = []
+            for s in claims_by_status:
+                code = s.get("status")
+                claims_by_status_list.append(
+                    {
+                        "status": code,
+                        "label": status_label_map.get(code, code),
+                        "count": s.get("count", 0),
+                    }
+                )
+
             data["data"] = {
                 "total_claims": total_claims,
                 "open_claims": open_claims,
                 "closed_claims": closed_claims,
                 "paid_claims": paid_claims,
-                "claims_by_status": list(claims_by_status),
-                "claims_by_cause": list(claims_by_cause),
+                "claims_by_status": claims_by_status_list,
+                # Ensure incident_description is a plain string for template rendering
+                "claims_by_cause": [
+                    {
+                        "incident_description": (c.get("incident_description")
+                                                 if c.get("incident_description")
+                                                 else "Sin descripción"),
+                        "count": c.get("count", 0),
+                    }
+                    for c in list(claims_by_cause)
+                ],
                 "total_paid_amount": total_paid_amount,
             }
 

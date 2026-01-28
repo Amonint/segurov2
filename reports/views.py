@@ -356,9 +356,69 @@ def quick_report(request):
 
             except Exception as e:
                 messages.error(request, f"Error al generar el reporte: {str(e)}")
-    else:
-        form = QuickReportForm()
+    elif request.method == "GET" and request.GET.get("report_type"):
+        # Handle direct GET request with report_type parameter
+        report_type = request.GET.get("report_type")
+        export_format = request.GET.get("export_format", "html")  # Default to html
 
+        # Validate report_type
+        valid_types = [choice[0] for choice in Report.REPORT_TYPES]
+        if report_type not in valid_types:
+            messages.error(request, f"Tipo de reporte inválido: {report_type}")
+            return redirect("reports:quick_report")
+
+        # Create temporary report object
+        temp_report = Report(
+            name=f"Reporte Rápido - {dict(Report.REPORT_TYPES)[report_type]}",
+            report_type=report_type,
+            created_by=request.user,
+        )
+
+        # Set default filters or from GET params
+        filters = {}
+        date_range = request.GET.get("date_range")
+        if date_range:
+            filters["date_range"] = date_range
+
+        temp_report.filters = filters
+
+        try:
+            # Generate report data
+            report_data = temp_report.get_report_data()
+
+            # Log the action
+            AuditLog.log_action(
+                user=request.user,
+                action_type="export",
+                entity_type="report",
+                entity_id="0",  # Temporary report
+                description=f"Reporte rápido generado: {dict(Report.REPORT_TYPES)[report_type]} ({export_format})",
+            )
+
+            # Handle export formats
+            if export_format == "html":
+                return render(
+                    request,
+                    "reports/quick_report_view.html",
+                    {
+                        "report_type": report_type,
+                        "report_data": report_data,
+                        "generated_at": timezone.now(),
+                    },
+                )
+            elif export_format == "pdf":
+                return generate_pdf_report(request, temp_report, report_data)
+            elif export_format == "excel":
+                return generate_excel_report(request, temp_report, report_data)
+            elif export_format == "csv":
+                return generate_csv_report(request, temp_report, report_data)
+
+        except Exception as e:
+            messages.error(request, f"Error al generar el reporte: {str(e)}")
+            return redirect("reports:quick_report")
+
+    # Show form for GET without parameters or invalid cases
+    form = QuickReportForm()
     return render(
         request,
         "reports/quick_report.html",

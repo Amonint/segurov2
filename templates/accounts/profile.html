@@ -291,7 +291,7 @@
         // Show success notification if profile was updated
         {% if messages %}
         {% for message in messages %}
-        showNotification('{{ message }}', '{{ message.tags }}');
+        showNotification('{{ message|escapejs }}', '{{ message.tags }}');
         {% endfor %}
         {% endif %}
     });

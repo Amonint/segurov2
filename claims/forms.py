@@ -91,7 +91,7 @@ class ClaimEditForm(forms.ModelForm):
             from policies.models import Policy
 
             self.fields["policy"].queryset = Policy.objects.filter(
-                assets__custodian=self.user
+                insured_assets__custodian=self.user
             ).distinct()
 
     def clean(self):

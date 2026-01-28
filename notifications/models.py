@@ -47,6 +47,7 @@ class Notification(models.Model):
     message = models.TextField(_("Mensaje"))
     link = models.URLField(_("Enlace"), blank=True)
     is_read = models.BooleanField(_("¿Leída?"), default=False)
+    read_at = models.DateTimeField(_("Fecha de lectura"), null=True, blank=True)
     priority = models.CharField(
         _("Prioridad"), max_length=10, choices=PRIORITY_CHOICES, default="normal"
     )
@@ -70,6 +71,7 @@ class Notification(models.Model):
         """
         if not self.is_read:
             self.is_read = True
+            self.read_at = timezone.now()
             self.save()
 
     @staticmethod

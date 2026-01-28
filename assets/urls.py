@@ -8,6 +8,7 @@ urlpatterns = [
     # Asset management
     path("", views.asset_list, name="asset_list"),
     path("create/", views.asset_create, name="asset_create"),
+    path("create-client/", views.asset_create_client, name="asset_create_client"),
     path("<int:pk>/", views.asset_detail, name="asset_detail"),
     path(
         "<int:pk>/report-claim/", views.asset_report_claim, name="asset_report_claim"

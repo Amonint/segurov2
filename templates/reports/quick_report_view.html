@@ -146,8 +146,7 @@
                 </div>
                 <div class="bg-purple-50 p-4 rounded-lg text-center">
                     <p class="text-sm text-purple-600">Total Pagado</p>
-                    <p class="text-2xl font-bold text-purple-800 font-mono">${{
-                        report_data.data.total_paid_amount|intcomma }}</p>
+                    <p class="text-2xl font-bold text-purple-800 font-mono">${{ report_data.data.total_paid_amount|intcomma }}</p>
                 </div>
             </div>
 
@@ -157,9 +156,8 @@
                     <ul class="divide-y divide-gray-100 bg-gray-50 rounded-lg p-2">
                         {% for status in report_data.data.claims_by_status %}
                         <li class="flex justify-between py-2 px-3">
-                            <span class="capitalize">{{ status.status }}</span>
-                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{
-                                status.count }}</span>
+                            <span class="font-medium text-gray-700">{{ status.label }}</span>
+                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{ status.count }}</span>
                         </li>
                         {% empty %}
                         <li class="p-3 text-center text-gray-500 text-sm">No hay datos disponibles</li>
@@ -171,10 +169,8 @@
                     <ul class="divide-y divide-gray-100 bg-gray-50 rounded-lg p-2">
                         {% for cause in report_data.data.claims_by_cause %}
                         <li class="flex justify-between py-2 px-3">
-                            <span class="truncate pr-4">{{ cause.incident_description|default:"Sin descripción"
-                                }}</span>
-                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{
-                                cause.count }}</span>
+                            <span class="truncate pr-4">{{ cause.incident_description|default:"Sin descripción"|escape }}</span>
+                            <span class="font-bold bg-white px-2 py-0.5 rounded-full text-xs border border-gray-200">{{ cause.count }}</span>
                         </li>
                         {% empty %}
                         <li class="p-3 text-center text-gray-500 text-sm">No hay datos disponibles</li>
